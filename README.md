@@ -1,0 +1,2 @@
+# Epidemicon
+Disease spread simulation
