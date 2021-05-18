@@ -1,3 +1,5 @@
+from .Coordinate import Coordinate
+
 class Node():    
     """
     [Class] Node
@@ -5,8 +7,7 @@ class Node():
     
     Properties:
         - osmId : Open Street Map ID.
-        - lat : Latitude of this cell.
-        - lon : Longitude of this cell.
+        - coordinate : coordinate 
         - isRoad : Boolean to mark whether this Node is a part of a road.
         - connection : List of all connected node.
         - ways : A dictionary of Open Street Map Ways.
@@ -19,8 +20,7 @@ class Node():
         Initialize an empty node.
         """
         self.osmId = ""
-        self.lat = 0.0
-        self.lon = 0.0
+        self.coordinate = Coordinate(0.0,0.0)
         self.isRoad = False
         self.connections = []
         self.ways = {}
@@ -31,8 +31,7 @@ class Node():
         [Method]fill        
         Fill up several property of this object, such as:
             - osmId
-            - lat
-            - lon
+            - coordinate
             - isRoad
             - tags
         
@@ -40,8 +39,7 @@ class Node():
             - osmNode = osmium library node.
         """
         self.osmId = f"{osmNode.id}"
-        self.lat = osmNode.location.lat
-        self.lon = osmNode.location.lon
+        self.coordinate = Coordinate(osmNode.location.lat,osmNode.location.lon)
         for tag in osmNode.tags:
             self.tags[tag.k] = tag.v
         if 'highway' in self.tags.keys():
@@ -75,17 +73,8 @@ class Node():
         
         Return: [string] String of summarized map Information.
         """
-        tempstring = f"id: {self.osmId}\nlat = {self.lat} lon = {self.lon} \nnumber of ways : {self.ways.__len__()}\nnumber of connections : {self.connections.__len__()}\nTags : \n"
+        tempstring = f"id: {self.osmId}\nlat = {self.coordinate.lat} lon = {self.coordinate.lon} \nnumber of ways : {self.ways.__len__()}\nnumber of connections : {self.connections.__len__()}\nTags : \n"
         for key in self.tags.keys():
             tempstring = tempstring + f"\t{key} : {self.tags[key]}\n"
         tempstring = tempstring + "\n"
         return tempstring
-    
-    def getPosition(self):
-        """
-        [Method] getPosition
-        generate a tuple of longitude and lat in that order.
-        
-        Return = (lon,lat)
-        """
-        return (self.lon,self.lat)

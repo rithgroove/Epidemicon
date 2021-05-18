@@ -16,7 +16,7 @@ class Grid():
     def __init__(self,minlat,minlon,latDistance,lonDistance):
         """
         [Constructor]
-        Initialize an empty node.
+        Initialize an new grid.
         """
         self.minlat = minlat
         self.minlon = minlon

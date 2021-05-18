@@ -8,8 +8,8 @@ class Road:
     Properties:
         - name : road name.
         - start : starting node.
-        - destination : destination node.
-        - distance : road length
+        - destination : [Coordinate] destination node.
+        - distance : [Coordinate] road length
     """
     def __init__(self,origin, dest):
         """
@@ -17,38 +17,20 @@ class Road:
         Initialize road.
         
         Parameter:
-            - origin = starting node
-            - dest = destination node
+            - origin = [Coordinate] starting node
+            - dest = [Coordinate] destination node
         """
         self.name,self.start,self.destination = genName(origin,dest)
-        self.length = distance.distance(self.start.getPosition(), self.destination.getPosition()).km * 1000
+        self.length = distance.distance(self.start.getLonLat(), self.destination.getLonLat()).km * 1000
         
     def getPath(self):
         """
         [Method] getPath
         Get a tuple of starting location and destination
                 
-        return: Tuple of 4 value (start.lon,start.lat, destination.lon,destination.lat)
+        return: Tuple of 2 coordinate start,destination)
         """
-        return (self.start.lon, self.start.lat, self.destination.lon,self.destination.lat)
-        
-    def getStartingCoordinate(self):
-        """
-        [Method] getStartingCoordinate
-        Get a tuple of the starting longitude and latitude
-                
-        return: Tuple of 2 value (start.lon,start.lat)
-        """
-        return (self.start.lon, self.start.lat)
-    
-    def getDestinationCoordinate(self):
-        """
-        [Method] getDestinationCoordinate
-        Get a tuple of the destination longitude and latitude
-                
-        return: Tuple of 2 value (destination.lon,destination.lat)
-        """
-        return (self.destination.lon,self.destination.lat)
+        return (self.start, self.destination)        
     
     def getVector(self):
         """
