@@ -13,22 +13,28 @@ class Building:
         self.way = way
         lat,lon = 0,0
         for i in range(0,way.nodes.__len__()-1):
-            lat += way.nodes[i].lat
-            lon += way.nodes[i].lon
-        lat = self.lat/(way.nodes.__len__()-1)
-        lon = self.lon/(way.nodes.__len__()-1)
+            lat += way.nodes[i].coordinate.lat
+            lon += way.nodes[i].coordinate.lon
+        lat = lat/(way.nodes.__len__()-1)
+        lon = lon/(way.nodes.__len__()-1)
         self.coordinate = Coordinate(lat,lon)
         #self.closestCell = None
-    
-    def getVector(self):
-        return (self.destination.lat - self.start.lat, self.destination.lon - self.start.lon)
-    
+        #self.osmId = way.osmId
+        self.tags = way.tags
+        
     def __str__(self):
         """
         [Method] __str__        
         return a string that summarized the road
         """
-        temp = f"({self.start.lat},{self.start.lon}) to ({self.destination.lat},{self.destination.lon}) - {self.length}"
+        tempstring = f"[Building]\n"
+        tempstring = tempstring + f"id: {self.way.osmId}\n"
+        tempstring = tempstring + f"number of nodes : {self.way.nodes.__len__()}\n"
+        tempstring = tempstring + f"Tags : \n"
+        for key in self.tags.keys():
+            tempstring = tempstring + f"\t{key} : {self.tags[key]}\n"
+        tempstring = tempstring + "\n"
+        return tempstring
         return temp
     
     def getPosition(self):

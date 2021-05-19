@@ -21,7 +21,7 @@ class Road:
             - dest = [Coordinate] destination node
         """
         self.name,self.start,self.destination = genName(origin,dest)
-        self.length = distance.distance(self.start.getLonLat(), self.destination.getLonLat()).km * 1000
+        self.length = self.start.calculateDistance(dest)
         
     def getPath(self):
         """
@@ -46,8 +46,8 @@ class Road:
         [Method] __str__        
         return a string that summarized the road
         """
-        temp = f"staring = (lat = {self.start.lat}, lon = {self.start.lon})\n"
-        temp = temp + f"destination = (lat = {self.destination.lat}, lon = {self.destination.lon})= 
+        temp = f"staring = (lat = {self.start.coordinate.lat}, lon = {self.start.coordinate.lon})\n"
+        temp = temp + f"destination = (lat = {self.destination.coordinate.lat}, lon = {self.destination.coordinate.lon})\n"
         temp = temp + f"distance = {self.length/1000}km" 
         return temp
     

@@ -28,7 +28,7 @@ class Way():
         
         Parameter:
             - osmWay = osmium way node.
-            - nodes = list of Namazu Nodes.
+            - nodes = list to fill our version of Nodes.
         """
         self.osmId = f"{osmWay.id}"
 
@@ -50,7 +50,9 @@ class Way():
         
         Return: [string] String of summarizedway information.
         """
-        tempstring = f"id: {self.osmId}\nnumber of nodes : {self.nodes.__len__()}\nTags : \n"
+        tempstring = f"id: {self.osmId}\n"
+        tempstring = tempstring + f"number of nodes : {self.nodes.__len__()}\n"
+        tempstring = tempstring + f"Tags : \n"
         for key in self.tags.keys():
             tempstring = tempstring + f"\t{key} : {self.tags[key]}\n"
         tempstring = tempstring + "\n"

@@ -82,3 +82,13 @@ class Node():
             tempstring = tempstring + f"\t{key} : {self.tags[key]}\n"
         tempstring = tempstring + "\n"
         return tempstring
+    
+    def calculateDistance(self,targetNode):
+        """
+        [Method] calculateDistance
+        calculateDistance to other nodes
+        
+        Return: [Double] Distance in KM
+        """
+        return self.coordinate.calculateDistance(targetNode.coordinate)
+        

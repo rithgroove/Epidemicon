@@ -75,3 +75,27 @@ class Coordinate():
         temp = Coordinate(lat,lon)
         temp.lat += lat
         temp.lon += lon
+       
+    def calculateDistance(self,targetCoordinate):
+        """
+        [Method] calculateDistance
+        calculateDistance to other coordinate
+        
+        Parameter:
+            - targetCoordinate : [Coordinate] target Coordinate.
+            
+        Return: [Double] Distance in KM
+        """
+        return distance.distance(self.getLatLon(), targetCoordinate.getLatLon()).km * 1000
+    
+    def getVectorDistance(self,targetCoordinate):
+        """
+        [Method] getVectorDistance
+        Get distance in vector format. (Will be returned in coordinate object for ease of use)
+        
+        Parameter:
+            - targetCoordinate : [Coordinate] target Coordinate.
+        
+        Return: [Coordinate] distance in vector format
+        """
+        return Coordinate(self.lat - targetCoordinate.lat, self.lon - targetCoordinate.lon)
