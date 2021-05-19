@@ -17,8 +17,8 @@ class Coordinate():
         Initialize an empty node.
 
         Parameter:
-            - lat : latitude.
-            - lon : longitude.
+            - lat : [Double]latitude.
+            - lon : [Double]longitude.
         """
         self.lat = lat
         self.lon = lon
@@ -28,7 +28,7 @@ class Coordinate():
         [Method] getLatLon
         return a tuple of lat and lon in that order. (usefull for printing strings)
         
-        Return:[(float,float)](lat,lon)
+        Return:[(Double,Double)](lat,lon)
         """
         return (self.lat,self.lon)
     
@@ -37,10 +37,21 @@ class Coordinate():
         [Method] getLatLon
         return a tuple of lat and lon in that order. (usefull for printing strings)
         
-        Return:[(float,float)](lon,lat)
+        Return:[(Double,Double)](lon,lat)
         """
         return (self.lon,self.lat)
-    
+
+    def translate(self,lat =0,lon = 0):
+        """
+        [Method] translate
+        translate/move this coordinate
+
+        Parameter:
+            - lat : [Double] latitude translation.
+            - lon : [Double] longitude translation.
+        """
+        self.lat += lat
+        self.lon += lon
     
     def __str__(self):
         """
@@ -51,3 +62,16 @@ class Coordinate():
         """
         tempstring = f"Coordinate (lat = {self.lat}, lon = {self.lon}"
         return tempstring
+    
+    def newCoordinateWithTranlation(self,lat =0,lon = 0):
+        """
+        [Method] newCoordinateWithTranlation
+        create a new coordinate and apply a translation from this coordinate
+
+        Parameter:
+            - lat : [Double] latitude translation.
+            - lon : [Double] longitude translation.
+        """
+        temp = Coordinate(lat,lon)
+        temp.lat += lat
+        temp.lon += lon

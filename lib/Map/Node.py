@@ -36,7 +36,7 @@ class Node():
             - tags
         
         Parameter:
-            - osmNode = osmium library node.
+            - osmNode = List of osmium library node.
         """
         self.osmId = f"{osmNode.id}"
         self.coordinate = Coordinate(osmNode.location.lat,osmNode.location.lon)
@@ -51,7 +51,7 @@ class Node():
         Add an Open Street Map Way into the ways property.
         
         Parameter:
-            - way = Namazu Way (not osmium "Way", osmium "Way" is deleted after the loop).
+            - way = [Way] the way (not osmium "Way", osmium "Way" is deleted after the loop).
         """
         self.ways[way.osmId] = way
         
@@ -62,7 +62,7 @@ class Node():
         Add a node that is connected to this node.
         
         Parameter:
-            - connection = Namazu Node.
+            - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
         """
         self.connections.append(connection)
             
@@ -73,7 +73,11 @@ class Node():
         
         Return: [string] String of summarized map Information.
         """
-        tempstring = f"id: {self.osmId}\nlat = {self.coordinate.lat} lon = {self.coordinate.lon} \nnumber of ways : {self.ways.__len__()}\nnumber of connections : {self.connections.__len__()}\nTags : \n"
+        tempstring = f"id: {self.osmId}\n"
+        tempstring = tempstring + f"lat = {self.coordinate.lat} lon = {self.coordinate.lon}\n"
+        tempstring = tempstring + f"number of ways : {self.ways.__len__()}\n"
+        tempstring = tempstring + f"number of connections : {self.connections.__len__()}\n"
+        tempstring = tempstring + f"Tags : \n"        
         for key in self.tags.keys():
             tempstring = tempstring + f"\t{key} : {self.tags[key]}\n"
         tempstring = tempstring + "\n"
