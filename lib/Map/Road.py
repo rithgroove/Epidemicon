@@ -31,6 +31,15 @@ class Road:
         return: Tuple of 2 coordinate start,destination)
         """
         return (self.start, self.destination)        
+        
+    def getPathForRendering(self):
+        """
+        [Method] getPath
+        Get a tuple of starting location and destination
+                
+        return: Tuple of 2 coordinate start,destination)
+        """
+        return (self.start.coordinate.lon,self.start.coordinate.lat, self.destination.coordinate.lon, self.destination.coordinate.lat)        
     
     def getVector(self):
         """

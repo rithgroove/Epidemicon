@@ -93,8 +93,8 @@ def draw():
     for temp in osmMap.amenities:
         path = []
         for node in temp.nodes:
-            x = (node.lon - canvasOrigin[0]) * scale +viewPort[0]
-            y = (canvasSize[1]-( node.lat - canvasOrigin[1])) * scale + viewPort[1]
+            x = (node.coordinate.lon - canvasOrigin[0]) * scale +viewPort[0]
+            y = (canvasSize[1]-( node.coordinate.lat - canvasOrigin[1])) * scale + viewPort[1]
             path.append(x)
             path.append(y)
         if (path.__len__() > 6):
@@ -152,8 +152,8 @@ def draw():
     for temp in osmMap.leisures:
         path = []
         for node in temp.nodes:
-            x = (node.lon - canvasOrigin[0]) * scale +viewPort[0]
-            y = (canvasSize[1]-( node.lat - canvasOrigin[1])) * scale + viewPort[1]
+            x = (node.coordinate.lon - canvasOrigin[0]) * scale +viewPort[0]
+            y = (canvasSize[1]-( node.coordinate.lat - canvasOrigin[1])) * scale + viewPort[1]
             path.append(x)
             path.append(y)
         if (path.__len__() > 6):
@@ -178,8 +178,8 @@ def draw():
     for temp in osmMap.naturals:
         path = []
         for node in temp.nodes:
-            x = (node.lon - canvasOrigin[0]) * scale +viewPort[0]
-            y = (canvasSize[1]-( node.lat - canvasOrigin[1])) * scale + viewPort[1]
+            x = (node.coordinate.lon - canvasOrigin[0]) * scale +viewPort[0]
+            y = (canvasSize[1]-( node.coordinate.lat - canvasOrigin[1])) * scale + viewPort[1]
             path.append(x)
             path.append(y)
         if (path.__len__() > 6):
@@ -207,15 +207,15 @@ def draw():
     for temp in osmMap.buildings:
         path = []     
         for node in temp.way.nodes:
-            x = (node.lon - canvasOrigin[0]) * scale +viewPort[0]
-            y = (canvasSize[1]-( node.lat - canvasOrigin[1])) * scale + viewPort[1]
+            x = (node.coordinate.lon - canvasOrigin[0]) * scale +viewPort[0]
+            y = (canvasSize[1]-( node.coordinate.lat - canvasOrigin[1])) * scale + viewPort[1]
             path.append(x)
             path.append(y)
-        if (temp.closestCell is not None):
-            drawLine(temp.closestCell.lon,temp.closestCell.lat, temp.lon, temp.lat, '#000000')
+        #if (temp.closestCell is not None):
+        #    drawLine(temp.closestCell.lon,temp.closestCell.lat, temp.lon, temp.lat, '#000000')
         if (path.__len__() > 6): #at least a triangle if not don't render
             canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
-            drawCircle(temp.lon,temp.lat,3, "#FF0000")   
+            drawCircle(temp.coordinate.lon,temp.coordinate.lat,3, "#FF0000")   
             
     for temp in osmMap.roads:
         data = temp.getPathForRendering()
@@ -228,7 +228,7 @@ def draw():
         canvas.create_line(x,y,x1,y1)
         
     for temp in osmMap.roadNodes:
-        drawCircle(temp.lon,temp.lat,1, "#476042")        
+        drawCircle(temp.coordinate.lon,temp.coordinate.lat,1, "#476042")        
             
 def drawPath(path):
     prev = None
@@ -304,9 +304,9 @@ def render(map,simulation = None, path = None):
     global sim
     sim = simulation
     osmMap = map
-    canvasOrigin = (float(osmMap.minlon),float(osmMap.minlat))
-    canvasMax = (float(osmMap.maxlon),float(osmMap.maxlat))
-    canvasSize = (float(osmMap.maxlon)-float(osmMap.minlon),float(osmMap.maxlat)-float(osmMap.minlat))
+    canvasOrigin = osmMap.origin.getLonLat()
+    canvasMax = osmMap.end.getLonLat()
+    canvasSize = osmMap.end.getVectorDistance(osmMap.origin).getLonLat()
     scale = 100000
     windowSize = (1024,768)
     viewPort = (0,0)
