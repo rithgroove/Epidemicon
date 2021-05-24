@@ -211,11 +211,12 @@ def draw():
             y = (canvasSize[1]-( node.coordinate.lat - canvasOrigin[1])) * scale + viewPort[1]
             path.append(x)
             path.append(y)
-        #if (temp.closestCell is not None):
-        #    drawLine(temp.closestCell.lon,temp.closestCell.lat, temp.lon, temp.lat, '#000000')
         if (path.__len__() > 6): #at least a triangle if not don't render
             canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
             drawCircle(temp.coordinate.lon,temp.coordinate.lat,3, "#FF0000")   
+        if (temp.entryPoint is not None):
+            print("rendering entry Point")
+            drawLine(temp.entryPoint.lon,temp.entryPoint.lat, temp.coordinate.lon, temp.coordinate.lat, '#000000')
             
     for temp in osmMap.roads:
         data = temp.getPathForRendering()
@@ -228,8 +229,16 @@ def draw():
         canvas.create_line(x,y,x1,y1)
         
     for temp in osmMap.roadNodes:
-        drawCircle(temp.coordinate.lon,temp.coordinate.lat,1, "#476042")        
-            
+        drawCircle(temp.coordinate.lon,temp.coordinate.lat,1, "#476042")  
+        
+    lat = osmMap.origin.lat    
+    for i in range(0,osmMap.gridSize[1]):
+        drawLine(osmMap.origin.lon, lat, osmMap.end.lon,lat, "#AA0000")  
+        lat += osmMap.distanceLat 
+    lon = osmMap.origin.lon
+    for j in range(0,osmMap.gridSize[0]):
+        drawLine(lon, osmMap.origin.lat, lon,osmMap.end.lat, "#AA0000")  
+        lon += osmMap.distanceLon 
 def drawPath(path):
     prev = None
     for temp in path:
@@ -283,13 +292,13 @@ def drawCircle(lon,lat,radius, color, name = None):
         circle = canvas.create_oval(x-radius, y-radius, x+radius, y+radius, fill=color,tag = name)
     return circle
 
-def drawLine(originLon,originLat, destinationLon, destinationLat, color, name = None):
+def drawLine(originLon,originLat, destinationLon, destinationLat, color, width = 1.0, name = None):
     x =  (originLon - canvasOrigin[0]) * scale +viewPort[0]
     y = (canvasSize[1]-(originLat- canvasOrigin[1])) * scale + viewPort[1]
     #drawCircle(temp.lon,temp.lat,1, "#476042")
     x1 = (destinationLon- canvasOrigin[0]) * scale +viewPort[0]
     y1 = (canvasSize[1]-(destinationLat- canvasOrigin[1])) * scale + viewPort[1]
-    line = canvas.create_line(x,y,x1,y1)    
+    line = canvas.create_line(x,y,x1,y1,width = width,fill=color)    
     return line
 
 def render(map,simulation = None, path = None):

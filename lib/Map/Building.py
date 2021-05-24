@@ -2,8 +2,8 @@ import geopy.distance as distance
 from .Coordinate import Coordinate
 class Building:
     """
-    [Class] Map
-    A class to represent the map
+    [Class] Building
+    A class to represent the Building
     
     Properties:
         - way: List of nodes that defines the shape of the building.
@@ -18,8 +18,8 @@ class Building:
         lat = lat/(way.nodes.__len__()-1)
         lon = lon/(way.nodes.__len__()-1)
         self.coordinate = Coordinate(lat,lon)
-        #self.closestCell = None
-        #self.osmId = way.osmId
+        self.closestRoad = None
+        self.entryPoint = None
         self.tags = way.tags
         
     def __str__(self):
@@ -38,10 +38,10 @@ class Building:
         return temp
     
     def getPosition(self):
-            """
-            [Method]getPosition
-            get the latitude and longitude of the cell
+        """
+        [Method]getPosition
+        get the latitude and longitude of the cell
 
-            Return : (lat,lon)
-            """
-            return (self.lat,self.lon);
+        Return : (lat,lon)
+        """
+        return (self.lat,self.lon);

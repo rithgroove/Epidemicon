@@ -3,8 +3,8 @@ import geopy.distance as distance
 class Coordinate():  
     
     """
-    [Class] Node
-    A class to represent the Open Street Map Node.
+    [Class] Coordinate
+    A class to represent a coordinate. Also used as a vector representation.
     
     Properties:
         - lat : latitude.
@@ -60,10 +60,10 @@ class Coordinate():
         
         Return: [string] String of summarized map Information.
         """
-        tempstring = f"Coordinate (lat = {self.lat}, lon = {self.lon}"
+        tempstring = f"Coordinate (lat = {self.lat}, lon = {self.lon})"
         return tempstring
     
-    def newCoordinateWithTranlation(self,lat =0,lon = 0):
+    def newCoordinateWithTranslation(self,lat =0,lon = 0):
         """
         [Method] newCoordinateWithTranlation
         create a new coordinate and apply a translation from this coordinate
@@ -72,9 +72,19 @@ class Coordinate():
             - lat : [Double] latitude translation.
             - lon : [Double] longitude translation.
         """
-        temp = Coordinate(lat,lon)
-        temp.lat += lat
-        temp.lon += lon
+        temp = Coordinate(self.lat+lat,self.lon+lon)
+        return temp
+    
+    def newCoordinateWithScale(self,scale):
+        """
+        [Method] newCoordinateWithScale
+        create a new coordinate which is the scale of this vector
+
+        Parameter:
+            - scale : [Double] scaling factor.
+        """
+        temp = Coordinate(self.lat*scale,self.lon*scale)
+        return temp
        
     def calculateDistance(self,targetCoordinate):
         """
@@ -99,3 +109,4 @@ class Coordinate():
         Return: [Coordinate] distance in vector format
         """
         return Coordinate(self.lat - targetCoordinate.lat, self.lon - targetCoordinate.lon)
+    

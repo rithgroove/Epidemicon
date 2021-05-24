@@ -6,12 +6,13 @@ class Node():
     A class to represent the Open Street Map Node.
     
     Properties:
-        - osmId : Open Street Map ID.
+        - osmId      : Open Street Map ID.
         - coordinate : coordinate 
-        - isRoad : Boolean to mark whether this Node is a part of a road.
+        - isRoad     : Boolean to mark whether this Node is a part of a road.
         - connection : List of all connected node.
-        - ways : A dictionary of Open Street Map Ways.
-        - tags :  dictionary of the Map Feature of this object (check Open Street Map - Map Features).
+        - ways       : A dictionary of Open Street Map Ways.
+        - tags       : A dictionary of the Map Feature of this object (check Open Street Map - Map Features).
+        - grid       : [Grid] The grid this node is in
     """
     
     def __init__(self):
@@ -25,6 +26,7 @@ class Node():
         self.connections = []
         self.ways = {}
         self.tags = {}
+        self.grid = None
         
     def fill(self, osmNode):
         """

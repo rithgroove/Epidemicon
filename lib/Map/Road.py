@@ -1,5 +1,6 @@
 import geopy.distance as distance
-
+import math
+from .Coordinate import Coordinate
 class Road:
     """
     [Class] Road
@@ -7,9 +8,10 @@ class Road:
     
     Properties:
         - name : road name.
-        - start : starting node.
-        - destination : [Coordinate] destination node.
-        - distance : [Coordinate] road length
+        - start : [Node] starting node.
+        - destination : [Node] destination node.
+        - distance : road length
+        - buildings : buildings in this road
     """
     def __init__(self,origin, dest):
         """
@@ -17,11 +19,12 @@ class Road:
         Initialize road.
         
         Parameter:
-            - origin = [Coordinate] starting node
-            - dest = [Coordinate] destination node
-        """
+            - origin = [Node] starting node
+            - dest = [Node] destination node
+        """       
         self.name,self.start,self.destination = genName(origin,dest)
         self.length = self.start.calculateDistance(dest)
+        self.buildings = []
         
     def getPath(self):
         """
@@ -60,6 +63,71 @@ class Road:
         temp = temp + f"distance = {self.length/1000}km" 
         return temp
     
+    def distanceToCoordinate(self, coordinate):
+        a = self.start.coordinate.calculateDistance(coordinate)
+        b = self.destination.coordinate.calculateDistance(coordinate)
+        c = self.start.coordinate.calculateDistance(self.destination.coordinate)
+        x = [a,b,c]
+        x.sort(reverse = True)
+        s = (a+b+c)/2
+        area =s*(s-a)*(s-b)*(s-c)
+        if (area < 0):
+            print("error, Heron's formula is not working due to very small angle")
+            return 1000000000000000
+            #print(self.start)
+            #print(self.destination)
+            #print(coordinate)
+            #print(f"a={a}")
+            #print(f"b={b}")
+            #print(f"c={c}")
+            #print(f"s={s}")
+            #print(f"area={area}")
+        area = math.sqrt(area)
+        height = 2*area/c
+        sinq = height/a
+        q = math.asin(sinq)
+        e = a * math.cos(q)
+        if (e > c):
+            height = min(a,b)
+        return height
+    
+    def getClosestCoordinate(self, coordinate):
+        height = self.distanceToCoordinate(coordinate)
+        a = self.start.coordinate.calculateDistance(coordinate)     
+        b = self.destination.coordinate.calculateDistance(coordinate)   
+        c = self.start.coordinate.calculateDistance(self.destination.coordinate)
+        distanceVector = self.destination.coordinate.getVectorDistance(self.start.coordinate)
+        sinq = height/a
+        if (sinq > 1):
+            #print(self.start)
+            #print(self.destination)
+            #print(coordinate)
+            #print(f"a={a}")
+            #print(f"b={b}")
+            #print(f"c={c}")
+            #print(f"height = {height}")
+            #print(distanceVector)
+            return None
+        q = math.asin(sinq)
+        e = a * math.cos(q)
+        if (e > c):
+            if (a<b):
+                return self.start.coordinate
+            else:
+                return self.destination.coordinate
+        distanceVector = distanceVector.newCoordinateWithScale(e/c)
+        return Coordinate(self.start.coordinate.lat + distanceVector.lat, self.start.coordinate.lon + distanceVector.lon)
+        
+    def addBuilding(self,building):
+        """
+        [Method] addBuilding
+        Add a building to the building list
+        
+        Parameter:
+            - building = [Building] a building inside this grid
+        """
+        self.buildings.append(building)
+        
 def genName(node1, node2):
     """
     [Function] genName        

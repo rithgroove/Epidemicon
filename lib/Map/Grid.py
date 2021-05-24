@@ -12,6 +12,7 @@ class Grid():
         - lonDistance : x distance (in longitude)
         - latDistance : y distance (in latitude)
         - nodes : list of nodes inside this grids
+        - nodes : list of roads inside this grids
         - buildings : list of buildings inside this grids
     """
     
@@ -25,12 +26,13 @@ class Grid():
             - latDistance : [Double] distance in latitude
             - lonDistance : [Double] distance in longitude
         """
-        self.origin = origin
-        self.end = origin.newCoordinateWithTranlation(latDistance, lonDistance)
+        self.origin = origin.newCoordinateWithTranslation(0, 0)
+        self.end = origin.newCoordinateWithTranslation(latDistance, lonDistance)
         self.latDistance = latDistance
         self.lonDistance = lonDistance
         self.nodes = []
         self.buildings = []
+        self.roads = []
     
     def addBuilding(self,building):
         """
@@ -42,6 +44,26 @@ class Grid():
         """
         self.buildings.append(building)
     
+    def addNode(self, node):
+        """
+        [Method] addNodes
+        Add a node to the nodes list
+        
+        Parameter:
+            - node = [Node] a node inside this grid
+        """
+        self.nodes.append(node)
+    
+    def addRoad(self, road):
+        """
+        [Method] addRoads
+        Add a road to the roads list
+        
+        Parameter:
+            - road = [Road] a node inside this grid
+        """
+        self.roads.append(road)
+    
     def remapBuilding(self):
         """
         [Method] remapBuilding
@@ -52,9 +74,25 @@ class Grid():
         for building in self.buildings:
             closest = None
             closestDistance = 1000000000000000
-            for cell in self.cells:
-                temp = distance.distance(building.getPosition(), cell.getPosition())
+            for road in self.roads:
+                temp = road.distanceToCoordinate(building.coordinate)
                 if closestDistance > temp :
                     closestDistance = temp
-                    closest = cell
-            building.closestCell = closest
+                    closest = road
+            building.closestRoad = closest
+            closest.addBuilding(building)
+            building.entryPoint = closest.getClosestCoordinate(building.coordinate)
+
+            
+    def __str__(self):
+        """
+        [Method] __str__        
+        return a string that summarized the grid
+        """
+        temp = f"Grid\n"
+        temp = temp + f"\tstarting = (lat = {self.origin.lat}, lon = {self.origin.lon})\n"
+        temp = temp + f"\tend = (lat = {self.end.lat}, lon = {self.end.lon})\n"
+        temp = temp + f"\tnodes = {self.nodes.__len__()}\n"
+        temp = temp + f"\tbuildings = {self.buildings.__len__()}\n"
+        temp = temp + f"\troads = {self.roads.__len__()}\n"
+        return temp

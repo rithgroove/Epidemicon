@@ -137,15 +137,50 @@ class Map(osmium.SimpleHandler):
                 self.end = Coordinate(float(child.attrib['maxlat']),float(child.attrib['maxlon']))
                 break
         temp = self.end.getVectorDistance(self.origin)
+        print(temp)
         self.distanceLat = (temp.lat)/grid[1]
         self.distanceLon = (temp.lon)/grid[0]
+        print(f'{self.distanceLon},{self.distanceLat}')
         temp = Coordinate(self.origin.lat, self.origin.lon)
         for i in range(0,grid[0]):
-            temp.lat = self.origin.lat
+            temp.lon = self.origin.lon
             for j in range(0,grid[1]):
                 self.grids[j][i] = Grid(temp, self.distanceLat, self.distanceLon)  
-                temp.translate(lon = self.distanceLon)
-            temp.translate(lat = self.distanceLat)
+                temp = temp.newCoordinateWithTranslation(lon = self.distanceLon)
+            temp = temp.newCoordinateWithTranslation(lat = self.distanceLat)
+        for x in self.nodes:
+            if(self.distanceLat is not None and self.distanceLon is not None):
+                xAxis = int((x.coordinate.lon-self.origin.lon)/self.distanceLon)
+                yAxis = int((x.coordinate.lat-self.origin.lat)/self.distanceLat)
+                if xAxis >= self.gridSize[0]:
+                    xAxis = self.gridSize[0]-1
+                if yAxis >= self.gridSize[1]:
+                    yAxis = self.gridSize[1]-1             
+                if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
+                    grid =self.grids[xAxis][yAxis]
+                    valid = True
+                    if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
+                        valid = False
+                        print("fault in lat")
+                    if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
+                        valid = False
+                        print("fault in lon")
+                    if (valid):                 
+                        grid.addNode(x)
+                        x.grid = self.grids[xAxis][yAxis]
+                    else:
+                        print(f'######################################################')
+                        print("okay")
+                        print(f'{xAxis},{yAxis}')
+                        print(f'{self.distanceLon},{self.distanceLat}')
+                        print(self.origin)
+                        print(self.end)
+                        print(x)
+                        print(self.grids[xAxis][yAxis])
+                        print(f'######################################################')   
+                else:
+                    print("dokay")
+            
                 
     def constructMap(self):
         """
@@ -160,12 +195,18 @@ class Map(osmium.SimpleHandler):
                 if(self.distanceLat is not None and self.distanceLon is not None):
                     xAxis = int((temp.coordinate.lon-self.origin.lon)/self.distanceLon)
                     yAxis = int((temp.coordinate.lat-self.origin.lat)/self.distanceLat)
-                    if xAxis >= self.gridSize[0]:
-                        xAxis = self.gridSize[0]-1
-                    if yAxis >= self.gridSize[1]:
-                        yAxis = self.gridSize[1]-1
-                    #print(f'{xAxis},{yAxis}')
-                    self.grids[xAxis][yAxis].addBuilding(temp)
+                    #print(f'{xAxis},{yAxis}')               
+                    if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
+                        grid =self.grids[xAxis][yAxis]
+                        x=temp
+                        valid = True
+                        if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
+                            valid = False
+                        if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
+                            valid = False
+                        if (valid):                 
+                            grid.addBuilding(temp)
+                            #x.grid = self.grids[xAxis][yAxis]
             elif 'natural' in x.tags.keys():
                 self.naturals.append(x)
             elif 'leisure' in x.tags.keys():
@@ -194,7 +235,11 @@ class Map(osmium.SimpleHandler):
                 if roadObject is None:
                     roadObject = Road(startingNode,node)
                     self.roadsDict[roadObject.name] = roadObject
-                    self.roads.append(roadObject)                                    
+                    self.roads.append(roadObject)  
+                    if (roadObject.start.grid is not None):
+                        roadObject.start.grid.addRoad(roadObject)
+                    if (roadObject.destination.grid is not None):
+                        roadObject.destination.grid.addRoad(roadObject)
                 
             node.addWay(road)
             startingNode = node
@@ -202,14 +247,15 @@ class Map(osmium.SimpleHandler):
             if temp is None:
                 self.roadNodesDict[node.osmId] = node
                 self.roadNodes.append(node)
+            
                 
     def recalculateGrid(self):
         """
         [Method] recalculateGrid
         Method to recalculate building to the right grid
         """
-        for i in range(0,self.gridSize[0]):
-            for j in range(0,self.gridSize[1]):
+        for i in range(0,self.gridSize[1]):
+            for j in range(0,self.gridSize[0]):
                 self.grids[j][i].remapBuilding()
         
     
@@ -226,4 +272,5 @@ def readFile(filepath,grid = (10,10)):
     generatedMap.apply_file(filepath)
     generatedMap.setBounds(filepath)
     generatedMap.constructMap()
+    generatedMap.recalculateGrid()
     return generatedMap
