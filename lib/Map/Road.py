@@ -64,11 +64,9 @@ class Road:
         return temp
     
     def distanceToCoordinate(self, coordinate):
-        a = self.start.coordinate.calculateDistance(coordinate)
-        b = self.destination.coordinate.calculateDistance(coordinate)
+        a =  max(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
+        b =  min(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
         c = self.start.coordinate.calculateDistance(self.destination.coordinate)
-        x = [a,b,c]
-        x.sort(reverse = True)
         s = (a+b+c)/2
         area =s*(s-a)*(s-b)*(s-c)
         if (area < 0):
@@ -87,16 +85,16 @@ class Road:
         sinq = height/a
         q = math.asin(sinq)
         e = a * math.cos(q)
-        if (e > c):
+        if (e > c or q > math.pi):
             height = min(a,b)
         return height
     
     def getClosestCoordinate(self, coordinate):
         height = self.distanceToCoordinate(coordinate)
-        a = self.start.coordinate.calculateDistance(coordinate)     
-        b = self.destination.coordinate.calculateDistance(coordinate)   
+        a =  max(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
+        b =  min(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
         c = self.start.coordinate.calculateDistance(self.destination.coordinate)
-        distanceVector = self.destination.coordinate.getVectorDistance(self.start.coordinate)
+        
         sinq = height/a
         if (sinq > 1):
             #print(self.start)
@@ -110,11 +108,18 @@ class Road:
             return None
         q = math.asin(sinq)
         e = a * math.cos(q)
-        if (e > c):
+        if (e > c or q > math.pi):
             if (a<b):
+                print("return start")
                 return self.start.coordinate
             else:
+                print("return destination")
                 return self.destination.coordinate
+        if self.start.coordinate.calculateDistance(coordinate) < self.destination.coordinate.calculateDistance(coordinate): 
+            distanceVector = self.start.coordinate.getVectorDistance(self.destination.coordinate)  
+            distanceVector = distanceVector.newCoordinateWithScale(e/c)
+            return Coordinate(self.destination.coordinate.lat + distanceVector.lat, self.destination.coordinate.lon + distanceVector.lon)
+        distanceVector = self.destination.coordinate.getVectorDistance(self.start.coordinate)  
         distanceVector = distanceVector.newCoordinateWithScale(e/c)
         return Coordinate(self.start.coordinate.lat + distanceVector.lat, self.start.coordinate.lon + distanceVector.lon)
         
