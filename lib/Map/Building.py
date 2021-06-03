@@ -10,6 +10,13 @@ class Building:
         - coordinate : the coordinate of the building's centroid
     """
     def __init__(self,way):
+        """
+        [Constructor]
+        Initialize the building building
+
+        Parameter:
+            - way: [Way] the building outline from Open Street Map
+        """
         self.way = way
         lat,lon = 0,0
         for i in range(0,way.nodes.__len__()-1):
@@ -21,11 +28,14 @@ class Building:
         self.closestRoad = None
         self.entryPoint = None
         self.tags = way.tags
+        self.type = self.tags.get("building")
+        if self.type == "yes" and "amenity" in self.tags.keys():
+            self.type = self.tags.get("amenity")
         
     def __str__(self):
         """
         [Method] __str__        
-        return a string that summarized the road
+        return a string that summarized the building
         """
         tempstring = f"[Building]\n"
         tempstring = tempstring + f"id: {self.way.osmId}\n"
@@ -35,7 +45,6 @@ class Building:
             tempstring = tempstring + f"\t{key} : {self.tags[key]}\n"
         tempstring = tempstring + "\n"
         return tempstring
-        return temp
     
     def getPosition(self):
         """
@@ -45,3 +54,4 @@ class Building:
         Return : (lat,lon)
         """
         return (self.lat,self.lon);
+   

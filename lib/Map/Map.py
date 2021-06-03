@@ -73,6 +73,7 @@ class Map(osmium.SimpleHandler):
         self.roads = []             
         self.num_buildings = 0
         self.buildings = []
+        self.buildingsDict = {}
         
         self.naturals = []
         self.leisures = []
@@ -192,6 +193,9 @@ class Map(osmium.SimpleHandler):
             if 'building' in x.tags.keys():
                 temp = Building(x)
                 self.buildings.append(temp)
+                if temp.type not in self.buildingsDict.keys():
+                    self.buildingsDict[temp.type] =[]
+                self.buildingsDict[temp.type].append(temp)
                 if(self.distanceLat is not None and self.distanceLon is not None):
                     xAxis = int((temp.coordinate.lon-self.origin.lon)/self.distanceLon)
                     yAxis = int((temp.coordinate.lat-self.origin.lat)/self.distanceLat)
