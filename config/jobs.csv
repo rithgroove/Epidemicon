@@ -7,4 +7,4 @@ university_professor ,5,9,school,28,70,1,8,9,weekday,3,5,no,0
 salaryman_tsuchiura,9,9,train_station,19,70,3,8,9,weekday,5,5,yes,0.001
 salaryman_tokyo,9,9,train_station,19,70,3,8,9,weekday,5,5,yes,0.001
 convenience_store_employee,8,8,retail,19,70,1,0,23,everyday,3,5,no,0
-test_job,4,5,hotel,19,70,1,0,23,"mon,tue",2,2,no,0
+test_job,4,5,school,19,70,1,0,23,"mon,tue",2,2,no,0

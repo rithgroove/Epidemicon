@@ -261,6 +261,8 @@ class Map(osmium.SimpleHandler):
         for i in range(0,self.gridSize[1]):
             for j in range(0,self.gridSize[0]):
                 self.grids[j][i].remapBuilding()
+        for i in self.roads:
+            self.roadNodes.extend(i.generateNodes())
         
     
 def readFile(filepath,grid = (10,10)):

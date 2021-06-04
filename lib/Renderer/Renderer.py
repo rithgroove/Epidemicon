@@ -239,6 +239,8 @@ def draw():
     for j in range(0,osmMap.gridSize[0]):
         drawLine(lon, osmMap.origin.lat, lon,osmMap.end.lat, "#AA0000")  
         lon += osmMap.distanceLon 
+        
+        
 def drawPath(path):
     prev = None
     for temp in path:

@@ -1,4 +1,5 @@
-
+import random 
+import numpy as np
 class Job:
     """
     [Class] Job
@@ -11,9 +12,27 @@ class Job:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,name,age,job):
-        self.name = name
-        self.work = age
-        self.mainJob = job
-        self.infection_status = "Susceptible"
-        self.currentLocation = home.building.coordinate
+    def __init__(self,jobClass):
+        self.jobClass =jobClass
+        self.workhour =  random.randint(jobClass.minWorkhour,jobClass.maxWorkhour)
+        self.buildings = random.choice(jobClass.buildings)
+        self.workhour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
+        self.activityPerWeek =  random.randint(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
+        self.startHour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
+        indexes = np.where(jobClass.workDays)[0]
+        if len(indexes) < self.activityPerWeek:
+            print("warning, activities per week is lower than the optional workdays")
+            self.activityPerWeek = len(indexes)
+        np.random.shuffle(indexes)
+        self.workdays = 0
+        #print(indexes)
+        #print(self.activityPerWeek)
+        for i in indexes[:(self.activityPerWeek-1)]:
+            self.workdays  += (2**(6-i))
+        self.agent = None
+        
+    def isOutsideCity(self):
+        return self.jobClass.outsideCity
+    
+    def setAgent(self,agent):
+        self.agent = agent

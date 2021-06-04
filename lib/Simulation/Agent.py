@@ -14,8 +14,9 @@ class Agent:
     def __init__(self,home,age,job):
         self.home = home
         self.age = age
-        self.mainJob = job
+        self.mainJob = job.generateJob()
+        self.mainJob.setAgent(self)
         self.infection_status = "Susceptible"
-        self.currentLocation = home.coordinate
+        self.currentLocation = home.coordinate().newCoordinateWithTranslation()
         self.oval = None
         self.name = ""

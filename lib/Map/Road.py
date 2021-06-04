@@ -1,6 +1,7 @@
 import geopy.distance as distance
 import math
 from .Coordinate import Coordinate
+from .Node import Node
 class Road:
     """
     [Class] Road
@@ -97,14 +98,6 @@ class Road:
         
         sinq = height/a
         if (sinq > 1):
-            #print(self.start)
-            #print(self.destination)
-            #print(coordinate)
-            #print(f"a={a}")
-            #print(f"b={b}")
-            #print(f"c={c}")
-            #print(f"height = {height}")
-            #print(distanceVector)
             return None
         q = math.asin(sinq)
         e = a * math.cos(q)
@@ -132,6 +125,41 @@ class Road:
             - building = [Building] a building inside this grid
         """
         self.buildings.append(building)
+        
+        
+    def generateNodes(self):
+        newNodes = []
+        if (len(self.buildings) > 0):
+            temp = []
+            for x in self.buildings:
+                #calculate entry point distance from start
+                temp.append((x,self.start.coordinate.calculateDistance(x.entryPoint)))
+            temp.sort(key=lambda x:x[1])
+            nodes = []
+            origin = self.start
+            workingNode = None
+            #print(temp)
+            for x in temp:
+                building = x[0]
+                #generate entry node 
+                workingNode  = Node()
+                workingNode.setAsBuildingConnector(building.entryPoint)
+                origin.addConnection(workingNode)
+                workingNode.addConnection(origin)
+                #generate building Node
+                buildingNode= Node()
+                buildingNode.setAsBuildingConnector(building.coordinate)
+                workingNode.addConnection(buildingNode)
+                buildingNode.addConnection(workingNode)
+                building.node = buildingNode
+                newNodes.append(workingNode)
+                newNodes.append(buildingNode)
+                origin = workingNode
+            workingNode.addConnection(self.destination)
+            self.destination.addConnection(workingNode)
+        print(len(newNodes))
+        return newNodes
+        
         
 def genName(node1, node2):
     """

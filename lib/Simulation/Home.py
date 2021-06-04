@@ -50,6 +50,9 @@ class Home:
         """
         self.agents.remove(agent)
         
+    def coordinate(self):
+        return self.building.coordinate
+    
     def __str__(self):
         """
         [Method] __str__        

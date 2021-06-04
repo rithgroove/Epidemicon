@@ -1,4 +1,6 @@
-
+from .Job import Job
+import random
+import numpy as np
 class JobClass:
     """
     [Class] JobClass
@@ -46,9 +48,11 @@ class JobClass:
                     self.workDays[5] = True
                 elif x.lower() == "sun":
                     self.workDays[6] = True
+        self.workDays = np.array(self.workDays)
         self.minActivityPerWeek = int(csvDict["min_activity_per_week"])
         self.maxActivityPerWeek = int(csvDict["max_activity_per_week"])
         self.outsideCity = csvDict["outside_city"] == "yes"
+        self.generatedJobs = []
         #self.randomInfectionRate = float(csvDict["random_infection_rate"])
         
     def addBuilding(self,building):
@@ -75,3 +79,8 @@ class JobClass:
         tempstring = tempstring + f"workdays : {self.day}\n"
         #tempstring = tempstring + f"random infection rate : {self.randomInfectionRate}\n"
         return tempstring
+    
+    def generateJob(self):
+        temp = Job(self)
+        self.generatedJobs.append(temp)
+        return temp
