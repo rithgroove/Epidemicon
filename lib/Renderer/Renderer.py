@@ -49,6 +49,7 @@ def clickRelease(event):
 
 def doubleClick(event):
     global animating
+    print("double click")
     animating = not animating
     
 def step():
@@ -262,14 +263,14 @@ def drawAgent():
 
 def moveAgent(agent):
     x = agent.transition[1] * scale
-    y = agent.transition[0]  * scale * -1
+    y = agent.transition[0] * scale * -1
     #print((x,y,agent.oval))
-    if (agent.evacLeader):
-        canvas.itemconfig(agent.oval,fill="#CCCC33")
-    elif (agent.haveERI()):
-        canvas.itemconfig(agent.oval,fill="#00FF00")
-    else:
-        canvas.itemconfig(agent.oval,fill="#CC33CC")        
+    #if (agent.evacLeader):
+    #    canvas.itemconfig(agent.oval,fill="#CCCC33")
+    #elif (agent.haveERI()):
+    #    canvas.itemconfig(agent.oval,fill="#00FF00")
+    #else:
+    #    canvas.itemconfig(agent.oval,fill="#CC33CC")        
     canvas.move(agent.oval,x,y)
 
 def drawCircle(lon,lat,radius, color, name = None):

@@ -10,7 +10,7 @@ from .Road import genName
 from .Building import Building
 from .Grid import Grid
 from .Coordinate import Coordinate
-
+from .PathFinder import searchPath
 class Map(osmium.SimpleHandler):
     """
     [Class] Map
@@ -189,9 +189,11 @@ class Map(osmium.SimpleHandler):
         Method to construct the Map. This method will separate which nodes are roads and which 
         
         """
+        buildingId = 1
         for x in self.ways:
             if 'building' in x.tags.keys():
-                temp = Building(x)
+                temp = Building(f"b{buildingId}",x)
+                buildingId += 1
                 self.buildings.append(temp)
                 if temp.type not in self.buildingsDict.keys():
                     self.buildingsDict[temp.type] =[]
@@ -264,6 +266,11 @@ class Map(osmium.SimpleHandler):
         for i in self.roads:
             self.roadNodes.extend(i.generateNodes())
         
+    def findPath(self,agent,building):
+        try:
+            return searchPath(self,agent.currentNode,building.node)
+        except:
+            return None
     
 def readFile(filepath,grid = (10,10)):
     """

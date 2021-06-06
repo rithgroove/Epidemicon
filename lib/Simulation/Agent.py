@@ -11,12 +11,45 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,home,age,job):
+    def __init__(self,osmMap,home,age,job):
         self.home = home
         self.age = age
         self.mainJob = job.generateJob()
         self.mainJob.setAgent(self)
         self.infection_status = "Susceptible"
         self.currentLocation = home.coordinate().newCoordinateWithTranslation()
+        self.currentNode = home.node()
         self.oval = None
         self.name = ""
+        self.speed = 1.46
+        self.activeSequence = None
+        self.osmMap = osmMap
+        self.transition = (0,0)
+        self.distanceToDestination = 0
+        
+    def setMovementSequence(self, activeSequence):
+        self.activeSequence = activeSequence
+        
+    def getSpeed(self):
+        return self.speed
+    
+    def step(self,steps=1):
+        if(self.activeSequence is None or self.activeSequence.finished):
+            if self.currentNode == self.home.node():
+                #gotowork
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
+            else:
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
+                #gohome
+        if self.activeSequence is not None:
+            #after recalculate
+            leftOver = steps * self.getSpeed()
+            
+            while leftOver > 0 and not self.activeSequence.finished:
+                leftOver = self.activeSequence.step(leftOver)
+                self.currentNode = self.activeSequence.currentNode
+                #self.evaluate()
+                #print(f"leftover = {leftOver}")
+                
+            self.transition = self.activeSequence.getVector(self.currentLocation)
+            self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])

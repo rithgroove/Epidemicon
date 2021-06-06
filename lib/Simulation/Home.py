@@ -53,6 +53,9 @@ class Home:
     def coordinate(self):
         return self.building.coordinate
     
+    def node(self):
+        return self.building.node
+    
     def __str__(self):
         """
         [Method] __str__        

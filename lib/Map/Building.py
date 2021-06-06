@@ -9,7 +9,7 @@ class Building:
         - way: List of nodes that defines the shape of the building.
         - coordinate : the coordinate of the building's centroid
     """
-    def __init__(self,way):
+    def __init__(self,buildingId,way):
         """
         [Constructor]
         Initialize the building building
@@ -17,6 +17,7 @@ class Building:
         Parameter:
             - way: [Way] the building outline from Open Street Map
         """
+        self.buildingId = buildingId
         self.way = way
         lat,lon = 0,0
         for i in range(0,way.nodes.__len__()-1):

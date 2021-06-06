@@ -2,6 +2,7 @@ import csv
 from .JobClass import JobClass
 from .Agent import Agent
 from .Home import Home
+
 import random
 class Simulator:
     def __init__(self,jobCSVPath,osmMap,agentNum = 1000):
@@ -25,6 +26,7 @@ class Simulator:
             print(f'Processed {line_count} lines.')
         self.agents = []
         self.generateAgents(agentNum)
+        self.stepCount = 0
             
     def generateAgents(self, count):
         total = 0
@@ -39,5 +41,13 @@ class Simulator:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
             for i in range(0,temp):
-                agent = Agent(Home(random.choice(houses)),x.minAge+random.randint(0,ageRange),x)
+                agent = Agent(self.osmMap,Home(random.choice(houses)),x.minAge+random.randint(0,ageRange),x)
                 self.agents.append(agent)
+                
+    def step(self,steps = 15):
+        self.stepCount +=1
+        for x in self.agents:
+            try:
+                x.step(steps)
+            except:
+                print("agent failed steps")

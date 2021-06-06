@@ -143,14 +143,21 @@ class Road:
                 building = x[0]
                 #generate entry node 
                 workingNode  = Node()
-                workingNode.setAsBuildingConnector(building.entryPoint)
-                origin.addConnection(workingNode)
-                workingNode.addConnection(origin)
+                if building.entryPoint == self.start:
+                    workingNode = self.start
+                elif building.entryPoint != self.destination:
+                    workingNode = self.destination
+                else:
+                    workingNode.setAsBuildingConnector(building.entryPoint)
+                    workingNode.osmId = f"{origin.osmId}-{x[0].buildingId}"
+                    origin.addConnection(workingNode)
+                    workingNode.addConnection(origin)
                 #generate building Node
                 buildingNode= Node()
                 buildingNode.setAsBuildingConnector(building.coordinate)
                 workingNode.addConnection(buildingNode)
                 buildingNode.addConnection(workingNode)
+                buildingNode.osmId = x[0].buildingId
                 building.node = buildingNode
                 newNodes.append(workingNode)
                 newNodes.append(buildingNode)
