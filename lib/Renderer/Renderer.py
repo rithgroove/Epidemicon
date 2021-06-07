@@ -178,6 +178,7 @@ def draw():
             
     for temp in osmMap.naturals:
         path = []
+        water = []
         for node in temp.nodes:
             x = (node.coordinate.lon - canvasOrigin[0]) * scale +viewPort[0]
             y = (canvasSize[1]-( node.coordinate.lat - canvasOrigin[1])) * scale + viewPort[1]
@@ -202,8 +203,12 @@ def draw():
                 outline = '#7a651d'
                 fill = '#c4a646'
                 
-            canvas.create_polygon(path, outline=outline,
+            temp2 = canvas.create_polygon(path, outline=outline,
             fill=fill, width=1)
+            if (temp.tags['natural'] == 'water'):
+                water.append(temp2)
+        for x in water:
+            canvas.tag_raise(x)
     
     for temp in osmMap.buildings:
         path = []     

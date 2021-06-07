@@ -145,7 +145,7 @@ class Road:
                 workingNode  = Node()
                 if building.entryPoint == self.start:
                     workingNode = self.start
-                elif building.entryPoint != self.destination:
+                elif building.entryPoint == self.destination:
                     workingNode = self.destination
                 else:
                     workingNode.setAsBuildingConnector(building.entryPoint)
