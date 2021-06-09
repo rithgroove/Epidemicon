@@ -51,3 +51,4 @@ class Simulator:
                 x.step(steps)
             except:
                 print("agent failed steps")
+                x.translation = (0,0)

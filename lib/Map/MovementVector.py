@@ -31,8 +31,10 @@ class MovementVector:
         self.progress = float(self.passedThroughDistance)/float(self.distance)
         if (self.progress >= 1):
             self.progress = 1
-        lat = self.starting[0] +(self.progress * self.totalTranslation[0])
-        lon = self.starting[1] +(self.progress * self.totalTranslation[1])
-        self.currentPosition = (lat, lon)
+            self.currentPosition =  self.destination
+        else:
+            lat = self.starting[0] +(self.progress * self.totalTranslation[0])
+            lon = self.starting[1] +(self.progress * self.totalTranslation[1])
+            self.currentPosition = (lat, lon)
         return leftOver
             

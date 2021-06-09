@@ -28,6 +28,7 @@ class Building:
         self.coordinate = Coordinate(lat,lon)
         self.closestRoad = None
         self.entryPoint = None
+        self.entryPointNode = None
         self.tags = way.tags
         self.type = self.tags.get("building")
         if self.type == "yes" and "amenity" in self.tags.keys():

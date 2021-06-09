@@ -84,6 +84,16 @@ class Node():
             - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
         """
         self.connections.append(connection)
+        
+    def removeConnection(self,connection):
+        """
+        [Method] removeConnection
+        Remove a node that is connected to this node.
+        
+        Parameter:
+            - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
+        """
+        self.connections.remove(connection)
             
     def __str__(self):        
         """

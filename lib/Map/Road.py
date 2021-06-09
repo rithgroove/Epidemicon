@@ -142,14 +142,14 @@ class Road:
             for x in temp:
                 building = x[0]
                 #generate entry node 
-                workingNode  = Node()
-                if building.entryPoint == self.start:
+                if self.start.coordinate.calculateDistance(building.entryPoint) == 0:
                     workingNode = self.start
-                elif building.entryPoint == self.destination:
+                elif self.destination.coordinate.calculateDistance(building.entryPoint) == 0:
                     workingNode = self.destination
-                else:
+                elif workingNode is None or workingNode.coordinate.calculateDistance(building.entryPoint) != 0:
+                    workingNode  = Node()
                     workingNode.setAsBuildingConnector(building.entryPoint)
-                    workingNode.osmId = f"{origin.osmId}-{x[0].buildingId}"
+                    workingNode.osmId = f"{origin.osmId}-{building.buildingId}"
                     origin.addConnection(workingNode)
                     workingNode.addConnection(origin)
                 #generate building Node
@@ -159,11 +159,15 @@ class Road:
                 buildingNode.addConnection(workingNode)
                 buildingNode.osmId = x[0].buildingId
                 building.node = buildingNode
-                newNodes.append(workingNode)
+                building.entryPointNode = workingNode
+                if workingNode not in newNodes:
+                    newNodes.append(workingNode)
                 newNodes.append(buildingNode)
                 origin = workingNode
             workingNode.addConnection(self.destination)
             self.destination.addConnection(workingNode)
+            self.start.removeConnection(self.destination)
+            self.destination.removeConnection(self.start)
         print(len(newNodes))
         return newNodes
         

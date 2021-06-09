@@ -60,7 +60,7 @@ def step():
         for x in sim.agents:
             moveAgent(x)
         
-    canvas.after(1000,step)
+    canvas.after(10,step)
         
 def scroll(event):
     global canvas
