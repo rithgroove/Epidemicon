@@ -2,6 +2,8 @@ class MovementSequence:
     
     def __init__(self,sequence,totalDistance):
         self.sequence = sequence
+        self.origin = sequence[0].startingNode
+        self.destination = sequence[-1].destinationNode
         self.currentActiveVector = None
         self.totalDistance = totalDistance
         self.currentTraversedDistance = 0
@@ -30,4 +32,10 @@ class MovementSequence:
         
     def getVector(self,currentPosition):
         return self.currentActiveVector.calculateTranslation(currentPosition)
+    
+    def clone(self):
+        temp = []
+        for x in self.sequence:
+            temp.append(x.clone())
+        return MovementSequence(temp,self.totalDistance)
         

@@ -45,10 +45,16 @@ class Simulator:
                 self.agents.append(agent)
                 
     def step(self,steps = 15):
-        self.stepCount +=1
         for x in self.agents:
+            day, hour = self.currentHour()
             try:
-                x.step(steps)
+                x.step(day,hour,steps)
             except:
                 print("agent failed steps")
                 x.translation = (0,0)
+        self.stepCount += steps
+                
+    def currentHour(self):
+        hour = int(self.stepCount / 3600)% 24
+        day = int(hour /24) % 7
+        return day,hour

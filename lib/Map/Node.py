@@ -27,6 +27,7 @@ class Node():
         self.ways = {}
         self.tags = {}
         self.grid = None
+        self.movementSequences = {}
         
     def fill(self, osmNode):
         """
@@ -121,3 +122,10 @@ class Node():
         """
         return self.coordinate.calculateDistance(targetNode.coordinate)
         
+    def addMovementSequence(self,sequence):
+        self.movementSequences[sequence.destination.osmId]  = sequence
+        
+    def getMovementSequence(self,targetNode):
+        if (targetNode.osmId in self.movementSequences.keys()):
+            return self.movementSequences[targetNode.osmId].clone()
+        return None

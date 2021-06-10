@@ -270,9 +270,17 @@ class Map(osmium.SimpleHandler):
         
     def findPath(self,agent,building):
         try:
-            return searchPath(self,agent.currentNode,building.node)
+            distance = 0
+            sequence = agent.currentNode.getMovementSequence(building.node)            
+            if (sequence is None):
+                print("sequence is none")
+                distance, sequence = searchPath(self,agent.currentNode,building.node)
+                agent.currentNode.addMovementSequence(sequence.clone())           
+            else:
+                distance = totalDistance
+            return distance, sequence
         except:
-            return None
+            return None, None
     
 def readFile(filepath,grid = (10,10)):
     """

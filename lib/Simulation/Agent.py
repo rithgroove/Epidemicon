@@ -33,11 +33,14 @@ class Agent:
     def getSpeed(self):
         return self.speed
     
-    def step(self,steps=1):
+    def step(self,day,hour,steps=1):
         if(self.activeSequence is None or self.activeSequence.finished):
             if self.currentNode == self.home.node():
                 #gotowork
-                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
+                if self.mainJob.isWorking(day, hour):                 
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
+                else:
+                    self.activeSequence = None
             else:
                 self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
                 #gohome

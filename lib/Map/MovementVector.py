@@ -37,4 +37,7 @@ class MovementVector:
             lon = self.starting[1] +(self.progress * self.totalTranslation[1])
             self.currentPosition = (lat, lon)
         return leftOver
+    
+    def clone(self):
+        return MovementVector(self.startingNode,self.destinationNode)
             

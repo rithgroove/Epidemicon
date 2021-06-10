@@ -20,7 +20,7 @@ class Job:
         self.activityPerWeek =  random.randint(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
         self.startHour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
         indexes = np.where(jobClass.workDays)[0]
-        if len(indexes) < self.activityPerWeek:
+        if len(indexes) < self.activityPerWeek+1:
             print("warning, activities per week is lower than the optional workdays")
             self.activityPerWeek = len(indexes)
         np.random.shuffle(indexes)
@@ -36,3 +36,9 @@ class Job:
     
     def setAgent(self,agent):
         self.agent = agent
+        
+    def isWorking(self,day, hour):
+        if self.workdays & (2**(6-day)) and (hour >= self.startHour and hour <= self.startHour+self.workhour) :
+            return True
+        return False
+        
