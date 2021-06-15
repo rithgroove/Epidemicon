@@ -37,7 +37,7 @@ class Agent:
         if(self.activeSequence is None or self.activeSequence.finished):
             if self.currentNode == self.home.node():
                 #gotowork
-                if self.mainJob.isWorking(day, hour):                 
+                if self.mainJob.isWorking(day, hour) and self.currentNode != self.mainJob.building.node:                 
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
                 else:
                     self.activeSequence = None
