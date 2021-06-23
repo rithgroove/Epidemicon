@@ -37,7 +37,7 @@ class Agent:
         if(self.activeSequence is None or self.activeSequence.finished):
             if self.currentNode == self.home.node():
                 #gotowork
-                if self.mainJob.isWorking(day, hour):                 
+                if self.mainJob.isWorking(day, hour) and self.currentNode != self.mainJob.building.node:                 
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
                 else:
                     self.activeSequence = None
@@ -63,7 +63,16 @@ class Agent:
         if self.infection_status == "Susceptible":
             otherAgents = []
             for node in self.currentNode.connections:
-                
+
+    def infect(simulator):
+        for x in simulator.agent:
+            node = x.currentNode
+            otherAgents = []
+            for node in node.connections:
+                for other agents = node.agents:
+                    #check if agent position is within a certain number of meter
+                    include to the other agents
+
         
     def finalize(self):
         if self.infection != None:

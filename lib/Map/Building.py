@@ -34,6 +34,7 @@ class Building:
         if self.type == "yes" and "amenity" in self.tags.keys():
             self.type = self.tags.get("amenity")
         self.node = None
+        self.content = {}
         
     def __str__(self):
         """

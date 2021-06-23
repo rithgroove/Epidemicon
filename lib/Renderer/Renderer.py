@@ -267,8 +267,12 @@ def drawAgent():
 
 
 def moveAgent(agent):
-    x = agent.transition[1] * scale
-    y = agent.transition[0] * scale * -1
+    x1,y1,x2,y2 = canvas.coords(agent.oval)
+    xmid = x1 + ((x2-x1)/2) + viewPort[0]
+    ymid = y1 + ((y2-y1)/2) + viewPort[1]
+    x = ((agent.currentLocation.lon - canvasOrigin[0]) * scale +viewPort[0])- xmid 
+    y = ((canvasSize[1]-( agent.currentLocation.lat - canvasOrigin[1])) * scale + viewPort[1]) -ymid 
+
     #print((x,y,agent.oval))
     #if (agent.evacLeader):
     #    canvas.itemconfig(agent.oval,fill="#CCCC33")

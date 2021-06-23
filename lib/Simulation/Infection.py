@@ -22,3 +22,4 @@ class Infection:
             self.target.infection_status = "Infectious"
         elif (step - self.step >= dormant+ recovery):
             self.target.infection_status = "Recovered"
+

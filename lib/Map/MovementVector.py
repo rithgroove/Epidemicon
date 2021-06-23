@@ -21,9 +21,12 @@ class MovementVector:
         return (self.currentPosition[0] - currentPosition.lat, self.currentPosition[1] - currentPosition.lon)
         
     def step(self,distances):
+        # calculate is there any left over translation
         leftOver = distances - (self.distance - self.passedThroughDistance)
+        # if leftover somehow less than 0 se to 0
         if leftOver < 0:
             leftOver = 0
+        #after 
         self.passedThroughDistance += distances
         if self.passedThroughDistance >= self.distance:
             self.passedThroughDistance = self.distance     

@@ -40,8 +40,16 @@ class Simulator:
         for x in self.jobClasses:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            for i in range(0,temp):
-                agent = Agent(self.osmMap,Home(random.choice(houses)),x.minAge+random.randint(0,ageRange),x)
+            for i in range(0,temp):              
+                building = random.choice(houses)
+                home = Home(building)
+                if "home" not in building.content.keys():                    
+                    building.content["home"] = []   
+                building.content["home"].append(home)               
+                agent = Agent(self.osmMap,home,x.minAge+random.randint(0,ageRange),x)
+                if "agent" not in building.content.keys():                    
+                    building.content["agent"] = []   
+                building.content["agent"].append(agent)               
                 self.agents.append(agent)
                 
     def step(self,steps = 15):
