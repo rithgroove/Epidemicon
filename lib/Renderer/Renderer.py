@@ -263,7 +263,7 @@ def drawPath(path):
 
 def drawAgent():   
     for agent in sim.agents:
-        agent.oval = drawCircle(agent.currentLocation.lon, agent.currentLocation.lat, 5,"#CCCC33", agent.name) 
+        agent.oval = drawCircle(agent.currentLocation.lon, agent.currentLocation.lat, 5,"#3333CC", agent.name) 
 
 
 def moveAgent(agent):
@@ -274,12 +274,14 @@ def moveAgent(agent):
     y = ((canvasSize[1]-( agent.currentLocation.lat - canvasOrigin[1])) * scale + viewPort[1]) -ymid 
 
     #print((x,y,agent.oval))
-    #if (agent.evacLeader):
-    #    canvas.itemconfig(agent.oval,fill="#CCCC33")
-    #elif (agent.haveERI()):
-    #    canvas.itemconfig(agent.oval,fill="#00FF00")
-    #else:
-    #    canvas.itemconfig(agent.oval,fill="#CC33CC")        
+    if (agent.infectionStatus == "Exposed"):
+        canvas.itemconfig(agent.oval,fill="#CCCC33")
+    elif (agent.infectionStatus == "Infectious"):
+        canvas.itemconfig(agent.oval,fill="#CC3333")
+    elif (agent.infectionStatus == "Susceptible"):
+        canvas.itemconfig(agent.oval,fill="#3333CC")
+    else:
+        canvas.itemconfig(agent.oval,fill="#33CC33")        
     canvas.move(agent.oval,x,y)
 
 def drawCircle(lon,lat,radius, color, name = None):

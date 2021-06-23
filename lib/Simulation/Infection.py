@@ -7,8 +7,10 @@ class Infection:
         - Origin: The virus carrier
         - Target: The target
         - Step: the step number when the infection was generated
+        - Dormant : 2 days
+        - recovery : 14 days (2 weeks)
     """
-    def __init__(self,origin,target,step,dormant ,recovery):
+    def __init__(self,origin,target,step,dormant = 2 *24 *3600, recovery = 14*24*3600):
         self.origin = origin
         self.target = target
         self.step = step
@@ -16,10 +18,10 @@ class Infection:
         self.recovery = recovery
         
     def finalize(self,step):
-        if (step - self.step < dormant):
-            self.target.infection_status = "Exposed" 
-        elif (step - self.step < dormant+ recovery):
-            self.target.infection_status = "Infectious"
-        elif (step - self.step >= dormant+ recovery):
-            self.target.infection_status = "Recovered"
+        if (step - self.step < self.dormant):
+            self.target.infectionStatus = "Exposed" 
+        elif (step - self.step < self.dormant+ self.recovery):
+            self.target.infectionStatus = "Infectious"
+        elif (step - self.step >= self.dormant+ self.recovery):
+            self.target.infectionStatus = "Recovered"
 

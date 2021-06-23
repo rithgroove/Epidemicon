@@ -10,7 +10,6 @@ class MovementVector:
         if(self.distance == 0):
             print(startingNode)
             print(destinationNode)
-            print("fuck")
         self.passedThroughDistance = 0
         self.totalTranslation = (self.destination[0]-self.starting[0],self.destination[1]-self.starting[1])
         self.currentPosition = self.starting

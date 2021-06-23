@@ -28,7 +28,7 @@ class Node():
         self.tags = {}
         self.grid = None
         self.movementSequences = {}
-        self.agent = []
+        self.agents = []
         
     def fill(self, osmNode):
         """
@@ -116,7 +116,7 @@ class Node():
         Parameter:
             - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
         """
-        self.connections.remove(agent)
+        self.agents.remove(agent)
             
     def __str__(self):        
         """

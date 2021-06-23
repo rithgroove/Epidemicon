@@ -1,4 +1,5 @@
-
+import random
+from .Infection import Infection 
 class Agent:
     """
     [Class] Agent
@@ -16,7 +17,7 @@ class Agent:
         self.age = age
         self.mainJob = job.generateJob()
         self.mainJob.setAgent(self)
-        self.infection_status = "Susceptible"
+        self.infectionStatus = "Susceptible"
         self.currentLocation = home.coordinate().newCoordinateWithTranslation()
         self.currentNode = home.node()
         self.oval = None
@@ -26,6 +27,7 @@ class Agent:
         self.osmMap = osmMap
         self.transition = (0,0)
         self.distanceToDestination = 0
+        self.infection = None
         
     def setMovementSequence(self, activeSequence):
         self.activeSequence = activeSequence
@@ -59,21 +61,17 @@ class Agent:
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
             
-    def checkInfection(self):
-        if self.infection_status == "Susceptible":
-            otherAgents = []
+    def checkInfection(self,currentStepNumber):
+        if self.infectionStatus == "Susceptible":
             for node in self.currentNode.connections:
-
-    def infect(simulator):
-        for x in simulator.agent:
-            node = x.currentNode
-            otherAgents = []
-            for node in node.connections:
-                for other agents = node.agents:
-                    #check if agent position is within a certain number of meter
-                    include to the other agents
-
-        
-    def finalize(self):
+                for x in node.agents:
+                    if (x.infectionStatus == "Infectious"):
+                        distance = x.currentLocation.calculateDistance(self.currentLocation)
+                        infectionPercentage = (-23.28 * distance) + 63.2
+                        if infectionPercentage > 0 and random.randint(0,int(infectionPercentage*100)) < infectionPercentage*100:
+                            self.infection = Infection(x,self,currentStepNumber)
+                            break
+                            
+    def finalize(self,currentStepNumber):
         if self.infection != None:
-            self.infection.finalize
+            self.infection.finalize(currentStepNumber)

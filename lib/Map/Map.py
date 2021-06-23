@@ -195,16 +195,16 @@ class Map(osmium.SimpleHandler):
             if 'building' in x.tags.keys():
                 temp = Building(f"b{buildingId}",x)
                 buildingId += 1
-                self.buildings.append(temp)
-                if temp.type not in self.buildingsDict.keys():
-                    self.buildingsDict[temp.type] =[]
-                self.buildingsDict[temp.type].append(temp)
-                self.buildingsMap[temp.buildingId] = temp
                 if(self.distanceLat is not None and self.distanceLon is not None):
                     xAxis = int((temp.coordinate.lon-self.origin.lon)/self.distanceLon)
                     yAxis = int((temp.coordinate.lat-self.origin.lat)/self.distanceLat)
                     #print(f'{xAxis},{yAxis}')               
                     if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
+                        self.buildings.append(temp)
+                        if temp.type not in self.buildingsDict.keys():
+                            self.buildingsDict[temp.type] =[]
+                        self.buildingsDict[temp.type].append(temp)
+                        self.buildingsMap[temp.buildingId] = temp
                         grid =self.grids[xAxis][yAxis]
                         x=temp
                         valid = True

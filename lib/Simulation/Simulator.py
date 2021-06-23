@@ -2,7 +2,7 @@ import csv
 from .JobClass import JobClass
 from .Agent import Agent
 from .Home import Home
-
+from .Infection import Infection
 import random
 class Simulator:
     def __init__(self,jobCSVPath,osmMap,agentNum = 1000):
@@ -25,8 +25,8 @@ class Simulator:
                     self.jobClasses.append(temp)
             print(f'Processed {line_count} lines.')
         self.agents = []
+        self.stepCount = 3600*8
         self.generateAgents(agentNum)
-        self.stepCount = 0
             
     def generateAgents(self, count):
         total = 0
@@ -51,6 +51,10 @@ class Simulator:
                     building.content["agent"] = []   
                 building.content["agent"].append(agent)               
                 self.agents.append(agent)
+                building.node.addAgent(agent)
+        for i in range (0,30):
+            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0)
+    
                 
     def step(self,steps = 15):
         for x in self.agents:
@@ -61,6 +65,10 @@ class Simulator:
                 print("agent failed steps")
                 x.translation = (0,0)
         self.stepCount += steps
+        for x in self.agents:
+            x.checkInfection(self.stepCount)
+        for x in self.agents:
+            x.finalize(self.stepCount)
                 
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24

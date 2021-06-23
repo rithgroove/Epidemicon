@@ -94,7 +94,7 @@ class Coordinate():
         Parameter:
             - targetCoordinate : [Coordinate] target Coordinate.
             
-        Return: [Double] Distance in KM
+        Return: [Double] Distance in Meter
         """
         return distance.distance(self.getLatLon(), targetCoordinate.getLatLon()).km * 1000
     
