@@ -31,6 +31,7 @@ class Job:
             self.workdays  += (2**(6-i))
         self.agent = None
         
+        
     def isOutsideCity(self):
         return self.jobClass.outsideCity
     

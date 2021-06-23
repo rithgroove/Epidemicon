@@ -28,6 +28,7 @@ class Node():
         self.tags = {}
         self.grid = None
         self.movementSequences = {}
+        self.agent = []
         
     def fill(self, osmNode):
         """
@@ -95,6 +96,27 @@ class Node():
             - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
         """
         self.connections.remove(connection)
+        
+        
+    def addAgent(self,agent):
+        """
+        [Method] addAgent
+        Add an agent that is in this node (Agent are not part of this module). This is created to help the simulation model.
+        
+        Parameter:
+            - agent = [Object] Any agent
+        """
+        self.agents.append(agent)
+        
+    def removeAgent(self,agent):
+        """
+        [Method] removeConnection
+        Remove an agent that is in this node (Agent are not part of this module). This is created to help the simulation model.
+        
+        Parameter:
+            - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
+        """
+        self.connections.remove(agent)
             
     def __str__(self):        
         """

@@ -50,9 +50,21 @@ class Agent:
             
             while leftOver > 0 and not self.activeSequence.finished:
                 leftOver = self.activeSequence.step(leftOver)
+                self.currentNode.removeAgent(self)
                 self.currentNode = self.activeSequence.currentNode
+                self.currentNode.addAgent(self)
                 #self.evaluate()
                 #print(f"leftover = {leftOver}")
                 
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
+            
+    def checkInfection(self):
+        if self.infection_status == "Susceptible":
+            otherAgents = []
+            for node in self.currentNode.connections:
+                
+        
+    def finalize(self):
+        if self.infection != None:
+            self.infection.finalize
