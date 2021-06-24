@@ -73,7 +73,6 @@ class Agent:
                     #check if agent position is within a certain number of meter
                     include to the other agents
 
-        
     def finalize(self):
         if self.infection != None:
             self.infection.finalize

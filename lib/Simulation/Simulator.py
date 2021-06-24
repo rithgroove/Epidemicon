@@ -27,6 +27,8 @@ class Simulator:
         self.agents = []
         self.generateAgents(agentNum)
         self.stepCount = 0
+        self.history = {}
+        self.timeStamp = []
             
     def generateAgents(self, count):
         total = 0
@@ -61,8 +63,23 @@ class Simulator:
                 print("agent failed steps")
                 x.translation = (0,0)
         self.stepCount += steps
+        self.summarize()
                 
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
         day = int(hour /24) % 7
         return day,hour
+    
+    def summarize(self):
+        result = {}
+        for x in self.agents:
+            if x.infectionStatus not in result.keys():
+                result[x.infectionStatus] = 0
+            result[x.infectionStatus] += 1
+        for x in result.keys():
+            if x not in history.keys():
+                history[x] = []
+            history[x].append(result[x])
+        timeStamp.append(self.stepCount)
+        return result
+            
