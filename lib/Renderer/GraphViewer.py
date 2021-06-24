@@ -10,9 +10,9 @@ def showData(sim):
     fig = plt.figure()
     plt.xlabel('Time')
     plt.ylabel('population')
-
+    
     plt.show(block=False)
-
+    ax.set_ylim(bottom=0)
     def mypause(interval):
         backend = plt.rcParams['backend']
         if backend in matplotlib.rcsetup.interactive_bk:

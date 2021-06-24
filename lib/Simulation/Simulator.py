@@ -86,9 +86,9 @@ class Simulator:
                 result[x.infectionStatus] = 0
             result[x.infectionStatus] += 1
         for x in result.keys():
-            if x not in history.keys():
-                history[x] = []
-            history[x].append(result[x])
-        timeStamp.append(self.stepCount)
+            if x not in self.history.keys():
+                self.history[x] = []
+            self.history[x].append(result[x])
+        self.timeStamp.append(self.stepCount)
         return result
             
