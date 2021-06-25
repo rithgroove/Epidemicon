@@ -38,6 +38,9 @@ class Simulator:
         houses.extend(self.osmMap.buildingsDict['residential'])
         houses.extend(self.osmMap.buildingsDict['house'])
         houses.extend(self.osmMap.buildingsDict['apartments'])
+        for x in houses:
+            if x.node is None:
+                houses.remove(x)
         for x in self.jobClasses:
             total += x.populationProportion
         for x in self.jobClasses:
@@ -55,11 +58,11 @@ class Simulator:
                 building.content["agent"].append(agent)               
                 self.agents.append(agent)
                 building.node.addAgent(agent)
-        for i in range (0,30):
+        for i in range (0,80):
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0)
     
                 
-    def step(self,steps = 15):
+    def step(self,steps = 3600):
         for x in self.agents:
             day, hour = self.currentHour()
             try:
@@ -81,14 +84,16 @@ class Simulator:
     
     def summarize(self):
         result = {}
+        result["Susceptible"] = 0
+        result["Infectious"] = 0
+        result["Exposed"] = 0
+        result["Recovered"] = 0
         for x in self.agents:
-            if x.infectionStatus not in result.keys():
-                result[x.infectionStatus] = 0
             result[x.infectionStatus] += 1
         for x in result.keys():
             if x not in self.history.keys():
                 self.history[x] = []
             self.history[x].append(result[x])
-        self.timeStamp.append(self.stepCount)
+        self.timeStamp.append(self.stepCount/3600)
         return result
             

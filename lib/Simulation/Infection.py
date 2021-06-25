@@ -10,7 +10,7 @@ class Infection:
         - Dormant : 2 days
         - recovery : 14 days (2 weeks)
     """
-    def __init__(self,origin,target,step,dormant = 2 *24 *3600, recovery = 14*24*3600):
+    def __init__(self,origin,target,step,dormant = 2 *24 *3600, recovery = 3*24*3600):
         self.origin = origin
         self.target = target
         self.step = step

@@ -44,7 +44,8 @@ class Agent:
                 else:
                     self.activeSequence = None
             else:
-                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
+                if not self.mainJob.isWorking(day, hour) and self.currentNode != self.home.node():                 
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
                 #gohome
         if self.activeSequence is not None:
             #after recalculate
@@ -63,13 +64,28 @@ class Agent:
             
     def checkInfection(self,currentStepNumber):
         if self.infectionStatus == "Susceptible":
+            print("checking for infection")
+            for x in self.currentNode.agents:
+                
+                if (x.infectionStatus == "Infectious"):
+                    distance = x.currentLocation.calculateDistance(self.currentLocation)
+                    #infectionPercentage = (-23.28 * distance) + 63.2
+                    infectionPercentage = (-23.28 * distance) + 10.0
+                    print("I met an infected person!")
+                    if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
+                        self.infection = Infection(x,self,currentStepNumber)
+                        print("I got infected!")
+                        break
             for node in self.currentNode.connections:
                 for x in node.agents:
+                    
                     if (x.infectionStatus == "Infectious"):
                         distance = x.currentLocation.calculateDistance(self.currentLocation)
                         infectionPercentage = (-23.28 * distance) + 63.2
-                        if infectionPercentage > 0 and random.randint(0,int(infectionPercentage*100)) < infectionPercentage*100:
+                        print("I met an infected person!")
+                        if infectionPercentage > 0 and (random.randint(0,int(10000)) < (infectionPercentage*100)):
                             self.infection = Infection(x,self,currentStepNumber)
+                            print("I got infected!")
                             break
                             
     def finalize(self,currentStepNumber):

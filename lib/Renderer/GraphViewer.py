@@ -10,9 +10,7 @@ def showData(sim):
     fig = plt.figure()
     plt.xlabel('Time')
     plt.ylabel('population')
-    
     plt.show(block=False)
-    ax.set_ylim(bottom=0)
     def mypause(interval):
         backend = plt.rcParams['backend']
         if backend in matplotlib.rcsetup.interactive_bk:
@@ -29,7 +27,12 @@ def showData(sim):
     t = []
     y = []
     while True:
-        plt.gca().clear()
+        ax = plt.gca()
+        ax.clear()
+        ax.set_ylim((0,len(sim.agents)+5))
+        ax.set_ylabel('number of agent')
+        ax.set_xlabel('time (hours)')
         for x in sim.history.keys():
-            plt.plot(sim.timeStamp, sim.history[x])
+            plt.plot(sim.timeStamp, sim.history[x],label = x)
+        ax.legend()
         mypause(1)
