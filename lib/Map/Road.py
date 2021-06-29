@@ -14,7 +14,7 @@ class Road:
         - distance : road length
         - buildings : buildings in this road
     """
-    def __init__(self,origin, dest):
+    def __init__(self,origin, dest, way = None):
         """
         [Constructor]
         Initialize road.
@@ -26,7 +26,26 @@ class Road:
         self.name,self.start,self.destination = genName(origin,dest)
         self.length = self.start.calculateDistance(dest)
         self.buildings = []
-        
+        self.type = "Other"
+        self.width = 4
+        self.oneWay = False
+        self.color = "#333333"
+        self.lanes = 1 
+        #types = ["tertiary","secondary","primary","residential", "trunk", "trunk_link", "primary_link", "secondary_link", "service","path"]
+        types = ["footway","pedestrian","track","steps"]
+        if way is not None:
+            if "highway" in way.tags.keys():
+                self.type = way.tags["highway"]
+                if self.type in types:
+                    self.width = 4
+                    self.color = "#777777"
+            if "lanes" in way.tags.keys():
+                #self.width = float(way.tags["lanes"]) * 4
+                self.lanes = way.tags["lanes"]
+            if "oneway" in way.tags.keys():
+                self.oneWay = way.tags["oneway"] == "yes"
+                
+                
     def getPath(self):
         """
         [Method] getPath

@@ -241,7 +241,7 @@ class Map(osmium.SimpleHandler):
                 node.addConnection(startingNode)           
                 roadObject = self.roadsDict.get(genName(startingNode,node)[0])
                 if roadObject is None:
-                    roadObject = Road(startingNode,node)
+                    roadObject = Road(startingNode,node,road)
                     self.roadsDict[roadObject.name] = roadObject
                     self.roads.append(roadObject)  
                     if (roadObject.start.grid is not None):

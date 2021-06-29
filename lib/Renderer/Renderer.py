@@ -227,12 +227,14 @@ def draw():
     for temp in osmMap.roads:
         data = temp.getPathForRendering()
         
-        x =  (data[0] - canvasOrigin[0]) * scale +viewPort[0]
-        y = (canvasSize[1]-(data[1] - canvasOrigin[1])) * scale + viewPort[1]
-        #drawCircle(temp.lon,temp.lat,1, "#476042")
-        x1 = (data[2] - canvasOrigin[0]) * scale +viewPort[0]
-        y1 = (canvasSize[1]-(data[3] - canvasOrigin[1])) * scale + viewPort[1]
-        canvas.create_line(x,y,x1,y1)
+#         x =  (data[0] - canvasOrigin[0]) * scale +viewPort[0]
+#         y = (canvasSize[1]-(data[1] - canvasOrigin[1])) * scale + viewPort[1]
+#         #drawCircle(temp.lon,temp.lat,1, "#476042")
+#         x1 = (data[2] - canvasOrigin[0]) * scale +viewPort[0]
+#         y1 = (canvasSize[1]-(data[3] - canvasOrigin[1])) * scale + viewPort[1]
+#         canvas.create_line(x,y,x1,y1)
+        
+        drawLine(data[0],data[1], data[2], data[3], temp.color , width = temp.width)
         
     for temp in osmMap.roadNodes:
         drawCircle(temp.coordinate.lon,temp.coordinate.lat,1, "#476042")  
