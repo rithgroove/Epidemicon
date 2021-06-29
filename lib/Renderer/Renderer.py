@@ -1,6 +1,7 @@
 import tkinter 
 import platform
-
+import time
+import threading
 
 osmMap = None
 sim = None
@@ -52,14 +53,20 @@ def doubleClick(event):
     print("double click")
     animating = not animating
     
-def step():
+def start():
     global animating
-    if (animating):
-        sim.step()
-        print("finish stepping")
+    while(1):
+        if (animating):
+            sim.step()
+            print("finish stepping")
+        time.sleep(3)
+        
+def step():
+    global lastStep 
+    if lastStep != sim.stepCount:
         for x in sim.agents:
             moveAgent(x)
-        
+        lastStep = sim.stepCount
     canvas.after(10,step)
         
 def scroll(event):
@@ -315,6 +322,8 @@ def render(map,simulation = None, path = None):
     global windowSize
     global viewPort
     global sim
+    global lastStep 
+    lastStep =0
     sim = simulation
     osmMap = map
     canvasOrigin = osmMap.origin.getLonLat()
@@ -347,6 +356,7 @@ def render(map,simulation = None, path = None):
         drawPath(path)
     if (sim is not None):
         drawAgent()
-        
+        x = threading.Thread(target=start, args=())
+        x.start()
     canvas.after(1000,step)
     root.mainloop()
