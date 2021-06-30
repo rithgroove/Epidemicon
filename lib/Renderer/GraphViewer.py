@@ -21,8 +21,6 @@ def showData(sim):
                     canvas.draw()
                 canvas.start_event_loop(interval)
                 return
-
-
     t0 = time()
     t = []
     y = []

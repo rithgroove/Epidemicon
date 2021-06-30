@@ -226,7 +226,7 @@ def draw():
             path.append(y)
         if (path.__len__() > 6): #at least a triangle if not don't render
             canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
-            drawCircle(temp.coordinate.lon,temp.coordinate.lat,3, "#FF0000")   
+            drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
         if (temp.entryPoint is not None):
             print("rendering entry Point")
             drawLine(temp.entryPoint.lon,temp.entryPoint.lat, temp.coordinate.lon, temp.coordinate.lat, '#000000')
@@ -358,5 +358,5 @@ def render(map,simulation = None, path = None):
         drawAgent()
         x = threading.Thread(target=start, args=())
         x.start()
-    canvas.after(1000,step)
+        canvas.after(1000,step)
     root.mainloop()
