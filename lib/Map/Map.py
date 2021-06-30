@@ -163,25 +163,25 @@ class Map(osmium.SimpleHandler):
                     valid = True
                     if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
                         valid = False
-                        print("fault in lat")
+#                         print("fault in lat")
                     if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
                         valid = False
-                        print("fault in lon")
+#                         print("fault in lon")
                     if (valid):                 
                         grid.addNode(x)
                         x.grid = self.grids[xAxis][yAxis]
-                    else:
-                        print(f'######################################################')
-                        print("okay")
-                        print(f'{xAxis},{yAxis}')
-                        print(f'{self.distanceLon},{self.distanceLat}')
-                        print(self.origin)
-                        print(self.end)
-                        print(x)
-                        print(self.grids[xAxis][yAxis])
-                        print(f'######################################################')   
-                else:
-                    print("dokay")
+#                     else:
+#                         print(f'######################################################')
+#                         print("okay")
+#                         print(f'{xAxis},{yAxis}')
+#                         print(f'{self.distanceLon},{self.distanceLat}')
+#                         print(self.origin)
+#                         print(self.end)
+#                         print(x)
+#                         print(self.grids[xAxis][yAxis])
+#                         print(f'######################################################')   
+#                 else:
+#                     print("dokay")
             
                 
     def constructMap(self):
@@ -269,18 +269,54 @@ class Map(osmium.SimpleHandler):
             self.roadNodes.extend(i.generateNodes())
         
     def findPath(self,agent,building):
+        """
+        [Method] findPath
+        A-star function to find the path from the agent location to the building 
+        
+        parameter:
+            - agent : [Agent] agent (will be changed to node later to make sure the division between map and simulator)
+            - building : [Building] the building 
+        """
         try:
             distance = 0
             sequence = agent.currentNode.getMovementSequence(building.node)            
             if (sequence is None):
-                print("sequence is none")
+                print("No previously calculated sequence is found")
                 distance, sequence = searchPath(self,agent.currentNode,building.node)
                 agent.currentNode.addMovementSequence(sequence.clone())           
             else:
-                distance = totalDistance
+                distance = sequence.totalDistance
             return distance, sequence
         except:
             return None, None
+        
+    def summarizeRoad(self):
+        """
+        [Method] summarizeRoad
+        Print the summarized information of road types contained in this map
+        """
+        roadMap = {}
+        for x in self.roads:
+            if (x.type not in roadMap.keys()):
+                roadMap[x.type] = 0
+            roadMap[x.type] += 1
+        print("Type of roads contained in this map")
+        for x in roadMap.keys():
+            print (f"{x} = {roadMap[x]}")
+            
+    def summarizeBuilding(self):
+        """
+        [Method] summarizeBuilding
+        Print the summarized information of road types contained in this map
+        """
+        buildingMap = {}
+        for x in self.buildings:
+            if (x.type not in buildingMap.keys()):
+                buildingMap[x.type] = 0
+            buildingMap[x.type] += 1
+        print("Type of buildings contained in this map")
+        for x in buildingMap.keys():
+            print (f"{x} = {buildingMap[x]}")
     
 def readFile(filepath,grid = (10,10)):
     """

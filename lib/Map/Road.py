@@ -110,6 +110,13 @@ class Road:
         return height
     
     def getClosestCoordinate(self, coordinate):
+        """
+        [Method] getClosestCoordinate
+        Method to get the closest coordinate in this road
+        
+        Parameter:
+            - coordinate: the coordinate that we wanted to find the closest coordinate within road.
+        """
         height = self.distanceToCoordinate(coordinate)
         a =  max(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
         b =  min(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
@@ -122,10 +129,10 @@ class Road:
         e = a * math.cos(q)
         if (e > c or q > math.pi):
             if (a<b):
-                print("return start")
+                #print("return start")
                 return self.start.coordinate
             else:
-                print("return destination")
+                #print("return destination")
                 return self.destination.coordinate
         if self.start.coordinate.calculateDistance(coordinate) < self.destination.coordinate.calculateDistance(coordinate): 
             distanceVector = self.start.coordinate.getVectorDistance(self.destination.coordinate)  
@@ -147,6 +154,10 @@ class Road:
         
         
     def generateNodes(self):
+        """
+        [Method] generatesNodes
+        Do not call this function, this function is to generate nodes that connects the buildings and roads
+        """
         newNodes = []
         if (len(self.buildings) > 0):
             temp = []
@@ -187,7 +198,7 @@ class Road:
             self.destination.addConnection(workingNode)
             self.start.removeConnection(self.destination)
             self.destination.removeConnection(self.start)
-        print(len(newNodes))
+        #print(f"We have generated {len(newNodes)} number of new nodes")
         return newNodes
         
         

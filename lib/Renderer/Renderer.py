@@ -228,7 +228,7 @@ def draw():
             canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
             drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
         if (temp.entryPoint is not None):
-            print("rendering entry Point")
+            #print("rendering entry Point")
             drawLine(temp.entryPoint.lon,temp.entryPoint.lat, temp.coordinate.lon, temp.coordinate.lat, '#000000')
             
     for temp in osmMap.roads:
