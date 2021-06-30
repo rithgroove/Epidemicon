@@ -13,6 +13,11 @@ class Road:
         - destination : [Node] destination node.
         - distance : road length
         - buildings : buildings in this road
+        - type : road type
+        - width : the render width
+        - oneway : [Bool] one way or not
+        - color : the color of the road (renderer related)
+        - lanes : the number of lane
     """
     def __init__(self,origin, dest, way = None):
         """
@@ -84,6 +89,16 @@ class Road:
         return temp
     
     def distanceToCoordinate(self, coordinate):
+        """
+        [Method] distanceToCoordinate
+        Method to get the closest distance from a coordinate to the road
+        
+        Parameter:
+            - coordinate: the coordinate that we wanted to find the closest distance to the road.
+            
+        Return:
+            - [float] the distance
+        """
         a =  max(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
         b =  min(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))
         c = self.start.coordinate.calculateDistance(self.destination.coordinate)
@@ -116,6 +131,9 @@ class Road:
         
         Parameter:
             - coordinate: the coordinate that we wanted to find the closest coordinate within road.
+            
+        Return:
+            - [Coordinate] the closest coordinate
         """
         height = self.distanceToCoordinate(coordinate)
         a =  max(self.start.coordinate.calculateDistance(coordinate),self.destination.coordinate.calculateDistance(coordinate))

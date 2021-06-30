@@ -12,8 +12,8 @@ class Grid():
         - lonDistance : x distance (in longitude)
         - latDistance : y distance (in latitude)
         - nodes : list of nodes inside this grids
-        - nodes : list of roads inside this grids
         - buildings : list of buildings inside this grids
+        - roads : list of roads inside this grids
     """
     
     def __init__(self,origin,latDistance,lonDistance):

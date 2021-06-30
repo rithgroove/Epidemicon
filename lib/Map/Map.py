@@ -123,10 +123,10 @@ class Map(osmium.SimpleHandler):
         tempstring = tempstring + f" number of buildings = {self.buildings.__len__()}\n" 
         return tempstring
     
-    def setBounds(self,filepath,grid=(10,10)):
+    def setBounds(self,filepath):
         """
-        [Method] __str__
-        Setup the bounds using the file path
+        [Method] setBounds
+        Re-read the filepath to setup the boundary
         
         Parameter:
             - filepath : path to the OSM file
@@ -138,18 +138,30 @@ class Map(osmium.SimpleHandler):
                 self.origin = Coordinate(float(child.attrib['minlat']),float(child.attrib['minlon']))
                 self.end = Coordinate(float(child.attrib['maxlat']),float(child.attrib['maxlon']))
                 break
+                
+    def generateGrid(self):
+        """
+        [Method] generateGrid
+        Generate the grids. This function needs to be called after setBounds()
+        """
         temp = self.end.getVectorDistance(self.origin)
-        print(temp)
-        self.distanceLat = (temp.lat)/grid[1]
-        self.distanceLon = (temp.lon)/grid[0]
+        #print(temp)
+        self.distanceLat = (temp.lat)/self.gridSize[1]
+        self.distanceLon = (temp.lon)/self.gridSize[0]
         print(f'{self.distanceLon},{self.distanceLat}')
         temp = Coordinate(self.origin.lat, self.origin.lon)
-        for i in range(0,grid[0]):
+        for i in range(0,self.gridSize[0]):
             temp.lon = self.origin.lon
-            for j in range(0,grid[1]):
+            for j in range(0,self.gridSize[1]):
                 self.grids[j][i] = Grid(temp, self.distanceLat, self.distanceLon)  
                 temp = temp.newCoordinateWithTranslation(lon = self.distanceLon)
             temp = temp.newCoordinateWithTranslation(lat = self.distanceLat)
+            
+    def mapNodesToGrid(self):
+        """
+        [Method] mapNodesToGrid
+        Map the nodes to the grids. This function needs to be called after generateGrid()
+        """
         for x in self.nodes:
             if(self.distanceLat is not None and self.distanceLon is not None):
                 xAxis = int((x.coordinate.lon-self.origin.lon)/self.distanceLon)
@@ -330,6 +342,8 @@ def readFile(filepath,grid = (10,10)):
     generatedMap = Map(grid)
     generatedMap.apply_file(filepath)
     generatedMap.setBounds(filepath)
+    generatedMap.generateGrid()
+    generatedMap.mapNodesToGrid()
     generatedMap.constructMap()
     generatedMap.recalculateGrid()
     return generatedMap

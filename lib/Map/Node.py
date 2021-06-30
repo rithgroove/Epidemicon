@@ -6,13 +6,15 @@ class Node():
     A class to represent the Open Street Map Node.
     
     Properties:
-        - osmId      : Open Street Map ID.
-        - coordinate : coordinate 
-        - isRoad     : Boolean to mark whether this Node is a part of a road.
-        - connection : List of all connected node.
-        - ways       : A dictionary of Open Street Map Ways.
-        - tags       : A dictionary of the Map Feature of this object (check Open Street Map - Map Features).
-        - grid       : [Grid] The grid this node is in
+        - osmId             : Open Street Map ID.
+        - coordinate        : coordinate 
+        - isRoad            : Boolean to mark whether this Node is a part of a road.
+        - connection        : List of all connected node.
+        - ways              : A dictionary of Open Street Map Ways.
+        - tags              : A dictionary of the Map Feature of this object (check Open Street Map - Map Features).
+        - grid              : [Grid] The grid this node is in
+        - movementSequences : [MovementSequence] Dictionary of previously generated movementSequences destination id is the key
+        - agents            : [Agents] agents in this node (might replace it later with something)
     """
     
     def __init__(self):
@@ -145,9 +147,25 @@ class Node():
         return self.coordinate.calculateDistance(targetNode.coordinate)
         
     def addMovementSequence(self,sequence):
+        """
+        [Method] addMovementSequence
+        save a calculated sequence to our node
+        
+        Parameter:
+            - sequence : [MovementSequence] the movement sequence
+        """
         self.movementSequences[sequence.destination.osmId]  = sequence
         
     def getMovementSequence(self,targetNode):
+        """
+        [Method] getMovementSequence
+        get the previously generated movementSequence (return none if not found)
+        
+        Parameter:
+            - targetNode: the destinationNode
+            
+        return: [MovementSequence] a clone of the previously generated movement sequence or None 
+        """
         if (targetNode.osmId in self.movementSequences.keys()):
             return self.movementSequences[targetNode.osmId].clone()
         return None
