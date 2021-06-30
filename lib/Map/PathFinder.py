@@ -3,7 +3,29 @@ from .MovementVector import MovementVector
 from .MovementSequence import MovementSequence
 
 class AStarNode():
+    """
+    [Class] AStarNode
+    A class to represent the a star node
+    
+    Properties:
+        - g             : [float] the exact cost of the path from the starting node to this node
+        - h             : [float] the heuristic estimated cost from this node to the target node.
+        - f             : [float] lowest cost in the neighbor of this node
+        - position      : [Coordinate] the coordinate of this node
+        - name          : name of this node
+        - node          : [Node] the node object this object refers to
+        - visited       : [Bool] is this node visited before?
+        - prevNode      : [AStarNode] the previous node
+    """
     def __init__(self,node,targetNode):
+        """
+        [Constructor]    
+        Generate Unvisited AStarNode.
+        
+        Parameter:
+            - node       : [Node] the OSM node this class represent
+            - targetNode : [Node] the OSM node which is this class targeted goal
+        """
         self.g = 0
         self.h = 0
         self.position = node.coordinate
@@ -17,6 +39,13 @@ class AStarNode():
         self.g = -1
         
     def calculateFrom(self,prevNode):
+        """
+        [Method] calculateFrom
+        Calculate from a node we're currently exploring from. If the total distance is bigger, we ignore the prevNode
+        
+        Parameter:
+            - prevNode : [Node] prevNode that we currently exploring from.
+        """
         if (not self.visited):
             distanceToPrevious = 0
             distanceFromOrigin = 0
@@ -29,6 +58,19 @@ class AStarNode():
                 self.f = self.g + self.h
 
 def searchPath(osmMap, originNode, destinationNode, limit = None):
+    """
+    [Function] searchPath
+    A function to searchPath from our origin to our destination.
+        
+    Parameter:
+        - originNode      : [Node] prevNode that we currently exploring from.
+        - destinationNode : [Node] prevNode that we currently exploring from.
+        - limit           : [Float] Distance in meter to ignore nodes that is too far from the previous nodes (default = None)
+        
+    Return :
+        - [Float] Distance in meters
+        - [MovementSequence] the movementSequence
+    """
     path = []
     quicksearch = {}
     workingList = []
