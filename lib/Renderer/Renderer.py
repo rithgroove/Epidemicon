@@ -59,7 +59,7 @@ def start():
         if (animating):
             sim.step()
             print("finish stepping")
-        time.sleep(3)
+        time.sleep(10)
         
 def step():
     global lastStep 
@@ -67,7 +67,7 @@ def step():
         for x in sim.agents:
             moveAgent(x)
         lastStep = sim.stepCount
-    canvas.after(10,step)
+    canvas.after(1000,step)
         
 def scroll(event):
     global canvas

@@ -207,7 +207,9 @@ class Map(osmium.SimpleHandler):
             if 'building' in x.tags.keys():
                 temp = Building(f"b{buildingId}",x)
                 buildingId += 1
-                if(self.distanceLat is not None and self.distanceLon is not None):
+                if(self.distanceLat is not None and self.distanceLon is not None):                   
+                    if temp.coordinate.lat < self.origin.lat or temp.coordinate.lon < self.origin.lon or temp.coordinate.lat > self.end.lat or temp.coordinate.lon > self.end.lon: 
+                        continue
                     xAxis = int((temp.coordinate.lon-self.origin.lon)/self.distanceLon)
                     yAxis = int((temp.coordinate.lat-self.origin.lat)/self.distanceLat)
                     #print(f'{xAxis},{yAxis}')               

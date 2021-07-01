@@ -24,13 +24,22 @@ def showData(sim):
     t0 = time()
     t = []
     y = []
+    color = {}
+    color["Susceptible"] = "#3333CC"
+    color["Exposed"] = "#CCCC33"
+    color["Infectious"] = "#CC3333"
+    color["Recovered"] = "#33CC33"
+    lastStepCount = 0
     while True:
-        ax = plt.gca()
-        ax.clear()
-        ax.set_ylim((0,len(sim.agents)+5))
-        ax.set_ylabel('number of agent')
-        ax.set_xlabel('time (hours)')
-        for x in sim.history.keys():
-            plt.plot(sim.timeStamp, sim.history[x],label = x)
-        ax.legend()
-        mypause(1)
+        if (lastStepCount != sim.stepCount):
+            ax = plt.gca()
+            ax.clear()
+            ax.set_ylim((0,len(sim.agents)+5))
+            ax.set_ylabel('number of agent')
+            ax.set_xlabel('time (hours)')
+            for x in sim.history.keys():
+                plt.plot(sim.timeStamp, sim.history[x],label = x,color = color[x])
+            if (sim.history.keys().__len__() != 0):
+                ax.legend()
+            lastStepCount = sim.stepCount
+            mypause(10)
