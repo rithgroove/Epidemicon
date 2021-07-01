@@ -162,10 +162,10 @@ class Map(osmium.SimpleHandler):
         [Method] mapNodesToGrid
         Map the nodes to the grids. This function needs to be called after generateGrid()
         """
-        for x in self.nodes:
-            if(self.distanceLat is not None and self.distanceLon is not None):
-                xAxis = int((x.coordinate.lon-self.origin.lon)/self.distanceLon)
-                yAxis = int((x.coordinate.lat-self.origin.lat)/self.distanceLat)
+        if(self.distanceLat is not None and self.distanceLon is not None):
+            for node in self.nodes:
+                xAxis = int((node.coordinate.lon-self.origin.lon)/self.distanceLon)
+                yAxis = int((node.coordinate.lat-self.origin.lat)/self.distanceLat)
                 if xAxis >= self.gridSize[0]:
                     xAxis = self.gridSize[0]-1
                 if yAxis >= self.gridSize[1]:
@@ -173,15 +173,15 @@ class Map(osmium.SimpleHandler):
                 if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
                     grid =self.grids[xAxis][yAxis]
                     valid = True
-                    if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
+                    if (node.coordinate.lat < grid.origin.lat or node.coordinate.lat > grid.end.lat):
                         valid = False
 #                         print("fault in lat")
-                    if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
+                    if (node.coordinate.lon < grid.origin.lon or node.coordinate.lon > grid.end.lon):
                         valid = False
 #                         print("fault in lon")
                     if (valid):                 
-                        grid.addNode(x)
-                        x.grid = self.grids[xAxis][yAxis]
+                        grid.addNode(node)
+                        node.grid = self.grids[xAxis][yAxis]
 #                     else:
 #                         print(f'######################################################')
 #                         print("okay")
