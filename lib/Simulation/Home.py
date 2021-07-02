@@ -19,6 +19,7 @@ class Home:
         """
         self.building = building
         self.occupants = []
+        self.agents = []
     
     def addOccupants(self,occupants):
         """
@@ -51,9 +52,17 @@ class Home:
         self.agents.remove(agent)
         
     def coordinate(self):
+        """
+        [Method] coordinate        
+        return the building coordinate
+        """
         return self.building.coordinate
     
     def node(self):
+        """
+        [Method] node        
+        return the building node
+        """
         return self.building.node
     
     def __str__(self):
