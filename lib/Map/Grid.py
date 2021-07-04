@@ -33,6 +33,8 @@ class Grid():
         self.nodes = []
         self.buildings = []
         self.roads = []
+        self.buildingSettings = []
+        self.defaultBuildings = None
     
     def addBuilding(self,building):
         """
@@ -83,7 +85,35 @@ class Grid():
             closest.addBuilding(building)
             building.entryPoint = closest.getClosestCoordinate(building.coordinate)
 
-            
+    def addBuildingSettings(self,setting):
+        if (setting["number"] == "All"):
+            self.defaultBuildings = setting
+        else:
+            setting["number"] = int(setting["number"])
+            self.buildingSettings.append(setting)
+        
+    def retagBuildings(self):
+        #collect all buildings that have the type "yes" and "+"
+        nonTaggedBuildings = []        
+        for building in self.buildings:
+            if building.type == "yes" or building.type == "+":
+                nonTaggedBuildings.append(building)
+                
+        #mark the building according to the csv (the one that we have the numbers)
+        for setting in self.buildingSettings:
+            for i in range(0,setting["number"]):
+                if (len(nonTaggedBuildings) <= 0):
+                    break #break if the config have more buildings than the actual buildings count
+                building = nonTaggedBuildings.pop(0) #maybe randomize later?
+                building.setType(setting["type"])
+            if (len(nonTaggedBuildings) <= 0):
+                break #break if the config have more buildings than the actual buildings count
+                
+        #mark the rest of the buildings as the default buildings (the one that marked as "All" in the CSV)
+        if self.defaultBuildings is not None:
+            for building in nonTaggedBuildings:
+                building.setType(self.defaultBuildings["type"])
+        
     def __str__(self):
         """
         [Method] __str__        

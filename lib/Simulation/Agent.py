@@ -64,17 +64,17 @@ class Agent:
             
     def checkInfection(self,currentStepNumber):
         if self.infectionStatus == "Susceptible":
-            print("checking for infection")
+            #print("checking for infection")
             for x in self.currentNode.agents:
                 
                 if (x.infectionStatus == "Infectious"):
                     distance = x.currentLocation.calculateDistance(self.currentLocation)
                     #infectionPercentage = (-23.28 * distance) + 63.2
                     infectionPercentage = (-23.28 * distance) + 10.0
-                    print("I met an infected person!")
+                    #print("I met an infected person!")
                     if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
                         self.infection = Infection(x,self,currentStepNumber)
-                        print("I got infected!")
+                        #print("I got infected!")
                         break
             for node in self.currentNode.connections:
                 for x in node.agents:
@@ -82,10 +82,10 @@ class Agent:
                     if (x.infectionStatus == "Infectious"):
                         distance = x.currentLocation.calculateDistance(self.currentLocation)
                         infectionPercentage = (-23.28 * distance) + 63.2
-                        print("I met an infected person!")
+                        #print("I met an infected person!")
                         if infectionPercentage > 0 and (random.randint(0,int(10000)) < (infectionPercentage*100)):
                             self.infection = Infection(x,self,currentStepNumber)
-                            print("I got infected!")
+                            #print("I got infected!")
                             break
                             
     def finalize(self,currentStepNumber):

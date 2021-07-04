@@ -30,9 +30,9 @@ class Building:
         self.entryPoint = None
         self.entryPointNode = None
         self.tags = way.tags
-        self.type = self.tags.get("building")
+        self.setType(self.tags.get("building"))
         if self.type == "yes" and "amenity" in self.tags.keys():
-            self.type = self.tags.get("amenity")
+            self.setType(self.tags.get("amenity"))
         self.node = None
         self.content = {}
         
@@ -59,3 +59,9 @@ class Building:
         """
         return (self.lat,self.lon);
    
+    def setType(self, buildingType):
+        self.type = buildingType
+        self.color = "#CCCCCC"
+        houseType = ["residential","apartments","house"]
+        if (self.type in houseType):
+            self.color = "#99CC99"

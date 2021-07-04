@@ -3,6 +3,7 @@ import os
 import osmium
 import numpy as np
 import geopy.distance as distance
+import csv
 from .Node import  Node
 from .Way import Way
 from .Road import Road
@@ -295,7 +296,7 @@ class Map(osmium.SimpleHandler):
             distance = 0
             sequence = agent.currentNode.getMovementSequence(building.node)            
             if (sequence is None):
-                print("No previously calculated sequence is found")
+                #print("No previously calculated sequence is found")
                 distance, sequence = searchPath(self,agent.currentNode,building.node)
                 agent.currentNode.addMovementSequence(sequence.clone())           
             else:
@@ -332,7 +333,34 @@ class Map(osmium.SimpleHandler):
         for x in buildingMap.keys():
             print (f"{x} = {buildingMap[x]}")
     
-def readFile(filepath,grid = (10,10)):
+    def generateRandomBuildingType(self,buildingCSV):
+        # load the CSV and put the result into the grids
+        with open(buildingCSV) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            keys = []
+            for row in csv_reader:
+                data = {}
+                if len(keys) == 0:
+                    keys = row
+                elif len(row) != 0:         
+                    print(row)
+                    for i in range(0,len(keys)):
+                        data[keys[i]]=row[i]
+                    self.grids[int(data["x"])][int(data["y"])].addBuildingSettings(data)
+                    
+        # have the grids retags the buildings
+        for i in range(0,self.gridSize[1]):
+            for j in range(0,self.gridSize[0]):
+                self.grids[j][i].retagBuildings()
+                
+        self.buildingsDict = {}
+        for building in self.buildings:
+            if (building.type not in self.buildingsDict.keys()):
+                self.buildingsDict[building.type] = []
+            self.buildingsDict[building.type].append(building)
+                    
+def readFile(filepath,grid = (10,10),buildingCSV = None):
     """
     [Function] readFile
     Function to generate map fom osm File
@@ -348,4 +376,6 @@ def readFile(filepath,grid = (10,10)):
     generatedMap.mapNodesToGrid()
     generatedMap.constructMap()
     generatedMap.recalculateGrid()
+    if buildingCSV is not None:
+        generatedMap.generateRandomBuildingType(buildingCSV)
     return generatedMap

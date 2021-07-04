@@ -225,7 +225,7 @@ def draw():
             path.append(x)
             path.append(y)
         if (path.__len__() > 6): #at least a triangle if not don't render
-            canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
+            canvas.create_polygon(path, outline='#515464',fill=temp.color, width=2)           
             drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
         if (temp.entryPoint is not None):
             #print("rendering entry Point")
