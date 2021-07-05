@@ -164,8 +164,8 @@ class Map(osmium.SimpleHandler):
         """
         if(self.distanceLat is not None and self.distanceLon is not None):
             for node in self.nodes:
-                xAxis = int((node.coordinate.lon-self.origin.lon)/self.distanceLon)
-                yAxis = int((node.coordinate.lat-self.origin.lat)/self.distanceLat)
+                xAxis = int((node.coordinate.lon - self.origin.lon) / self.distanceLon)
+                yAxis = int((node.coordinate.lat - self.origin.lat) / self.distanceLat)
                 if xAxis >= self.gridSize[0]:
                     xAxis = self.gridSize[0]-1
                 if yAxis >= self.gridSize[1]:
