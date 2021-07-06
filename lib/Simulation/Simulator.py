@@ -112,8 +112,9 @@ class Simulator:
 
     def step(self,steps = 3600):
         day, hour = self.currentHour()
+        print(f"Current Time = {hour}:{(self.stepCount%3600)/60}")
         if (self.lastHour != hour):
-            print("Activity Checking")
+            
             self.generateThread()
             for thread in self.threads:
                 thread.setStateToStep(steps)
@@ -126,14 +127,14 @@ class Simulator:
                 self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, self.returnDict[key][0], self.returnDict[key][1])
             flush()
             self.lastHour = hour
-
-        print("Finished checking activity, proceeding to move agents")
+        
+        #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
             x.step(day,hour,steps)
-        print("Finished moving agents, proceeding to check for infection")
+        #print("Finished moving agents, proceeding to check for infection")
         for x in self.agents:
-            x.checkInfection(self.stepCount)
-        print("Finished infection checking, proceeding to finalize the infection")
+            x.checkInfection(self.stepCount,steps)
+        #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
             x.finalize(self.stepCount)
         print("Finished finalizing the infection")

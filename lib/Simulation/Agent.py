@@ -69,7 +69,7 @@ class Agent:
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
             
-    def checkInfection(self,currentStepNumber):
+    def checkInfection(self,currentStepNumber,stepLength):
         if self.infectionStatus == "Susceptible":
             #print("checking for infection")
             for x in self.currentNode.agents:
@@ -77,7 +77,9 @@ class Agent:
                 if (x.infectionStatus == "Infectious"):
                     distance = x.currentLocation.calculateDistance(self.currentLocation)
                     #infectionPercentage = (-23.28 * distance) + 63.2
-                    infectionPercentage = (-23.28 * distance) + 10.0
+                    infectionPercentage = (-23.28 * distance) + 20.0
+                    infectionPercentage = 20.0
+                    infectionPercentage /= (24 * 3600/ stepLength)
                     #print("I met an infected person!")
                     if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
                         self.infection = Infection(x,self,currentStepNumber)
@@ -89,6 +91,8 @@ class Agent:
                     if (x.infectionStatus == "Infectious"):
                         distance = x.currentLocation.calculateDistance(self.currentLocation)
                         infectionPercentage = (-23.28 * distance) + 63.2
+                        #infectionPercentage = 20.0
+                        infectionPercentage /= (24 * 3600/ stepLength)
                         #print("I met an infected person!")
                         if infectionPercentage > 0 and (random.randint(0,int(10000)) < (infectionPercentage*100)):
                             self.infection = Infection(x,self,currentStepNumber)
