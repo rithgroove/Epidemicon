@@ -1,12 +1,12 @@
 #import threading
-import multiprocessing
+import multiprocessing 
 import time 
 import random
 from atpbar import atpbar,register_reporter, find_reporter
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
-    def __init__(self, name, agents,stepCount):
+    def __init__(self, name, agents,stepCount,returnDict):
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
         self.name = name
@@ -14,7 +14,7 @@ class StepThread(multiprocessing.Process):
         self.state = "step"
         self.stepCount = stepCount
         self.stepValue = 24*3600
-
+        self.returnDict = returnDict
     def setStateToStep(self,stepValue):
         self.state = "step"
         self.stepValue = stepValue
@@ -41,12 +41,11 @@ class StepThread(multiprocessing.Process):
         day, hour = self.currentHour()
         register_reporter(find_reporter())
         for i in atpbar(range(len(self.agents)), name= f"{self.name} Step Function"):
-            try:
-                self.agents[i].step(day,hour,self.stepValue)
-            except:
-                print("agent failed steps")
-                self.agents[i].translation = (0,0)
-
+            result = self.agents[i].checkSchedule(day,hour,self.stepValue)
+            if result is not None:
+                self.returnDict[f"{self.agents[i].agentId}"] = result
+        
+           
     def infect(self):
         for i in atpbar(range(len(self.agents)), name= f"{self.name} Infect Function"):
             self.agents[i].checkInfection(self.stepValue)

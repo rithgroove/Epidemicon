@@ -200,7 +200,7 @@ class Map(osmium.SimpleHandler):
     def constructMap(self):
         """
         [Method] constructMap
-        Method to construct the Map. This method will separate which nodes are roads and which 
+        Method to construct the Map. This method will separate which nodes are roads and which nodes are building, naturals, etc
         
         """
         buildingId = 1
@@ -275,13 +275,17 @@ class Map(osmium.SimpleHandler):
     def recalculateGrid(self):
         """
         [Method] recalculateGrid
-        Method to recalculate building to the right grid
+        Method to recalculate building to the right grid and also map it to the road
         """
         for i in range(0,self.gridSize[1]):
             for j in range(0,self.gridSize[0]):
                 self.grids[j][i].remapBuilding()
         for i in self.roads:
-            self.roadNodes.extend(i.generateNodes())
+            generatedNodes = i.generateNodes()
+            self.roadNodes.extend(generatedNodes)
+            for newNodes in generatedNodes:
+                self.roadNodesDict[newNodes.osmId] = newNodes
+            
         
     def findPath(self,agent,building):
         """

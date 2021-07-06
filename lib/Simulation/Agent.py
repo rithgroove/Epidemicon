@@ -12,8 +12,9 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,osmMap,home,age,job):
+    def __init__(self,agentId, osmMap,home,age,job):
         self.home = home
+        self.agentId = agentId
         self.age = age
         self.mainJob = job.generateJob()
         self.mainJob.setAgent(self)
@@ -35,7 +36,7 @@ class Agent:
     def getSpeed(self):
         return self.speed
     
-    def step(self,day,hour,steps=1):
+    def checkSchedule(self,day,hour,steps=1):
         if(self.activeSequence is None or self.activeSequence.finished):
             if self.currentNode == self.home.node():
                 #gotowork
@@ -46,7 +47,13 @@ class Agent:
             else:
                 if not self.mainJob.isWorking(day, hour) and self.currentNode != self.home.node():                 
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
-                #gohome
+        if (self.activeSequence is not None and self.activeSequence.new):
+            #print(f"I agent {self.agentId} did find a sequence")
+            return self.activeSequence.extract()
+        return None
+                #gohome    
+                
+    def step(self,day,hour,steps=1):
         if self.activeSequence is not None:
             #after recalculate
             leftOver = steps * self.getSpeed()
@@ -58,7 +65,7 @@ class Agent:
                 self.currentNode.addAgent(self)
                 #self.evaluate()
                 #print(f"leftover = {leftOver}")
-                
+            
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
             
