@@ -1,3 +1,4 @@
+from .MovementVector import MovementVector
 class MovementSequence:
     """
     [Class] MovementSequence
@@ -34,6 +35,7 @@ class MovementSequence:
         self.finished = False
         self.currentNode = sequence[0].startingNode
         self.lastNode = sequence[0].startingNode
+        self.new = True
         
     def step(self,distances):
         """
@@ -46,6 +48,7 @@ class MovementSequence:
         return :
             - [float] the leftover of the distance            
         """
+        self.new = False
         # pop from array of sequence to the current active vector
         if (self.currentActiveVector is None or self.currentActiveVector.finished) and self.sequence.__len__()>0:
             #print(self.sequence.__len__())
@@ -79,6 +82,24 @@ class MovementSequence:
         """
         return self.currentActiveVector.calculateTranslation(currentPosition)
     
+    def getCurrentPosition(self):
+        """
+        [Method] getCurrentPosition  
+        return the current position of the agent
+            
+        return :
+            - [Coordinate] current location based on currentActiveVector.
+            
+        """
+        return self.currentActiveVector.currentPosition
+    
+    def extract(self):
+        seq = []
+        for vector in self.sequence:
+            seq.append(vector.extract())
+        return (seq,self.totalDistance)
+            
+            
     def clone(self):
         """
         [Method] clone    
@@ -91,4 +112,9 @@ class MovementSequence:
         for x in self.sequence:
             temp.append(x.clone())
         return MovementSequence(temp,self.totalDistance)
-        
+
+def reconstruct(nodesDictionary, sequences, totalDistance):
+    sequence = []
+    for x in sequences:
+        sequence.append(MovementVector(nodesDictionary[x[0]],nodesDictionary[x[1]]))
+    return MovementSequence(sequence,totalDistance)

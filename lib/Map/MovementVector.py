@@ -79,10 +79,14 @@ class MovementVector:
             self.progress = 1
             self.currentPosition =  self.destination
         else:
+            #print("progressing")
             lat = self.starting[0] +(self.progress * self.totalTranslation[0])
             lon = self.starting[1] +(self.progress * self.totalTranslation[1])
             self.currentPosition = (lat, lon)
         return leftOver
+    
+    def extract(self):
+        return (self.startingNode.osmId, self.destinationNode.osmId)
     
     def clone(self):
         """

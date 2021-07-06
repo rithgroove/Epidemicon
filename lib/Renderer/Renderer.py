@@ -15,7 +15,7 @@ prevPosition = None
 canvas = None
 OS = platform.system()
 animating = False
-
+stepValue = 3600
 def motion(event):
     global prevPosition
     global viewPort
@@ -55,15 +55,17 @@ def doubleClick(event):
     
 def start():
     global animating
+    global stepValue
     while(1):
         if (animating):
-            sim.step()
+            sim.step(steps = stepValue)
             print("finish stepping")
         time.sleep(10)
         
 def step():
     global lastStep 
     if lastStep != sim.stepCount:
+        print("moving agents in renderer")
         for x in sim.agents:
             moveAgent(x)
         lastStep = sim.stepCount
@@ -233,14 +235,6 @@ def draw():
             
     for temp in osmMap.roads:
         data = temp.getPathForRendering()
-        
-#         x =  (data[0] - canvasOrigin[0]) * scale +viewPort[0]
-#         y = (canvasSize[1]-(data[1] - canvasOrigin[1])) * scale + viewPort[1]
-#         #drawCircle(temp.lon,temp.lat,1, "#476042")
-#         x1 = (data[2] - canvasOrigin[0]) * scale +viewPort[0]
-#         y1 = (canvasSize[1]-(data[3] - canvasOrigin[1])) * scale + viewPort[1]
-#         canvas.create_line(x,y,x1,y1)
-        
         drawLine(data[0],data[1], data[2], data[3], temp.color , width = temp.width)
         
     for temp in osmMap.roadNodes:
@@ -276,13 +270,18 @@ def drawAgent():
 
 
 def moveAgent(agent):
+    
     x1,y1,x2,y2 = canvas.coords(agent.oval)
     xmid = x1 + ((x2-x1)/2) + viewPort[0]
     ymid = y1 + ((y2-y1)/2) + viewPort[1]
-    x = ((agent.currentLocation.lon - canvasOrigin[0]) * scale +viewPort[0])- xmid 
-    y = ((canvasSize[1]-( agent.currentLocation.lat - canvasOrigin[1])) * scale + viewPort[1]) -ymid 
-
-    #print((x,y,agent.oval))
+    #print(f"xmid,ymid = {xmid},{ymid}")
+    x = ((agent.currentLocation.lon - canvasOrigin[0]) * scale +viewPort[0]) 
+    y = ((canvasSize[1]-( agent.currentLocation.lat - canvasOrigin[1])) * scale + viewPort[1]) 
+    #print(f"agentx,agenty = {x},{y}")
+    x -= xmid
+    y -= ymid
+    #print(f"transition = {agent.transition}\n")
+    #print(f"translation = {x},{y}\n")
     if (agent.infectionStatus == "Exposed"):
         canvas.itemconfig(agent.oval,fill="#CCCC33")
     elif (agent.infectionStatus == "Infectious"):
@@ -290,7 +289,7 @@ def moveAgent(agent):
     elif (agent.infectionStatus == "Susceptible"):
         canvas.itemconfig(agent.oval,fill="#3333CC")
     else:
-        canvas.itemconfig(agent.oval,fill="#33CC33")        
+        canvas.itemconfig(agent.oval,fill="#33CC33")    
     canvas.move(agent.oval,x,y)
 
 def drawCircle(lon,lat,radius, color, name = None):
@@ -312,7 +311,7 @@ def drawLine(originLon,originLat, destinationLon, destinationLat, color, width =
     line = canvas.create_line(x,y,x1,y1,width = width,fill=color)    
     return line
 
-def render(map,simulation = None, path = None):
+def render(map,simulation = None, path = None, stepLength = 3600):
     global osmMap
     global canvasOrigin
     global canvasMax
@@ -323,6 +322,8 @@ def render(map,simulation = None, path = None):
     global viewPort
     global sim
     global lastStep 
+    global stepValue
+    stepValue = stepLength
     lastStep =0
     sim = simulation
     osmMap = map

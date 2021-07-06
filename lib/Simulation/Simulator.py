@@ -7,6 +7,7 @@ from .Agent import Agent
 from .Home import Home
 from .Infection import Infection
 from .StepThread import StepThread
+from lib.Map.MovementSequence import reconstruct
 class Simulator:
     def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4):
         self.jobClasses = []
@@ -28,6 +29,7 @@ class Simulator:
                     self.jobClasses.append(temp)
             print(f'Processed {line_count} lines.')
         self.agents = []
+        self.unshuffledAgents = []
         #self.stepCount = 3600*8
         self.stepCount = 0
         self.history = {}
@@ -35,6 +37,8 @@ class Simulator:
         self.threadNumber = threadNumber
         self.generateAgents(agentNum)
         self.splitAgentsForThreading()
+        self.returnDict = None
+        self.lastHour = -1
         
     def generateAgents(self, count):
         total = 0
@@ -44,6 +48,7 @@ class Simulator:
         houses.extend(self.osmMap.buildingsDict['house'])
         houses.extend(self.osmMap.buildingsDict['apartments'])
         #last line of defense, if somehow the building doesn't have node, remove it
+        agentId = 0
         for x in houses:
             if x.node is None:
                 houses.remove(x)
@@ -60,12 +65,15 @@ class Simulator:
                 if "home" not in building.content.keys():                    
                     building.content["home"] = []   
                 building.content["home"].append(home)               
-                agent = Agent(self.osmMap,home,x.minAge+random.randint(0,ageRange),x)
+                agent = Agent(agentId, self.osmMap,home,x.minAge+random.randint(0,ageRange),x)
+                agentId +=1
                 if "agent" not in building.content.keys():                    
                     building.content["agent"] = []   
                 building.content["agent"].append(agent)               
                 self.agents.append(agent)
+                self.unshuffledAgents.append(agent)
                 building.node.addAgent(agent)
+        random.shuffle(self.agents)
         for i in range (0,80):
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0)
             
@@ -77,12 +85,16 @@ class Simulator:
             self.agentChunks.remove(self.agentChunks[-1])
             
     def generateThread(self):
+        self.queues = []
         self.threads = []
         i = 1
+        manager = multiprocessing.Manager()
+        self.returnDict = manager.dict()
         for chunkOfAgent in self.agentChunks:
-            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount)
+            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,self.returnDict)
             self.threads.append(thread)
             i += 1  
+            
 #     def step(self,steps = 3600):
 #         for x in self.agents:
 #             day, hour = self.currentHour()
@@ -91,47 +103,42 @@ class Simulator:
 #             except:
 #                 print("agent failed steps")
 #                 x.translation = (0,0)
-#         self.stepCount += steps
 #         for x in self.agents:
 #             x.checkInfection(self.stepCount)
 #         for x in self.agents:
 #             x.finalize(self.stepCount)
+#         self.stepCount += steps
 #         self.summarize()
 
     def step(self,steps = 3600):
-        print("Start moving agents")
-        self.generateThread()
-        for thread in self.threads:
-            thread.setStateToStep(steps)
-            thread.start()
-        #wait for all thread to finish running
-        for thread in self.threads:
-            thread.join()
+        day, hour = self.currentHour()
+        if (self.lastHour != hour):
+            print("Activity Checking")
+            self.generateThread()
+            for thread in self.threads:
+                thread.setStateToStep(steps)
+                thread.start()
+            #wait for all thread to finish running
+            for thread in self.threads:
+                thread.join()
+            #reconstruct movement sequence
+            for key in self.returnDict.keys():
+                self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, self.returnDict[key][0], self.returnDict[key][1])
+            flush()
+            self.lastHour = hour
+
+        print("Finished checking activity, proceeding to move agents")
+        for x in self.agents:
+            x.step(day,hour,steps)
         print("Finished moving agents, proceeding to check for infection")
         for x in self.agents:
             x.checkInfection(self.stepCount)
-#         self.generateThread()
-#         for thread in self.threads:
-#             thread.setStateToInfect(steps)
-#             thread.start()
-#         #wait for all thread to finish running
-#         for thread in self.threads:
-#             thread.join()
         print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
             x.finalize(self.stepCount)
-#         self.generateThread()
-#         for thread in self.threads:
-#             thread.setStateToFinalize(steps)
-#             thread.start()
-#         #wait for all thread to finish running
-#         for thread in self.threads:
-#             thread.join()
         print("Finished finalizing the infection")
         self.stepCount += steps
         self.summarize()
-        flush()
-
         
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
