@@ -4,8 +4,8 @@ import platform
 #todo: there are stuff from View that should be moved here
 
 class Controller():
-    def __init__(self, osmMap):
-        self.window = View(osmMap)
+    def __init__(self, osmMap, simulation=None, path=None):
+        self.window = View(mymap=osmMap, simulation=simulation, path=path)
         
         ### platform specific methods and stuff ###
         self.OS = platform.system()
@@ -44,6 +44,10 @@ class Controller():
     def zoom_out(self):
         self.window.canvas.scale('all', 0, 0, 10.0/11.0, 10.0/11.0)
         self.window.scale *= (10.0/11.0)
+        
+    def test(self):
+        print("test")
+    
     
     def onMouseDoubleClick(self, event):
         self.window.animating = not self.window.animating
