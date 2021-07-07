@@ -5,13 +5,21 @@ import os
 root_dir = os.getcwd()
 sys.path.append(root_dir)
 import lib.Map.Map as map
-import lib.Renderer.Renderer as renderer
+from lib.Renderer.Controller import Controller
+
+import time
 
 OSMfile = "TX-To-TU.osm"
 def main():
     filePath = os.path.join(root_dir, "osmData", OSMfile)
+    
+    t1 = time.time()
     osmMap = map.readFile(filePath)
-    renderer.render(osmMap)
+    t2 = time.time()
+    print(f"Time to load the data: {t2-t1}")
+    
+    app = Controller(osmMap)
+    app.mainloop()
 
 if __name__ == "__main__":
     main()
