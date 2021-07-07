@@ -1,5 +1,6 @@
 import geopy.distance as distance
 from .Coordinate import Coordinate
+import numpy as np
 
 class Grid():  
     """
@@ -72,13 +73,8 @@ class Grid():
         to do : maybe even create a new nodes
         """
         for building in self.buildings:
-            closest = None
-            closestDistance = 1000000000000000
-            for road in self.roads:
-                temp = road.distanceToCoordinate(building.coordinate)
-                if closestDistance > temp :
-                    closestDistance = temp
-                    closest = road
+            road_min_dist = np.argmin([road.distanceToCoordinate(building.coordinate) for road in self.roads])
+            closest = self.roads[road_min_dist]
             building.closestRoad = closest
             closest.addBuilding(building)
             building.entryPoint = closest.getClosestCoordinate(building.coordinate)
