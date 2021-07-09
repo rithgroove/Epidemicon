@@ -1,4 +1,4 @@
-import geopy.distance as distance
+import itertools
 from .Coordinate import Coordinate
 class Building:
     """
@@ -9,7 +9,8 @@ class Building:
         - way: List of nodes that defines the shape of the building.
         - coordinate : the coordinate of the building's centroid
     """
-    def __init__(self,buildingId,way):
+    idCounter = itertools.count().__next__
+    def __init__(self, way):
         """
         [Constructor]
         Initialize the building building
@@ -17,12 +18,12 @@ class Building:
         Parameter:
             - way: [Way] the building outline from Open Street Map
         """
-        self.buildingId = buildingId
+        self.buildingId = self.idCounter()
         self.way = way
         lat,lon = 0,0
-        for i in range(0,way.nodes.__len__()-1):
-            lat += way.nodes[i].coordinate.lat
-            lon += way.nodes[i].coordinate.lon
+        for node in way.nodes:
+            lat += node.coordinate.lat
+            lon += node.coordinate.lon
         lat = lat/(way.nodes.__len__()-1)
         lon = lon/(way.nodes.__len__()-1)
         self.coordinate = Coordinate(lat,lon)

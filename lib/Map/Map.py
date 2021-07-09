@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-import os
 import osmium
 import numpy as np
 import geopy.distance as distance
@@ -42,8 +41,8 @@ class Map(osmium.SimpleHandler):
         - grids         : [(int,int)] Two dimensional array of grids
         
         - others        : List of other openstreetmap ways that yet to be categorized.
-        - distanceLat   : height of 1 grid in latitude
-        - distanceLon   : width of 1 grid in longitude
+        - gridCellHeight   : height of 1 grid in latitude
+        - gridCellWidth   : width of 1 grid in longitude
         - gridsize      : tuple of 2 integer that shows how many grids we have
     """
     def __init__(self,grid = (10,10)):
@@ -82,8 +81,8 @@ class Map(osmium.SimpleHandler):
         
         self.grids = [[0 for x in range(grid[1])] for y in range(grid[0])]
         self.others = []
-        self.distanceLat = None
-        self.distanceLon = None
+        self.gridCellHeight = None
+        self.gridCellWidth = None
         self.gridSize = grid
         
     def node(self, n):
@@ -144,56 +143,42 @@ class Map(osmium.SimpleHandler):
         [Method] generateGrid
         Generate the grids. This function needs to be called after setBounds()
         """
-        temp = self.end.getVectorDistance(self.origin)
-        #print(temp)
-        self.distanceLat = (temp.lat)/self.gridSize[1]
-        self.distanceLon = (temp.lon)/self.gridSize[0]
-        print(f'{self.distanceLon},{self.distanceLat}')
-        temp = Coordinate(self.origin.lat, self.origin.lon)
+        boundDistance = self.end.getVectorDistance(self.origin)
+        self.gridCellHeight = (boundDistance.lat) / self.gridSize[1]
+        self.gridCellWidth = (boundDistance.lon) / self.gridSize[0]
+
+        coord = Coordinate(self.origin.lat, self.origin.lon)
         for i in range(0,self.gridSize[0]):
-            temp.lon = self.origin.lon
+            coord.lon = self.origin.lon
             for j in range(0,self.gridSize[1]):
-                self.grids[j][i] = Grid(temp, self.distanceLat, self.distanceLon)  
-                temp = temp.newCoordinateWithTranslation(lon = self.distanceLon)
-            temp = temp.newCoordinateWithTranslation(lat = self.distanceLat)
+                self.grids[j][i] = Grid(coord, self.gridCellHeight, self.gridCellWidth)  
+                coord = coord.newCoordinateWithTranslation(lon = self.gridCellWidth)
+            coord = coord.newCoordinateWithTranslation(lat = self.gridCellHeight)
             
     def mapNodesToGrid(self):
         """
         [Method] mapNodesToGrid
         Map the nodes to the grids. This function needs to be called after generateGrid()
         """
-        if(self.distanceLat is not None and self.distanceLon is not None):
+        if(self.gridCellHeight is not None and self.gridCellWidth is not None):
             for node in self.nodes:
-                xAxis = int((node.coordinate.lon - self.origin.lon) / self.distanceLon)
-                yAxis = int((node.coordinate.lat - self.origin.lat) / self.distanceLat)
+                # TODO: check if Abe if this part of the code is right, 
+                xAxis = int((node.coordinate.lon - self.origin.lon) / self.gridCellWidth)
+                yAxis = int((node.coordinate.lat - self.origin.lat) / self.gridCellHeight)
                 if xAxis >= self.gridSize[0]:
                     xAxis = self.gridSize[0]-1
                 if yAxis >= self.gridSize[1]:
                     yAxis = self.gridSize[1]-1             
-                if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
+                if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
                     grid =self.grids[xAxis][yAxis]
                     valid = True
                     if (node.coordinate.lat < grid.origin.lat or node.coordinate.lat > grid.end.lat):
                         valid = False
-#                         print("fault in lat")
                     if (node.coordinate.lon < grid.origin.lon or node.coordinate.lon > grid.end.lon):
                         valid = False
-#                         print("fault in lon")
                     if (valid):                 
                         grid.addNode(node)
                         node.grid = self.grids[xAxis][yAxis]
-#                     else:
-#                         print(f'######################################################')
-#                         print("okay")
-#                         print(f'{xAxis},{yAxis}')
-#                         print(f'{self.distanceLon},{self.distanceLat}')
-#                         print(self.origin)
-#                         print(self.end)
-#                         print(x)
-#                         print(self.grids[xAxis][yAxis])
-#                         print(f'######################################################')   
-#                 else:
-#                     print("dokay")
             
                 
     def constructMap(self):
@@ -202,33 +187,34 @@ class Map(osmium.SimpleHandler):
         Method to construct the Map. This method will separate which nodes are roads and which 
         
         """
-        buildingId = 1
         for x in self.ways:
             if 'building' in x.tags.keys():
-                temp = Building(f"b{buildingId}",x)
-                buildingId += 1
-                if(self.distanceLat is not None and self.distanceLon is not None):                   
-                    if temp.coordinate.lat < self.origin.lat or temp.coordinate.lon < self.origin.lon or temp.coordinate.lat > self.end.lat or temp.coordinate.lon > self.end.lon: 
-                        continue
-                    xAxis = int((temp.coordinate.lon-self.origin.lon)/self.distanceLon)
-                    yAxis = int((temp.coordinate.lat-self.origin.lat)/self.distanceLat)
-                    #print(f'{xAxis},{yAxis}')               
-                    if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
-                        self.buildings.append(temp)
-                        if temp.type not in self.buildingsDict.keys():
-                            self.buildingsDict[temp.type] =[]
-                        self.buildingsDict[temp.type].append(temp)
-                        self.buildingsMap[temp.buildingId] = temp
-                        grid =self.grids[xAxis][yAxis]
-                        x=temp
+                build = Building(x)
+                if(self.gridCellHeight is not None and self.gridCellWidth is not None):  
+                    if not(self.origin.lat <= build.coordinate.lat <= self.end.lat and self.origin.lon <= build.coordinate.lon <= self.end.lon):
+                        continue                 
+                    # if build.coordinate.lat < self.origin.lat or build.coordinate.lon < self.origin.lon or build.coordinate.lat > self.end.lat or build.coordinate.lon > self.end.lon: 
+                    #     continue
+                    xAxis = int((build.coordinate.lon-self.origin.lon) / self.gridCellWidth)
+                    yAxis = int((build.coordinate.lat-self.origin.lat) / self.gridCellHeight)
+                    
+                    if 0 <= xAxis < self.gridSize[0] and 0 <= yAxis < self.gridSize[1]:
+                    # if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
+                        self.buildings.append(build)
+                        if build.type not in self.buildingsDict.keys():
+                            self.buildingsDict[build.type] =[]
+                        self.buildingsDict[build.type].append(build)
+                        self.buildingsMap[build.buildingId] = build
+                        grid = self.grids[xAxis][yAxis]
+                        # TODO: maybe this validation is unnecessary
                         valid = True
-                        if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
+                        if build.coordinate.lat < grid.origin.lat or build.coordinate.lat > grid.end.lat:
                             valid = False
-                        if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
+                        if build.coordinate.lon < grid.origin.lon or build.coordinate.lon > grid.end.lon:
                             valid = False
                         if (valid):                 
-                            grid.addBuilding(temp)
-                            #x.grid = self.grids[xAxis][yAxis]
+                            grid.addBuilding(build)
+
             elif 'natural' in x.tags.keys():
                 self.naturals.append(x)
             elif 'leisure' in x.tags.keys():
