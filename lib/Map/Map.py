@@ -1,7 +1,5 @@
 import xml.etree.ElementTree as ET
 import osmium
-import numpy as np
-import geopy.distance as distance
 from .Node import  Node
 from .Way import Way
 from .Road import Road
@@ -191,15 +189,15 @@ class Map(osmium.SimpleHandler):
             if 'building' in x.tags.keys():
                 build = Building(x)
                 if(self.gridCellHeight is not None and self.gridCellWidth is not None):  
-                    if not(self.origin.lat <= build.coordinate.lat <= self.end.lat and self.origin.lon <= build.coordinate.lon <= self.end.lon):
-                        continue                 
-                    # if build.coordinate.lat < self.origin.lat or build.coordinate.lon < self.origin.lon or build.coordinate.lat > self.end.lat or build.coordinate.lon > self.end.lon: 
-                    #     continue
+                    # if not(self.origin.lat <= build.coordinate.lat <= self.end.lat and self.origin.lon <= build.coordinate.lon <= self.end.lon):
+                    #     continue                 
+                    if build.coordinate.lat < self.origin.lat or build.coordinate.lon < self.origin.lon or build.coordinate.lat > self.end.lat or build.coordinate.lon > self.end.lon: 
+                        continue
                     xAxis = int((build.coordinate.lon-self.origin.lon) / self.gridCellWidth)
                     yAxis = int((build.coordinate.lat-self.origin.lat) / self.gridCellHeight)
                     
-                    if 0 <= xAxis < self.gridSize[0] and 0 <= yAxis < self.gridSize[1]:
-                    # if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
+                    # if 0 <= xAxis < self.gridSize[0] and 0 <= yAxis < self.gridSize[1]:
+                    if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
                         self.buildings.append(build)
                         if build.type not in self.buildingsDict.keys():
                             self.buildingsDict[build.type] =[]

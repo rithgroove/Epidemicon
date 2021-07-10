@@ -225,11 +225,11 @@ class View():
         lat = self.osmMap.origin.lat    
         for i in range(0, self.osmMap.gridSize[1]):
             self.drawLine(self.osmMap.origin.lon, lat, self.osmMap.end.lon,lat, "#AA0000")  
-            lat += self.osmMap.distanceLat 
+            lat += self.osmMap.gridCellHeight 
         lon = self.osmMap.origin.lon
         for j in range(0, self.osmMap.gridSize[0]):
             self.drawLine(lon, self.osmMap.origin.lat, lon, self.osmMap.end.lat, "#AA0000")  
-            lon += self.osmMap.distanceLon 
+            lon += self.osmMap.gridCellWidth 
 
     def drawCircle(self, lon, lat, radius, color, name=None):
         x = (lon - self.canvasOrigin[0]) * self.scale + self.viewPort[0]
