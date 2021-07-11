@@ -8,6 +8,7 @@ sys.path.append(root_dir)
 import lib.Map.Map as mmap
 from lib.Renderer.Controller import Controller
 import lib.Simulation.Simulator as Simulator
+from lib.Renderer.GraphViewer import showData
 
 OSMfile = "TX-To-TU.osm"
 
@@ -18,11 +19,11 @@ def main():
     osmMap = mmap.readFile(filePath)
         
     # Start Simulator
-    sim = None
-    #sim = Simulator.Simulator("config/jobs.csv", osmMap, agentNum=1000)
-    # x = threading.Thread(target=showData, args=(sim,))
-    # x.start()
-    #sim.stepCount = 3600*8
+    # sim = None
+    sim = Simulator.Simulator("config/jobs.csv", osmMap, agentNum=1000)
+    x = threading.Thread(target=showData, args=(sim,))
+    x.start()
+    sim.stepCount = 3600*8
     
     # Draw    
     app = Controller(osmMap, sim)

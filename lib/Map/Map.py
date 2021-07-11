@@ -188,30 +188,10 @@ class Map(osmium.SimpleHandler):
         for x in self.ways:
             if 'building' in x.tags.keys():
                 build = Building(x)
-                if(self.gridCellHeight is not None and self.gridCellWidth is not None):  
-                    # if not(self.origin.lat <= build.coordinate.lat <= self.end.lat and self.origin.lon <= build.coordinate.lon <= self.end.lon):
-                    #     continue                 
+                if(self.gridCellHeight is not None and self.gridCellWidth is not None):
                     if build.coordinate.lat < self.origin.lat or build.coordinate.lon < self.origin.lon or build.coordinate.lat > self.end.lat or build.coordinate.lon > self.end.lon: 
                         continue
-                    xAxis = int((build.coordinate.lon-self.origin.lon) / self.gridCellWidth)
-                    yAxis = int((build.coordinate.lat-self.origin.lat) / self.gridCellHeight)
-                    
-                    # if 0 <= xAxis < self.gridSize[0] and 0 <= yAxis < self.gridSize[1]:
-                    if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
-                        self.buildings.append(build)
-                        if build.type not in self.buildingsDict.keys():
-                            self.buildingsDict[build.type] =[]
-                        self.buildingsDict[build.type].append(build)
-                        self.buildingsMap[build.buildingId] = build
-                        grid = self.grids[xAxis][yAxis]
-                        # TODO: maybe this validation is unnecessary
-                        valid = True
-                        if build.coordinate.lat < grid.origin.lat or build.coordinate.lat > grid.end.lat:
-                            valid = False
-                        if build.coordinate.lon < grid.origin.lon or build.coordinate.lon > grid.end.lon:
-                            valid = False
-                        if (valid):                 
-                            grid.addBuilding(build)
+                    self.addBuilding(build)
 
             elif 'natural' in x.tags.keys():
                 self.naturals.append(x)
@@ -223,7 +203,18 @@ class Map(osmium.SimpleHandler):
                 self.processRoad(x)
             else :
                 self.others.append(x)
-                
+
+    def addBuilding(self, building):
+        xAxis = int((building.coordinate.lon-self.origin.lon) / self.gridCellWidth)
+        yAxis = int((building.coordinate.lat-self.origin.lat) / self.gridCellHeight)
+        self.buildings.append(building)
+        if building.type not in self.buildingsDict.keys():
+            self.buildingsDict[building.type] =[]
+        self.buildingsDict[building.type].append(building)
+        self.buildingsMap[building.buildingId] = building
+        grid = self.grids[xAxis][yAxis]               
+        grid.addBuilding(building)
+
     def processRoad(self,road):
         """
         [Method] processRoad
