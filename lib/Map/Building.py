@@ -21,7 +21,7 @@ class Building:
         self.buildingId = self.idCounter()
         self.way = way
         lat,lon = 0,0
-        for node in way.nodes:
+        for node in way.nodes[:-1]:
             lat += node.coordinate.lat
             lon += node.coordinate.lon
         lat = lat/(way.nodes.__len__()-1)
