@@ -21,15 +21,15 @@ class Home:
         self.occupants = []
         self.agents = []
     
-    def addOccupants(self,occupants):
+    def addOccupant(self,occupant):
         """
         [Method] addOccupants
-        Add more occupants
+        Add an occupant
 
         Parameter:
-            - occupants: [List of agents] the agents that live inside this home
+            - occupants: [Agents the agent that live inside this home
         """
-        self.occupants.extend(occupants)
+        self.occupants.append(occupant)
     
     def addAgents(self,agent):
         """

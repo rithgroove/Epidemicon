@@ -203,6 +203,7 @@ class Road:
                 #generate building Node
                 buildingNode= Node()
                 buildingNode.setAsBuildingConnector(building.coordinate)
+                buildingNode.setBuilding(building)
                 workingNode.addConnection(buildingNode)
                 buildingNode.addConnection(workingNode)
                 buildingNode.osmId = x[0].buildingId

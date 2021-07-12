@@ -35,10 +35,10 @@ class Simulator:
         self.history = {}
         self.timeStamp = []
         self.threadNumber = threadNumber
-        self.generateAgents(agentNum)
-        self.splitAgentsForThreading()
         self.returnDict = None
         self.lastHour = -1
+        self.generateAgents(agentNum)
+        self.splitAgentsForThreading()
         
     def generateAgents(self, count):
         total = 0
@@ -57,26 +57,36 @@ class Simulator:
         for x in self.jobClasses:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            for i in range(0,temp):
-                #time.sleep(0.5)
-                #
-                building = random.choice(houses)
-                home = Home(building)
-                if "home" not in building.content.keys():                    
-                    building.content["home"] = []   
-                building.content["home"].append(home)               
-                agent = Agent(agentId, self.osmMap,home,x.minAge+random.randint(0,ageRange),x)
-                agentId +=1
-                if "agent" not in building.content.keys():                    
-                    building.content["agent"] = []   
-                building.content["agent"].append(agent)               
+            for i in range(0,temp):             
+                agent = Agent(agentId, self.osmMap,x.minAge+random.randint(0,ageRange),x)
+                agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
-                building.node.addAgent(agent)
-        random.shuffle(self.agents)
+        random.shuffle(self.agents) #shuffle so that we can randomly assign a household 
+        housePop = 0
+        building = None
+        home = None
+        for agent in self.agents:
+            #generate Home
+            if housePop ==0:
+                housePop = random.randint(1,3)
+                building = random.choice(houses)
+                home = Home(building)  
+                if "home" not in building.content.keys():                 
+                    building.content["home"] = []   
+                building.content["home"].append(home)
+            if "agent" not in building.content.keys():                    
+                building.content["agent"] = []   
+            building.content["agent"].append(agent)      
+            agent.setHome(home)
+            home.addOccupant(agent)
+            housePop -= 1
+            building.node.addAgent(agent)
+        random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0,80):
-            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0)
+            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,location ="Initial")
             
+        
     def splitAgentsForThreading(self):
         chunksize = int(len(self.agents)/ self.threadNumber)
         self.agentChunks = [self.agents[chunksize*i:chunksize*(i+1)] for i in range(int(len(self.agents)/chunksize) + 1)]
@@ -140,11 +150,27 @@ class Simulator:
         print("Finished finalizing the infection")
         self.stepCount += steps
         self.summarize()
+        self.printInfectionLocation()
         
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
         day = int(hour /24) % 7
         return day,hour
+    
+    def printInfectionLocation(self):
+        summary = {}
+        for agent in self.agents:
+            if agent.infection is not None:
+                if agent.infection.location not in summary: 
+                    summary[agent.infection.location]=0
+                summary[agent.infection.location] += 1
+
+        print("\nknown infection location")
+        for key in summary.keys():
+            print(f"{key} = {summary[key]}")
+        print("\n")
+    
+    
     
     def summarize(self):
         result = {}
@@ -159,4 +185,6 @@ class Simulator:
                 self.history[x] = []
             self.history[x].append(result[x])
         self.timeStamp.append(self.stepCount/3600)
+        
+        
         return result

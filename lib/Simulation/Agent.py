@@ -12,15 +12,15 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,agentId, osmMap,home,age,job):
-        self.home = home
+    def __init__(self,agentId, osmMap,age,job):
+        self.home = None
+        self.currentLocation = None
         self.agentId = agentId
         self.age = age
         self.mainJob = job.generateJob()
         self.mainJob.setAgent(self)
         self.infectionStatus = "Susceptible"
-        self.currentLocation = home.coordinate().newCoordinateWithTranslation()
-        self.currentNode = home.node()
+        self.currentNode = None
         self.oval = None
         self.name = ""
         self.speed = 1.46
@@ -29,6 +29,11 @@ class Agent:
         self.transition = (0,0)
         self.distanceToDestination = 0
         self.infection = None
+        
+    def setHome(self,home):
+        self.home = home
+        self.currentLocation = home.coordinate().newCoordinateWithTranslation()
+        self.currentNode = home.node()
         
     def setMovementSequence(self, activeSequence):
         self.activeSequence = activeSequence
@@ -72,33 +77,76 @@ class Agent:
     def checkInfection(self,currentStepNumber,stepLength):
         if self.infectionStatus == "Susceptible":
             #print("checking for infection")
-            for x in self.currentNode.agents:
-                
-                if (x.infectionStatus == "Infectious"):
-                    distance = x.currentLocation.calculateDistance(self.currentLocation)
-                    #infectionPercentage = (-23.28 * distance) + 63.2
-                    infectionPercentage = (-23.28 * distance) + 20.0
-                    infectionPercentage = 20.0
-                    infectionPercentage /= (24 * 3600/ stepLength)
-                    #print("I met an infected person!")
-                    if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
-                        self.infection = Infection(x,self,currentStepNumber)
-                        #print("I got infected!")
-                        break
+            #at node infection
+            if (self.currentNode == self.home.node()):
+                #this if means the agent is at home
+                self.infectAtHome(currentStepNumber,stepLength)
+            elif self.currentNode.isBuildingCentroid:
+                if self.currentNode.building == self.mainJob.building and self.mainJob.isOutsideCity():
+                    #this means they are working outside city
+                    self.infectFromOutsideOfCity(currentStepNumber,stepLength)
+                else:
+                    #this means infection is at a building locally
+                    self.infectAtBuilding(currentStepNumber,stepLength)
+            else:
+                self.infectOnTheRoad(currentStepNumber,stepLength)  
+
+    def infectOnTheRoad(self,currentStepNumber,stepLength):
+        for stranger in self.currentNode.agents:
+            #if room mate is infectious and at home
+            if (stranger.infectionStatus == "Infectious"):
+                #infectionPercentage = (-23.28 * distance) + 20.0
+                infectionPercentage = 20.0
+                infectionPercentage /= (24 * 3600/ stepLength)
+                if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
+                    self.infection = Infection(stranger,self,currentStepNumber, location = "On The Road")
+                    #print("I got infected!")
+                    break
+        if self.infection is None:
             for node in self.currentNode.connections:
-                for x in node.agents:
-                    
-                    if (x.infectionStatus == "Infectious"):
-                        distance = x.currentLocation.calculateDistance(self.currentLocation)
+                for stranger in node.agents:
+                    if (stranger.infectionStatus == "Infectious"):
+                        distance = stranger.currentLocation.calculateDistance(self.currentLocation)
                         infectionPercentage = (-23.28 * distance) + 63.2
                         #infectionPercentage = 20.0
                         infectionPercentage /= (24 * 3600/ stepLength)
                         #print("I met an infected person!")
                         if infectionPercentage > 0 and (random.randint(0,int(10000)) < (infectionPercentage*100)):
-                            self.infection = Infection(x,self,currentStepNumber)
+                            self.infection = Infection(stranger,self,currentStepNumber, location = "On The Road")
                             #print("I got infected!")
                             break
+        
+        
+    def infectFromOutsideOfCity(self,currentStepNumber,stepLength):
+        if random.randint(0,int(10000)) < 200/(24*3600/stepLength) :
+            self.infection = Infection(self,self,currentStepNumber,location = "Going out of city")
+            
+                                
+    def infectAtBuilding(self,currentStepNumber,stepLength):
+        for stranger in self.currentNode.agents:
+            #if room mate is infectious and at home
+            if (stranger.infectionStatus == "Infectious"):
+                #infectionPercentage = (-23.28 * distance) + 20.0
+                infectionPercentage = 20.0
+                infectionPercentage /= (24 * 3600/ stepLength)
+                if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
+                    self.infection = Infection(stranger,self,currentStepNumber,location = self.currentNode.building.type)
+                    #print("I got infected!")
+                    break
                             
+    def infectAtHome(self,currentStepNumber,stepLength):
+        for roomMate in self.home.occupants:
+            #if room mate is infectious and at home
+            if (roomMate.infectionStatus == "Infectious" and roomMate.currentNode == self.home.node()):
+                #infectionPercentage = (-23.28 * distance) + 20.0
+                infectionPercentage = 20.0
+                infectionPercentage /= (24 * 3600/ stepLength)
+                if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
+                    self.infection = Infection(roomMate,self,currentStepNumber,location = "Home")
+                    #print("I got infected!")
+                    break
+                
+      
     def finalize(self,currentStepNumber):
         if self.infection != None:
             self.infection.finalize(currentStepNumber)

@@ -10,7 +10,7 @@ class Infection:
         - dormant : how long the virus will stay dormant from the infection star
         - recovery : how long the person will recover from the infection after becaming infectious
     """
-    def __init__(self,origin,target,step,dormant = 2 *24 *3600, recovery = 3*24*3600):
+    def __init__(self,origin,target,step,dormant = 2 *24 *3600, recovery = 3*24*3600,location = "Undefined"):
         """
         [Constructor]
 
@@ -26,6 +26,7 @@ class Infection:
         self.step = step
         self.dormant = dormant
         self.recovery = recovery
+        self.location = location
         
     def finalize(self,step):
         """

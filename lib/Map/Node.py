@@ -31,6 +31,8 @@ class Node():
         self.grid = None
         self.movementSequences = {}
         self.agents = []
+        self.isBuildingCentroid = False
+        self.building = None
         
     def fill(self, osmNode):
         """
@@ -169,3 +171,7 @@ class Node():
         if (targetNode.osmId in self.movementSequences.keys()):
             return self.movementSequences[targetNode.osmId].clone()
         return None
+
+    def setBuilding(self,building):
+        self.building = building
+        self.isBuildingCentroid = True
