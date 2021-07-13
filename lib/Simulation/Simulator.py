@@ -62,7 +62,7 @@ class Simulator:
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0)
     
                 
-    def step(self,steps = 3600):
+    def step(self,steps = 900):
         for x in self.agents:
             day, hour = self.currentHour()
             try:

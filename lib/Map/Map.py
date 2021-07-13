@@ -160,7 +160,6 @@ class Map(osmium.SimpleHandler):
         """
         if(self.gridCellHeight is not None and self.gridCellWidth is not None):
             for node in self.nodes:
-                # TODO: check if Abe if this part of the code is right, 
                 xAxis = int((node.coordinate.lon - self.origin.lon) / self.gridCellWidth)
                 yAxis = int((node.coordinate.lat - self.origin.lat) / self.gridCellHeight)
                 if xAxis >= self.gridSize[0]:
@@ -168,15 +167,9 @@ class Map(osmium.SimpleHandler):
                 if yAxis >= self.gridSize[1]:
                     yAxis = self.gridSize[1]-1             
                 if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
-                    grid =self.grids[xAxis][yAxis]
-                    valid = True
-                    if (node.coordinate.lat < grid.origin.lat or node.coordinate.lat > grid.end.lat):
-                        valid = False
-                    if (node.coordinate.lon < grid.origin.lon or node.coordinate.lon > grid.end.lon):
-                        valid = False
-                    if (valid):                 
-                        grid.addNode(node)
-                        node.grid = self.grids[xAxis][yAxis]
+                    grid =self.grids[xAxis][yAxis]             
+                    grid.addNode(node)
+                    node.grid = self.grids[xAxis][yAxis]
             
                 
     def constructMap(self):
