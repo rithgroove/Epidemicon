@@ -1,4 +1,4 @@
-
+import random
 class Home:
     """
     [Class] Home
@@ -20,6 +20,7 @@ class Home:
         self.building = building
         self.occupants = []
         self.agents = []
+        self.groceries = random.randint(6,15)
     
     def addOccupant(self,occupant):
         """
@@ -65,6 +66,12 @@ class Home:
         """
         return self.building.node
     
+    def buyGroceries(self):
+        self.groceries += self.occupant * 6
+    
+    def consumeGroceries(self):
+        self.groceries -= 1
+        
     def __str__(self):
         """
         [Method] __str__        

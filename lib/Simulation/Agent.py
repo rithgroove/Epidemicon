@@ -32,8 +32,12 @@ class Agent:
         self.hairCap = float(random.randint(12,30))
         self.hair = float(random.randint(4,self.hairCap))
         self.hunger = 1.0
-        self.hungerReduction = 0.7
+        self.hungerReduction = 1.5
         self.eatingOutPref = float(random.randint(0,10))/10.0
+        self.idle = 0
+        self.energy = 100.0
+        self.faveRetailer = self.osmMap.getRandomBuilding("retail")
+        self.faveBarber = self.osmMap.getRandomBuilding("barbershop")
         
     def setHome(self,home):
         self.home = home
@@ -47,17 +51,38 @@ class Agent:
         return self.speed
     
     def checkSchedule(self,day,hour,steps=1):
-        if(self.activeSequence is None or self.activeSequence.finished):
-            if self.mainJob.isWorking(day, hour) and self.currentNode != self.mainJob.building.node:                 
+        if self.mainJob.isWorking(day, hour):
+            if self.currentNode != self.mainJob.building.node:                 
+                print(f"I'm {self.mainJob.getName()} Go to work at {self.mainJob.building.type}")
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
+        elif self.idle <= 0:
+            if self.hunger <= 0.65:
+                whereToEatProbability = random.randint(0,10)
+                if (whereToEatProbability <= self.eatingOutPref):
+                    print("eat outside")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
+                    self.idle = 4800
+                    hunger = 1.0
                 else:
+                    print("eat at home")
+                    self.home.consumeGroceries()
+                    hunger = 1.0
+            elif self.hair > self.hairCap:
+                print("going to barbershop")
 
-            elif not self.mainJob.isWorking(day, hour) and self.currentNode != self.home.node():                 
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
-            else:
-                self.activeSequence = None        
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber)
+                self.hair = float(random.randint(0,int(self.hairCap/2)))
+                self.idle = 4800
+            elif self.home.groceries < len(self.home.occupants) * 2:
+                print("go to retail")
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
+                self.home.buyGroceries()
+                self.idle = 4800
+            elif self.currentNode != self.home.node():       
+                print("go home")
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
+            
         if (self.activeSequence is not None and self.activeSequence.new):
-            #print(f"I agent {self.agentId} did find a sequence")
             return self.activeSequence.extract()
         return None
                 #gohome    
@@ -65,6 +90,7 @@ class Agent:
     def step(self,day,hour,steps=1):
         self.hair += 0.44/(24*(3600/steps))
         self.hunger -= self.hungerReduction/(24*(3600/steps))
+        self.idle -= steps
         if self.activeSequence is not None:
             #after recalculate
             leftOver = steps * self.getSpeed()
@@ -106,7 +132,7 @@ class Agent:
                 #infectionPercentage = 20.0
                 infectionPercentage /= (24 * 3600/ stepLength)
                 if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
-                    self.infection = Infection(stranger,self,currentStepNumber, location = "On The Road")
+                    self.infection = Infection(stranger,self,currentStepNumber, dormant = random.randint(24,72) *3600, location = "On The Road")
                     #print("I got infected!")
                     break
         if self.infection is None:
@@ -118,14 +144,14 @@ class Agent:
                         infectionPercentage /= (24 * 3600/ stepLength)
                         #print("I met an infected person!")
                         if infectionPercentage > 0 and (random.randint(0,int(10000)) < (infectionPercentage*100)):
-                            self.infection = Infection(stranger,self,currentStepNumber, location = "On The Road")
+                            self.infection = Infection(stranger,self,currentStepNumber, dormant = random.randint(24,72) *3600,location = "On The Road")
                             #print("I got infected!")
                             break
         
         
     def infectFromOutsideOfCity(self,currentStepNumber,stepLength):
         if random.randint(0,int(10000)) < 200/(24*3600/stepLength) :
-            self.infection = Infection(self,self,currentStepNumber,location = "Going out of city")
+            self.infection = Infection(self,self,currentStepNumber, dormant = random.randint(24,72) *3600,location = "Going out of city")
             
                                 
     def infectAtBuilding(self,currentStepNumber,stepLength):
@@ -136,7 +162,7 @@ class Agent:
                 infectionPercentage = 20.0
                 infectionPercentage /= (24 * 3600/ stepLength)
                 if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
-                    self.infection = Infection(stranger,self,currentStepNumber,location = self.currentNode.building.type)
+                    self.infection = Infection(stranger,self,currentStepNumber, dormant = random.randint(24,72) *3600,location = self.currentNode.building.type)
                     #print("I got infected!")
                     break
                             
@@ -148,7 +174,7 @@ class Agent:
                 infectionPercentage = 20.0
                 infectionPercentage /= (24 * 3600/ stepLength)
                 if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
-                    self.infection = Infection(roomMate,self,currentStepNumber,location = "Home")
+                    self.infection = Infection(roomMate,self,currentStepNumber, dormant = random.randint(24,72) *3600,location = "Home")
                     #print("I got infected!")
                     break
                 

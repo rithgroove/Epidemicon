@@ -9,7 +9,7 @@ from .Infection import Infection
 from .StepThread import StepThread
 from lib.Map.MovementSequence import reconstruct
 class Simulator:
-    def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4):
+    def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4, infectedAgent = 0.02):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -37,10 +37,10 @@ class Simulator:
         self.threadNumber = threadNumber
         self.returnDict = None
         self.lastHour = -1
-        self.generateAgents(agentNum)
+        self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         
-    def generateAgents(self, count):
+    def generateAgents(self, count, infectedAgent = 0.02):
         total = 0
         self.osmMap
         houses = []
@@ -83,7 +83,7 @@ class Simulator:
             housePop -= 1
             building.node.addAgent(agent)
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
-        for i in range (0,80):
+        for i in range (0, int(len(self.agents)*infectedAgent)):
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,location ="Initial")
             
         

@@ -4,6 +4,7 @@ import osmium
 import numpy as np
 import geopy.distance as distance
 import csv
+import random
 from .Node import  Node
 from .Way import Way
 from .Road import Road
@@ -348,6 +349,9 @@ class Map(osmium.SimpleHandler):
             if (building.type not in self.buildingsDict.keys()):
                 self.buildingsDict[building.type] = []
             self.buildingsDict[building.type].append(building)
+            
+    def getRandomBuilding(self,buildingType):
+        return random.choice(self.buildingsDict[buildingType])
                     
 def readFile(filepath,grid = (10,10),buildingCSV = None):
     """
