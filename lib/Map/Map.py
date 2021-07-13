@@ -146,7 +146,6 @@ class Map(osmium.SimpleHandler):
         Generate the grids. This function needs to be called after setBounds()
         """
         temp = self.end.getVectorDistance(self.origin)
-        #print(temp)
         self.distanceLat = (temp.lat)/self.gridSize[1]
         self.distanceLon = (temp.lon)/self.gridSize[0]
         print(f'{self.distanceLon},{self.distanceLat}')
@@ -176,26 +175,11 @@ class Map(osmium.SimpleHandler):
                     valid = True
                     if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
                         valid = False
-#                         print("fault in lat")
                     if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
                         valid = False
-#                         print("fault in lon")
                     if (valid):                 
                         grid.addNode(x)
                         x.grid = self.grids[xAxis][yAxis]
-#                     else:
-#                         print(f'######################################################')
-#                         print("okay")
-#                         print(f'{xAxis},{yAxis}')
-#                         print(f'{self.distanceLon},{self.distanceLat}')
-#                         print(self.origin)
-#                         print(self.end)
-#                         print(x)
-#                         print(self.grids[xAxis][yAxis])
-#                         print(f'######################################################')   
-#                 else:
-#                     print("dokay")
-            
                 
     def constructMap(self):
         """
@@ -304,6 +288,7 @@ class Map(osmium.SimpleHandler):
                 distance, sequence = searchPath(self,agent.currentNode,building.node)
                 agent.currentNode.addMovementSequence(sequence.clone())           
             else:
+                print("found sequence")
                 distance = sequence.totalDistance
             return distance, sequence
         except:

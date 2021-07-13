@@ -42,4 +42,3 @@ class Job:
         if self.workdays & (2**(6-day)) and (hour >= self.startHour and hour <= self.startHour+self.workhour) :
             return True
         return False
-        

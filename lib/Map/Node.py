@@ -156,6 +156,7 @@ class Node():
         Parameter:
             - sequence : [MovementSequence] the movement sequence
         """
+        #print(sequence.destination.osmId)
         self.movementSequences[sequence.destination.osmId]  = sequence
         
     def getMovementSequence(self,targetNode):
@@ -168,6 +169,7 @@ class Node():
             
         return: [MovementSequence] a clone of the previously generated movement sequence or None 
         """
+        #print(targetNode.osmId)
         if (targetNode.osmId in self.movementSequences.keys()):
             return self.movementSequences[targetNode.osmId].clone()
         return None

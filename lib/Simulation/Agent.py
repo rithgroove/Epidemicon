@@ -29,6 +29,11 @@ class Agent:
         self.transition = (0,0)
         self.distanceToDestination = 0
         self.infection = None
+        self.hairCap = float(random.randint(12,30))
+        self.hair = float(random.randint(4,self.hairCap))
+        self.hunger = 1.0
+        self.hungerReduction = 0.7
+        self.eatingOutPref = float(random.randint(0,10))/10.0
         
     def setHome(self,home):
         self.home = home
@@ -43,15 +48,14 @@ class Agent:
     
     def checkSchedule(self,day,hour,steps=1):
         if(self.activeSequence is None or self.activeSequence.finished):
-            if self.currentNode == self.home.node():
-                #gotowork
-                if self.mainJob.isWorking(day, hour) and self.currentNode != self.mainJob.building.node:                 
+            if self.mainJob.isWorking(day, hour) and self.currentNode != self.mainJob.building.node:                 
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
                 else:
-                    self.activeSequence = None
-            else:
-                if not self.mainJob.isWorking(day, hour) and self.currentNode != self.home.node():                 
+
+            elif not self.mainJob.isWorking(day, hour) and self.currentNode != self.home.node():                 
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
+            else:
+                self.activeSequence = None        
         if (self.activeSequence is not None and self.activeSequence.new):
             #print(f"I agent {self.agentId} did find a sequence")
             return self.activeSequence.extract()
@@ -59,6 +63,8 @@ class Agent:
                 #gohome    
                 
     def step(self,day,hour,steps=1):
+        self.hair += 0.44/(24*(3600/steps))
+        self.hunger -= self.hungerReduction/(24*(3600/steps))
         if self.activeSequence is not None:
             #after recalculate
             leftOver = steps * self.getSpeed()
@@ -93,10 +99,11 @@ class Agent:
 
     def infectOnTheRoad(self,currentStepNumber,stepLength):
         for stranger in self.currentNode.agents:
-            #if room mate is infectious and at home
             if (stranger.infectionStatus == "Infectious"):
+                distance = stranger.currentLocation.calculateDistance(self.currentLocation)
                 #infectionPercentage = (-23.28 * distance) + 20.0
-                infectionPercentage = 20.0
+                infectionPercentage = (-23.28 * distance) + 63.2
+                #infectionPercentage = 20.0
                 infectionPercentage /= (24 * 3600/ stepLength)
                 if infectionPercentage > 0 and random.randint(0,int(10000)) < infectionPercentage*100:
                     self.infection = Infection(stranger,self,currentStepNumber, location = "On The Road")
@@ -108,7 +115,6 @@ class Agent:
                     if (stranger.infectionStatus == "Infectious"):
                         distance = stranger.currentLocation.calculateDistance(self.currentLocation)
                         infectionPercentage = (-23.28 * distance) + 63.2
-                        #infectionPercentage = 20.0
                         infectionPercentage /= (24 * 3600/ stepLength)
                         #print("I met an infected person!")
                         if infectionPercentage > 0 and (random.randint(0,int(10000)) < (infectionPercentage*100)):
