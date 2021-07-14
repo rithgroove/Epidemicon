@@ -48,7 +48,6 @@ class MovementSequence:
         """
         # pop from array of sequence to the current active vector
         if (self.currentActiveVector is None or self.currentActiveVector.finished) and self.sequence.__len__()>0:
-            #print(self.sequence.__len__())
             self.currentActiveVector = self.sequence.pop(0)     
         leftOver = 0
         translation = (0.0,0.0)

@@ -59,16 +59,13 @@ class Controller():
         if self.window.prevPosition is not None:
             translation = (self.window.prevPosition[0]-event.x, self.window.prevPosition[1]-event.y)
             self.window.viewPort = (self.window.viewPort[0]-translation[0], self.window.viewPort[1]- translation[1])
-            #print(translation)
             if(self.window.viewPort[0] > 0):
                 self.window.viewPort = (0, self.window.viewPort[1])
             elif(self.window.viewPort[0] < -1* self.window.scale *self.window.canvasSize[0] + self.window.windowSize[0]):
-                #print("too far x")
                 self.window.viewPort = (int( -1* self.window.scale *self.window.canvasSize[0] + self.window.windowSize[0]), self.window.viewPort[1])
             if(self.window.viewPort[1] > 0):
                 self.window.viewPort = (self.window.viewPort[0], 0)
             elif(self.window.viewPort[1] < -1* self.window.scale *self.window.canvasSize[1] + self.window.windowSize[1]):
-                #print("too far y")
                 self.window.viewPort = (self.window.viewPort[0], int( -1* self.window.scale *self.window.canvasSize[1] + self.window.windowSize[1]))
             
         self.window.prevPosition = (event.x,event.y)

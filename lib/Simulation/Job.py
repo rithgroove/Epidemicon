@@ -25,8 +25,6 @@ class Job:
             self.activityPerWeek = len(indexes)
         np.random.shuffle(indexes)
         self.workdays = 0
-        #print(indexes)
-        #print(self.activityPerWeek)
         for i in indexes[:(self.activityPerWeek-1)]:
             self.workdays  += (2**(6-i))
         self.agent = None

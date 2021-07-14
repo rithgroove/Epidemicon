@@ -107,14 +107,6 @@ class Road:
         if (area < 0):
             print("error, Heron's formula is not working due to very small angle")
             return 1000000000000000
-            #print(self.start)
-            #print(self.destination)
-            #print(coordinate)
-            #print(f"a={a}")
-            #print(f"b={b}")
-            #print(f"c={c}")
-            #print(f"s={s}")
-            #print(f"area={area}")
         area = math.sqrt(area)
         height = 2*area/c
         sinq = height/a
@@ -147,10 +139,8 @@ class Road:
         e = a * math.cos(q)
         if (e > c or q > math.pi):
             if (a<b):
-                #print("return start")
                 return self.start.coordinate
             else:
-                #print("return destination")
                 return self.destination.coordinate
         if self.start.coordinate.calculateDistance(coordinate) < self.destination.coordinate.calculateDistance(coordinate): 
             distanceVector = self.start.coordinate.getVectorDistance(self.destination.coordinate)  
@@ -186,7 +176,6 @@ class Road:
             nodes = []
             origin = self.start
             workingNode = None
-            #print(temp)
             for x in temp:
                 building = x[0]
                 #generate entry node 
@@ -216,7 +205,6 @@ class Road:
             self.destination.addConnection(workingNode)
             self.start.removeConnection(self.destination)
             self.destination.removeConnection(self.start)
-        #print(f"We have generated {len(newNodes)} number of new nodes")
         return newNodes
         
         
