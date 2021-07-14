@@ -54,7 +54,7 @@ class Agent:
         return self.speed
     
     def checkSchedule(self,day,hour,steps=1):        
-        if (self.activeSequence is None and self.activeSequence.finished):
+        if (self.activeSequence is None or self.activeSequence.finished):
 
             if self.status == "Symptomatics":
                 if self.currentNode != self.home.node():       
