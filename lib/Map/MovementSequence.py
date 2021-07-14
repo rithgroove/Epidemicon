@@ -51,7 +51,6 @@ class MovementSequence:
             #print(self.sequence.__len__())
             self.currentActiveVector = self.sequence.pop(0)     
         leftOver = 0
-        translation = (0.0,0.0)
         #if current active vector is finished (which means we're at the last vector) mark this sequence as finished
         if (self.currentActiveVector.finished):
             leftOver = distances

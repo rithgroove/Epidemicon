@@ -11,12 +11,13 @@ import lib.Simulation.Simulator as Simulator
 from lib.Renderer.GraphViewer import showData
 
 OSMfile = "TX-To-TU.osm"
+buildConnFile = "buildingConnection.csv"
 
 def main():
     filePath = os.path.join(root_dir, "osmData", OSMfile)
     
     # Load the data
-    osmMap = mmap.readFile(filePath)
+    osmMap = mmap.readFile(filePath, buildConnFile=buildConnFile)
         
     # Start Simulator
     # sim = None

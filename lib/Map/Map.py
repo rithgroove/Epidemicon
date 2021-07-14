@@ -239,14 +239,14 @@ class Map(osmium.SimpleHandler):
                 self.roadNodes.append(node)
             
                 
-    def recalculateGrid(self):
+    def recalculateGrid(self, buildConnFile):
         """
         [Method] recalculateGrid
         Method to recalculate building to the right grid
         """
         for i in range(0,self.gridSize[1]):
             for j in range(0,self.gridSize[0]):
-                self.grids[j][i].remapBuilding()
+                self.grids[j][i].remapBuilding(buildConnFile)
         for i in self.roads:
             self.roadNodes.extend(i.generateNodes())
         
@@ -300,20 +300,20 @@ class Map(osmium.SimpleHandler):
         for x in buildingMap.keys():
             print (f"{x} = {buildingMap[x]}")
     
-def readFile(filepath,grid = (10,10)):
+def readFile(OSMfilePath, buildConnFile="", grid = (10,10)):
     """
     [Function] readFile
     Function to generate map fom osm File
     
     parameter:
-        - filepath : [string] path to the OSM file
+        - OSMfilePath : [string] path to the OSM file
         - grid     : [(int,int)] grid size, default value = (10,10)
     """
     generatedMap = Map(grid)
-    generatedMap.apply_file(filepath)
-    generatedMap.setBounds(filepath)
+    generatedMap.apply_file(OSMfilePath)
+    generatedMap.setBounds(OSMfilePath)
     generatedMap.generateGrid()
     generatedMap.mapNodesToGrid()
     generatedMap.constructMap()
-    generatedMap.recalculateGrid()
+    generatedMap.recalculateGrid(buildConnFile)
     return generatedMap

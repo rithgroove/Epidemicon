@@ -1,6 +1,5 @@
-import geopy.distance as distance
-from .Coordinate import Coordinate
 import numpy as np
+from .Coordinate import Coordinate
 
 class Grid():  
     """
@@ -65,21 +64,58 @@ class Grid():
         """
         self.roads.append(road)
     
-    def remapBuilding(self):
+    def remapBuilding(self, buildConnFileName = ""):
         """
         [Method] remapBuilding
         find closest nodes inside this grid 
        
         to do : maybe even create a new nodes
         """
-        for building in self.buildings:
-            road_min_dist = np.argmin([road.distanceToCoordinate(building.coordinate) for road in self.roads])
-            closest = self.roads[road_min_dist]
-            building.closestRoad = closest
-            closest.addBuilding(building)
-            building.entryPoint = closest.getClosestCoordinate(building.coordinate)
 
+        file = None
+        connectionDict = {}
+
+        if buildConnFileName != "":
+            file = open(buildConnFileName, "r+")
+            connectionDict = self.buildConnectionDict(file)
             
+        for building in self.buildings:
+            if building.way.osmId in connectionDict:
+                self.loadEntryPoint(building, connectionDict[building.way.osmId])
+            else:
+                self.calculateEntryPoint(building, file)
+
+    def buildConnectionDict(self, file):
+        dict={}
+        for line in file.readlines():
+            if line[-1:] == "\n": # remove \n at the end of line if necessary
+                line = line[:-1]
+            try:
+                wayID, min_dist, lat, lon = line.split(";")
+                coord = Coordinate(float(lat), float(lon))
+                dict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
+            except:
+                continue
+        return dict
+
+    def loadEntryPoint(self, building, entryPoint):
+        closest_coord = entryPoint["min_dist"]
+        closest = self.roads[closest_coord]
+        building.closestRoad = closest
+        closest.addBuilding(building)
+        building.entryPoint = entryPoint["entryCoordinate"]
+
+
+    def calculateEntryPoint(self, building, file = None):
+        road_min_dist = np.argmin([road.distanceToCoordinate(building.coordinate) for road in self.roads])
+        closest = self.roads[road_min_dist]
+        building.closestRoad = closest
+        closest.addBuilding(building)
+        building.entryPoint = closest.getClosestCoordinate(building.coordinate)
+        if file != None:
+            line = f"{building.way.osmId};{road_min_dist};{building.entryPoint.lat};{building.entryPoint.lon}\n"
+            file.write(line)
+
     def __str__(self):
         """
         [Method] __str__        
