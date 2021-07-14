@@ -1,4 +1,4 @@
-
+import random
 class Infection:
     """
     [Class] Infection
@@ -28,7 +28,7 @@ class Infection:
         self.recovery = recovery
         self.location = location
         
-    def finalize(self,step):
+    def finalize(self,currentStepCount,stepLength):
         """
         [Method] finalize
         Method to change the status of the agent
@@ -36,10 +36,15 @@ class Infection:
         Parameter:
             - step : current simulator stepCount
         """
-        if (step - self.step < self.dormant):
+        if (currentStepCount - self.step < self.dormant):
             self.target.infectionStatus = "Exposed" 
-        elif (step - self.step < self.dormant+ self.recovery):
+        elif (currentStepCount - self.step < self.dormant+ self.recovery):
             self.target.infectionStatus = "Infectious"
-        elif (step - self.step >= self.dormant+ self.recovery):
+            if self.target.status == "Normal" and random.randint(0,1000000)< ((30000 * self.target.risk)/ (24*3600/stepLength)):
+                self.target.status = "Symptomatics"
+            elif self.target.status == "Symptomatics" and random.randint(0,1000000) < ((10000 * self.target.risk)/ (24*3600/stepLength)):
+                self.target.status = "Severe"
+        elif (currentStepCount - self.step >= self.dormant+ self.recovery):
             self.target.infectionStatus = "Recovered"
+            self.target.status = "Normal"
 

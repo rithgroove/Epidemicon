@@ -6,7 +6,7 @@ from atpbar import atpbar,register_reporter, find_reporter
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
-    def __init__(self, name, agents,stepCount,returnDict):
+    def __init__(self, name, agents,stepCount,returnDict,activitiesDict):
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
         self.name = name
@@ -14,6 +14,7 @@ class StepThread(multiprocessing.Process):
         self.state = "step"
         self.stepCount = stepCount
         self.stepValue = 24*3600
+        self.activitiesDict = activitiesDict
         self.returnDict = returnDict
     def setStateToStep(self,stepValue):
         self.state = "step"
@@ -42,6 +43,7 @@ class StepThread(multiprocessing.Process):
         register_reporter(find_reporter())
         for i in atpbar(range(len(self.agents)), name= f"{self.name} Step Function"):
             result = self.agents[i].checkSchedule(day,hour,self.stepValue)
+            self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:
                 self.returnDict[f"{self.agents[i].agentId}"] = result
         

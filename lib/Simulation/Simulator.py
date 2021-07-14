@@ -36,6 +36,7 @@ class Simulator:
         self.timeStamp = []
         self.threadNumber = threadNumber
         self.returnDict = None
+        self.activitiesDict = None
         self.lastHour = -1
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
@@ -84,7 +85,7 @@ class Simulator:
             building.node.addAgent(agent)
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0, int(len(self.agents)*infectedAgent)):
-            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,location ="Initial")
+            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
             
         
     def splitAgentsForThreading(self):
@@ -100,8 +101,9 @@ class Simulator:
         i = 1
         manager = multiprocessing.Manager()
         self.returnDict = manager.dict()
+        self.activitiesDict = manager.dict()
         for chunkOfAgent in self.agentChunks:
-            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,self.returnDict)
+            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,self.returnDict,self.activitiesDict)
             self.threads.append(thread)
             i += 1  
             
@@ -135,6 +137,8 @@ class Simulator:
             #reconstruct movement sequence
             for key in self.returnDict.keys():
                 self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, self.returnDict[key][0], self.returnDict[key][1])
+            for key in self.activitiesDict.keys():
+                self.unshuffledAgents[int(key)].activities = self.activitiesDict[key]
             flush()
             self.lastHour = hour
         
@@ -146,7 +150,7 @@ class Simulator:
             x.checkInfection(self.stepCount,steps)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
-            x.finalize(self.stepCount)
+            x.finalize(self.stepCount,steps)
         print("Finished finalizing the infection")
         self.stepCount += steps
         self.summarize()
