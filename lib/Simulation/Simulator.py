@@ -7,7 +7,11 @@ from .Agent import Agent
 from .Home import Home
 from .Infection import Infection
 from .StepThread import StepThread
+import os
+from os.path import join
 from lib.Map.MovementSequence import reconstruct
+import datetime
+import csv
 class Simulator:
     def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4, infectedAgent = 0.02):
         self.jobClasses = []
@@ -33,6 +37,10 @@ class Simulator:
         #self.stepCount = 3600*8
         self.stepCount = 0
         self.history = {}
+        self.history ["Susceptible"] = []
+        self.history ["Exposed"] = []
+        self.history ["Infectious"] = []
+        self.history ["Recovered"] = []
         self.timeStamp = []
         self.threadNumber = threadNumber
         self.returnDict = None
@@ -40,6 +48,7 @@ class Simulator:
         self.lastHour = -1
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
+        self.infectionHistory = []
         
     def generateAgents(self, count, infectedAgent = 0.02):
         total = 0
@@ -100,30 +109,20 @@ class Simulator:
         self.threads = []
         i = 1
         manager = multiprocessing.Manager()
-        self.returnDict = manager.dict()
-        self.activitiesDict = manager.dict()
+        self.returnDict = []
+        self.activitiesDict = []
         for chunkOfAgent in self.agentChunks:
-            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,self.returnDict,self.activitiesDict)
+            returnDict = manager.dict()
+            activitiesDict = manager.dict()
+            self.returnDict.append(returnDict)
+            self.activitiesDict.append(activitiesDict)
+            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
             self.threads.append(thread)
             i += 1  
             
-#     def step(self,steps = 3600):
-#         for x in self.agents:
-#             day, hour = self.currentHour()
-#             try:
-#                 x.step(day,hour,steps)
-#             except:
-#                 print("agent failed steps")
-#                 x.translation = (0,0)
-#         for x in self.agents:
-#             x.checkInfection(self.stepCount)
-#         for x in self.agents:
-#             x.finalize(self.stepCount)
-#         self.stepCount += steps
-#         self.summarize()
 
     def step(self,steps = 3600):
-        day, hour = self.currentHour()
+        day, hour, minutes = self.currentHour()
         print(f"Current Time = {hour}:{(self.stepCount%3600)/60}")
         if (self.lastHour != hour):
             
@@ -135,10 +134,12 @@ class Simulator:
             for thread in self.threads:
                 thread.join()
             #reconstruct movement sequence
-            for key in self.returnDict.keys():
-                self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, self.returnDict[key][0], self.returnDict[key][1])
-            for key in self.activitiesDict.keys():
-                self.unshuffledAgents[int(key)].activities = self.activitiesDict[key]
+            for returnDict in self.returnDict:
+                for key in returnDict.keys():
+                    self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+            for activitiesDict in self.activitiesDict:
+                for key in activitiesDict.keys():
+                    self.unshuffledAgents[int(key)].activities = activitiesDict[key]
             flush()
             self.lastHour = hour
         
@@ -159,7 +160,8 @@ class Simulator:
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
         day = int(hour /24) % 7
-        return day,hour
+        minutes = int(self.stepCount/60)%60
+        return day,hour, minutes
     
     def printInfectionLocation(self):
         summary = {}
@@ -178,6 +180,11 @@ class Simulator:
     
     def summarize(self):
         result = {}
+        day, hour,minutes = self.currentHour()
+        result["CurrentStep"] = self.stepCount
+        result["Day"] = day
+        result["Hour"] = hour
+        result["Minutes"] = minutes
         result["Susceptible"] = 0
         result["Infectious"] = 0
         result["Exposed"] = 0
@@ -185,10 +192,40 @@ class Simulator:
         for x in self.agents:
             result[x.infectionStatus] += 1
         for x in result.keys():
-            if x not in self.history.keys():
-                self.history[x] = []
-            self.history[x].append(result[x])
+            if x in self.history.keys():
+                self.history[x].append(result[x])
         self.timeStamp.append(self.stepCount/3600)
-        
+        self.infectionHistory.append(result)
         
         return result
+
+            
+    def extract(self):
+        current_time = datetime.datetime.now()
+        path = current_time.strftime("%Y%m%d-%H%M")
+        os.mkdir(path)
+        
+
+        with open(join(path,'infection_summary.csv'), 'w', newline='') as csvfile:
+            fieldnames = ['Day','Hour','Minutes','CurrentStep','Susceptible','Exposed','Infectious','Recovered']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for x in self.infectionHistory:
+                writer.writerow(x)
+                
+        infectionDetails = []        
+        for i in self.agents:
+            if (i.infection is not None):
+                infectionDetails.append(i.infection.summarize())
+         
+        with open(join(path,'infection_details.csv'), 'w', newline='') as csvfile:
+            fieldnames = ['infectedAgentId','infectedAgentProfession','originAgentId','originAgentProfession','location','lat','lon','nodeId'
+,"exposedTimeStamp","exposedDay","exposedHour","exposedMinutes","incubationDuration"                   
+,"infectiousTimeStamp","infectiousDay","infectiousHour","infectiousMinutes","recoveryDuration"                   
+,"recoveredTimeStamp","recoveredDay","recoveredHour","recoveredMinutes"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for x in infectionDetails:
+                writer.writerow(x)
+                
+            

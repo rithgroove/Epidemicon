@@ -90,7 +90,7 @@ class Agent:
                 if self.hunger <= 0.65:
                     whereToEatProbability = random.randint(0,10)
                     if (whereToEatProbability <= self.eatingOutPref):
-                        print(f"agent id {self.agentId} is eating outside") 
+                        #print(f"agent id {self.agentId} is eating outside") 
                         self.activities = "go to restaurant"            
                         self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.osmMap.getRandomBuilding("restaurant"))
                         #self.idle = 4800
@@ -248,3 +248,5 @@ class Agent:
     def finalize(self,currentStepNumber,stepLength):
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength)
+            
+        

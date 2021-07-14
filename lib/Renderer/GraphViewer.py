@@ -37,7 +37,7 @@ def showData(sim):
             ax.set_ylim((0,len(sim.agents)+5))
             ax.set_ylabel('number of agent')
             ax.set_xlabel('time (hours)')
-            for x in sim.history.keys():
+            for x in color.keys():
                 plt.plot(sim.timeStamp, sim.history[x],label = x,color = color[x])
             if (sim.history.keys().__len__() != 0):
                 ax.legend()

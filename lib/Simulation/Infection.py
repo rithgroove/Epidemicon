@@ -23,6 +23,15 @@ class Infection:
         """
         self.origin = origin
         self.target = target
+
+        try :
+            self.lat = target.currentLocation.lat
+            self.lon = target.currentLocation.lon
+            self.node = target.currentNode
+        except:
+            self.lat = 0.0
+            self.lon = 0.0      
+            self.node = None   
         self.step = step
         self.dormant = dormant
         self.recovery = recovery
@@ -48,3 +57,52 @@ class Infection:
             self.target.infectionStatus = "Recovered"
             self.target.status = "Normal"
 
+    
+    def summarize(self):
+        result = {}
+        result["location"] = self.location
+        result["lat"] = self.lat
+        result["lon"] = self.lon
+        if self.node is None:
+            result["nodeId"] = "Not found"
+        else:
+            result["nodeId"] = self.node.osmId
+            
+        result["infectedAgentId"] = self.target.agentId
+        result["infectedAgentProfession"] = self.target.mainJob.getName()
+        result["originAgentId"] = self.origin.agentId
+        result["originAgentProfession"] = self.origin.mainJob.getName()
+        
+        # exposed
+        day,hour,minutes = step2Hour(self.step)
+        result["exposedTimeStamp"] = self.step
+        result["exposedDay"] = day
+        result["exposedHour"] = hour       
+        result["exposedMinutes"] = minutes
+        result["incubationDuration"] = self.dormant
+        
+        # infectious
+        day,hour,minutes = step2Hour(self.step+self.dormant)
+        result["infectiousTimeStamp"] = self.step+self.dormant
+        result["infectiousDay"] = day
+        result["infectiousHour"] = hour
+        result["infectiousMinutes"] = minutes
+        result["recoveryDuration"] = self.recovery
+        
+        # recovered
+        day,hour,minutes = step2Hour(self.step+self.dormant+self.recovery)
+        result["recoveredTimeStamp"] = self.step+self.dormant+self.recovery
+        result["recoveredDay"] = day
+        result["recoveredHour"] = hour
+        result["recoveredMinutes"] = minutes
+        
+        
+        
+        
+
+            
+def step2Hour(hour):
+    hour = int(self.stepCount / 3600)% 24
+    day = int(hour /24) % 7
+    minutes = int(self.stepCount/60)%60
+    return day,hour, minutes
