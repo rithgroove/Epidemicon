@@ -3,7 +3,7 @@ import random
 import multiprocessing
 from atpbar import flush
 from .JobClass import JobClass
-from .Agent import Agent
+from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
 from .StepThread import StepThread
@@ -76,12 +76,16 @@ class Simulator:
         housePop = 0
         building = None
         home = None
+        houseId = 0
         for agent in self.agents:
             #generate Home
             if housePop ==0:
                 housePop = random.randint(1,3)
                 building = random.choice(houses)
-                home = Home(building)  
+                if (building.type == "house"):
+                    houses.remove(building)
+                home = Home(building,houseId)
+                houseId += 1
                 if "home" not in building.content.keys():                 
                     building.content["home"] = []   
                 building.content["home"].append(home)
@@ -222,10 +226,21 @@ class Simulator:
             fieldnames = ['infectedAgentId','infectedAgentProfession','originAgentId','originAgentProfession','location','lat','lon','nodeId'
 ,"exposedTimeStamp","exposedDay","exposedHour","exposedMinutes","incubationDuration"                   
 ,"infectiousTimeStamp","infectiousDay","infectiousHour","infectiousMinutes","recoveryDuration"                   
-,"recoveredTimeStamp","recoveredDay","recoveredHour","recoveredMinutes"]
+,"recoveredTimeStamp","recoveredDay","recoveredHour","recoveredMinutes"            
+,"symptomaticTimeStamp","symptomaticDay","symptomaticHour","symptomaticMinutes"            
+,"severeTimeStamp","severeDay","severeHour","severeMinutes"]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             for x in infectionDetails:
                 writer.writerow(x)
+         
+        with open(join(path,'agents.csv'), 'w', newline='') as csvfile:
+            fieldnames = getAgentKeys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for x in self.agents:
+                writer.writerow(x.extract())
+         
                 
+       
             

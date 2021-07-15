@@ -36,6 +36,8 @@ class Infection:
         self.dormant = dormant
         self.recovery = recovery
         self.location = location
+        self.symptomaticsTimeStamp = 0
+        self.severeTimeStamp = 0
         
     def finalize(self,currentStepCount,stepLength):
         """
@@ -51,8 +53,10 @@ class Infection:
             self.target.infectionStatus = "Infectious"
             if self.target.status == "Normal" and random.randint(0,1000000)< ((30000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Symptomatics"
+                self.symptomaticsTimeStamp = currentStepCount
             elif self.target.status == "Symptomatics" and random.randint(0,1000000) < ((10000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Severe"
+                self.severeTimeStamp = currentStepCount
         elif (currentStepCount - self.step >= self.dormant+ self.recovery):
             self.target.infectionStatus = "Recovered"
             self.target.status = "Normal"
@@ -96,13 +100,25 @@ class Infection:
         result["recoveredHour"] = hour
         result["recoveredMinutes"] = minutes
         
+        day,hour,minutes = step2Hour(self.symptomaticsTimeStamp)
+        result["symptomaticTimeStamp"] = self.symptomaticsTimeStamp
+        result["symptomaticDay"] = day
+        result["symptomaticHour"] = hour
+        result["symptomaticMinutes"] = minutes
         
+        day,hour,minutes = step2Hour(self.severeTimeStamp)
+        result["severeTimeStamp"] = self.severeTimeStamp
+        result["severeDay"] = day
+        result["severeHour"] = hour
+        result["severeMinutes"] = minutes
+        
+        return result
         
         
 
             
-def step2Hour(hour):
-    hour = int(self.stepCount / 3600)% 24
-    day = int(hour /24) % 7
-    minutes = int(self.stepCount/60)%60
+def step2Hour(stepCount):
+    hour = int(stepCount / 3600)% 24
+    day = int(stepCount /(24*3600))
+    minutes = int(stepCount/60)%60
     return day,hour, minutes

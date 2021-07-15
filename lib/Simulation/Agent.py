@@ -12,8 +12,13 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,agentId, osmMap,age,job):
+    def __init__(self,agentId, osmMap,age,job,gender = None):
         self.home = None
+        
+        if (gender is None):
+            self.gender = random.choice(["M","F"])
+        else:
+            self.gender = gender
         self.currentLocation = None
         self.agentId = agentId
         self.age = age
@@ -249,4 +254,61 @@ class Agent:
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength)
             
+    def extract(self):
+        temp = {}
+        temp["agent_id"]=self.agentId
+        temp["gender"] = self.gender
+        temp["age"]=self.age
+        temp["last_lat"] = self.currentLocation.lat
+        temp["last_lon"] = self.currentLocation.lon
+        if self.currentNode.isBuildingCentroid:
+            temp["last_known_location"] = self.currentNode.building.type
+        else:
+            temp["last_known_location"] = "On the road"
+        temp["last_node_id"] = self.currentNode.osmId
         
+        temp["home_id"] = self.home.homeId
+        temp["home_type"] = self.home.building.type
+        temp["home_building_id"] = self.home.building.buildingId
+        temp["home_lat"] = self.home.node().coordinate.lat
+        temp["home_lon"] = self.home.node().coordinate.lon
+        
+        temp["profession"] = self.mainJob.jobClass.name
+        temp["work_place"] = self.mainJob.building.buildingId
+        temp["work_place_type"] =  self.mainJob.building.type
+        temp["work_place_building_id"] =  self.mainJob.building.buildingId
+        temp["work_place_lat"] =  self.mainJob.building.coordinate.lat
+        temp["work_place_lon"] =  self.mainJob.building.coordinate.lon
+        
+        temp["last_infection_status"] = self.infectionStatus
+        temp["last_health_status"] = self.status
+        temp["last_activities"] = self.activities
+        temp["eating_out_preference"] = self.eatingOutPref
+        
+        return temp
+    
+def getAgentKeys():
+    temp = []
+    temp.append("agent_id")
+    temp.append("gender")
+    temp.append("age")
+    temp.append("last_lat")
+    temp.append("last_lon")
+    temp.append("last_known_location")
+    temp.append("last_node_id")
+    temp.append("home_id")
+    temp.append("home_type")
+    temp.append("home_building_id")
+    temp.append("home_lat")
+    temp.append("home_lon")
+    temp.append("profession")
+    temp.append("work_place")
+    temp.append("work_place_type")
+    temp.append("work_place_building_id")
+    temp.append("work_place_lat")
+    temp.append("work_place_lon")
+    temp.append("last_infection_status")
+    temp.append("last_health_status")
+    temp.append("last_activities")
+    temp.append("eating_out_preference")
+    return temp
