@@ -50,6 +50,7 @@ class Simulator:
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
+        self.queue = []
         
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
@@ -128,9 +129,11 @@ class Simulator:
         for chunkOfAgent in self.agentChunks:
             returnDict = manager.dict()
             activitiesDict = manager.dict()
+            queue = manager.Queue()
             self.returnDict.append(returnDict)
             self.activitiesDict.append(activitiesDict)
-            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+            self.queue.append(queue)
+            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,queue)
             self.threads.append(thread)
             i += 1  
             
@@ -148,9 +151,14 @@ class Simulator:
             time.sleep(30) # sleep for 20 second to help the threads starts their work
             #wait for all thread to finish running
             for i in range(0,len(self.threads)):
-                dictionary = self.activitiesDict[i]
+                queue = self.queue[i]
                 while True:
-                    if len(dictionary) > 0:
+                    temp = None
+                    try :
+                        temp = queue.get(False)
+                    except:
+                        temp = None
+                    if temp is not None:
                         break
                 self.threads[i].join()
                     

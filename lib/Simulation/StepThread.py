@@ -6,7 +6,7 @@ from atpbar import atpbar,register_reporter, find_reporter
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
-    def __init__(self, name, agents,stepCount,returnDict,activitiesDict):
+    def __init__(self, name, agents,stepCount,returnDict,activitiesDict,confirmationQueue):
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
         self.name = name
@@ -16,6 +16,7 @@ class StepThread(multiprocessing.Process):
         self.stepValue = 24*3600
         self.activitiesDict = activitiesDict
         self.returnDict = returnDict
+        self.confirmationQueue = confirmationQueue
         self.finished = False
         
     def setStateToStep(self,stepValue):
@@ -39,6 +40,7 @@ class StepThread(multiprocessing.Process):
             self.infect()
         else:
             self.finalize()
+        self.confirmationQueue.put("Finished")
         self.finished = True
 
     def step(self):
