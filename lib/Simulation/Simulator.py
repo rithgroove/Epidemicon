@@ -120,6 +120,8 @@ class Simulator:
             self.agentChunks.remove(self.agentChunks[-1])
             
     def generateThread(self):
+        for x in self.threads:
+            x.terminate()
         self.queues = []
         self.threads = []
         i = 1
