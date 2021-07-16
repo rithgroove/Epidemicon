@@ -133,18 +133,18 @@ class Simulator:
         for chunkOfAgent in self.agentChunks:
             returnDict = manager.dict()
             activitiesDict = manager.dict()
-            queue = multiprocessing.SimpleQueue()
+            queue = multiprocessing.Queue()
             self.returnDict.append(returnDict)
             self.activitiesDict.append(activitiesDict)
-            self.queue.append(queue)
             thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,queue)
+            self.queue.append(queue)
             self.threads.append(thread)
             i += 1  
             
 
     def step(self,steps = 3600):
         day, hour, minutes = self.currentHour()
-        print(f"Current Time = {hour}:{(self.stepCount%3600)/60}")
+        print("Day = {} Current Time = {:02d}:{:02d}".format(day,hour,minutes))
         if (self.lastHour != hour):
             
             self.generateThread()
@@ -155,10 +155,15 @@ class Simulator:
             time.sleep(30) # sleep for 20 second to help the threads starts their work
             #wait for all thread to finish running
             for i in range(0,len(self.threads)):
-                queue = self.queue[i]
-                while True:
-                    if not queue.empty():
-                        break
+#                 queue = self.queue[i]
+#                 while True:
+#                     temp =None
+#                     try:
+#                         temp = queue.get(False)
+#                     except:
+#                         passco
+#                     if temp is not None:
+#                         break
                 self.threads[i].join()
                     
             for returnDict in self.returnDict:
