@@ -51,10 +51,10 @@ class Infection:
             self.target.infectionStatus = "Exposed" 
         elif (currentStepCount - self.step < self.dormant+ self.recovery):
             self.target.infectionStatus = "Infectious"
-            if self.target.status == "Normal" and random.randint(0,1000000)< ((30000 * self.target.risk)/ (24*3600/stepLength)):
+            if self.target.status == "Normal" and random.randint(0,1000000)< ((200000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Symptomatics"
                 self.symptomaticsTimeStamp = currentStepCount
-            elif self.target.status == "Symptomatics" and random.randint(0,1000000) < ((10000 * self.target.risk)/ (24*3600/stepLength)):
+            elif self.target.status == "Symptomatics" and random.randint(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Severe"
                 self.severeTimeStamp = currentStepCount
         elif (currentStepCount - self.step >= self.dormant+ self.recovery):

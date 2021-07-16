@@ -37,8 +37,9 @@ class Agent:
         self.hairCap = float(random.randint(12,30))
         self.hair = float(random.randint(4,self.hairCap))
         self.hunger = float(random.randint(2,10))/10.0
-        self.hungerReduction = 1.5
-        self.eatingOutPref = float(random.randint(0,10))/10.0
+        self.hungerReduction = 1.0
+        self.hungerCap = float(random.randint(40,65))/100.0
+        self.eatingOutPref = float(random.randint(0,7))/10.0
         self.idle = 0
         self.energy = 100.0
         self.faveRetailer = self.osmMap.getRandomBuilding("retail")
@@ -66,13 +67,13 @@ class Agent:
                     #print("I'm sick, I need to go home")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
                     self.activities = "going home"
-                elif self.hunger <= 0.65:
+                elif self.hunger <= self.hungerCap:
                     #print("I'm sick, so I eat at home")
                     #self.home.consumeGroceries()
                     #hunger = 1.0
                     self.activities = "eat at home"
                 elif self.home.groceries < len(self.home.occupants) * 2:
-                    print("I'm sick, but fridge are empty. I need to go to retailer")
+                    #print("I'm sick, but fridge are empty. I need to go to retailer")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
                     self.activities = "do groceries"
                     #self.home.buyGroceries()
@@ -82,7 +83,7 @@ class Agent:
                     self.activities = "go to hospital"
                     #print("I'm sick, I need to go to hospital")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.osmMap.getRandomBuilding("hospital"))
-                elif self.hunger <= 0.65:
+                elif self.hunger <= self.hungerCap:
                     #print("I'm sick, so I eat at hospital")
                     #hunger = 1.0
                     self.activities = "eat at hospital"
@@ -92,7 +93,7 @@ class Agent:
                     #print(f"I'm {self.mainJob.getName()} Go to work at {self.mainJob.building.type}")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
             elif self.idle <= 0:
-                if self.hunger <= 0.65:
+                if self.hunger <= self.hungerCap:
                     whereToEatProbability = random.randint(0,10)
                     if (whereToEatProbability <= self.eatingOutPref):
                         #print(f"agent id {self.agentId} is eating outside") 

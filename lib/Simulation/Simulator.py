@@ -12,8 +12,9 @@ from os.path import join
 from lib.Map.MovementSequence import reconstruct
 import datetime
 import csv
+import time
 class Simulator:
-    def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4, infectedAgent = 0.02):
+    def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4, infectedAgent = 5):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -50,7 +51,7 @@ class Simulator:
         self.splitAgentsForThreading()
         self.infectionHistory = []
         
-    def generateAgents(self, count, infectedAgent = 0.02):
+    def generateAgents(self, count, infectedAgent = 5):
         total = 0
         self.osmMap
         houses = []
@@ -72,6 +73,15 @@ class Simulator:
                 agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
+        for x in range(0,count- len(self.agents)):
+            x = self.jobClasses[0]
+            temp = int(x.populationProportion*count/float(total))
+            ageRange = x.maxAge - x.minAge
+            agent = Agent(agentId, self.osmMap,x.minAge+random.randint(0,ageRange),x)
+            agentId +=1         
+            self.agents.append(agent)
+            self.unshuffledAgents.append(agent)
+            
         random.shuffle(self.agents) #shuffle so that we can randomly assign a household 
         housePop = 0
         building = None
@@ -97,7 +107,7 @@ class Simulator:
             housePop -= 1
             building.node.addAgent(agent)
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
-        for i in range (0, int(len(self.agents)*infectedAgent)):
+        for i in range (0, infectedAgent):
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
             
         
@@ -132,11 +142,24 @@ class Simulator:
             
             self.generateThread()
             for thread in self.threads:
+                #thread.daemon = True
                 thread.setStateToStep(steps)
                 thread.start()
+            time.sleep(30) # sleep for 20 second to help the threads starts their work
             #wait for all thread to finish running
-            for thread in self.threads:
-                thread.join()
+            for i in range(0,len(self.threads)):
+                dictionary = self.activitiesDict[i]
+                while True:
+                    if len(dictionary) > 0:
+                        break
+                self.threads[i].join()
+                    
+#             for thread in self.threads:
+#                 while True:
+#                     print(thread.finished)
+#                     if thread.finished:
+#                         break
+#                 thread.join()
             #reconstruct movement sequence
             for returnDict in self.returnDict:
                 for key in returnDict.keys():
@@ -163,7 +186,7 @@ class Simulator:
         
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
-        day = int(hour /24) % 7
+        day = int(self.stepCount /(24*3600)) % 7
         minutes = int(self.stepCount/60)%60
         return day,hour, minutes
     

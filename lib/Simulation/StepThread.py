@@ -16,6 +16,8 @@ class StepThread(multiprocessing.Process):
         self.stepValue = 24*3600
         self.activitiesDict = activitiesDict
         self.returnDict = returnDict
+        self.finished = False
+        
     def setStateToStep(self,stepValue):
         self.state = "step"
         self.stepValue = stepValue
@@ -37,6 +39,7 @@ class StepThread(multiprocessing.Process):
             self.infect()
         else:
             self.finalize()
+        self.finished = True
 
     def step(self):
         day, hour = self.currentHour()
@@ -58,5 +61,5 @@ class StepThread(multiprocessing.Process):
                      
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
-        day = int(hour /24) % 7
+        day = int(self.stepCount / (24*3600)) % 7
         return day,hour

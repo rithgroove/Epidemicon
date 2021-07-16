@@ -289,7 +289,7 @@ class Map(osmium.SimpleHandler):
                 distance, sequence = searchPath(self,agent.currentNode,building.node)
                 agent.currentNode.addMovementSequence(sequence.clone())           
             else:
-                print("found sequence")
+                #print("found sequence")
                 distance = sequence.totalDistance
             return distance, sequence
         except:
