@@ -41,6 +41,7 @@ class StepThread(multiprocessing.Process):
         else:
             self.finalize()
         self.confirmationQueue.put("Finished")
+        #self.confirmationQueue.task_done()
         self.finished = True
 
     def step(self):

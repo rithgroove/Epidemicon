@@ -51,6 +51,8 @@ class Simulator:
         self.splitAgentsForThreading()
         self.infectionHistory = []
         self.queue = []
+        self.threads = []
+
         
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
@@ -122,7 +124,7 @@ class Simulator:
     def generateThread(self):
         for x in self.threads:
             x.terminate()
-        self.queues = []
+        self.queue = []
         self.threads = []
         i = 1
         manager = multiprocessing.Manager()
@@ -131,7 +133,7 @@ class Simulator:
         for chunkOfAgent in self.agentChunks:
             returnDict = manager.dict()
             activitiesDict = manager.dict()
-            queue = manager.Queue()
+            queue = multiprocessing.SimpleQueue()
             self.returnDict.append(returnDict)
             self.activitiesDict.append(activitiesDict)
             self.queue.append(queue)
@@ -155,22 +157,10 @@ class Simulator:
             for i in range(0,len(self.threads)):
                 queue = self.queue[i]
                 while True:
-                    temp = None
-                    try :
-                        temp = queue.get(False)
-                    except:
-                        temp = None
-                    if temp is not None:
+                    if not queue.empty():
                         break
                 self.threads[i].join()
                     
-#             for thread in self.threads:
-#                 while True:
-#                     print(thread.finished)
-#                     if thread.finished:
-#                         break
-#                 thread.join()
-            #reconstruct movement sequence
             for returnDict in self.returnDict:
                 for key in returnDict.keys():
                     self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
