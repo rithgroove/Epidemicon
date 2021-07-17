@@ -18,7 +18,7 @@ sim = Simulator.Simulator("../config/jobs.csv",osmMap,agentNum = 2000,threadNumb
 
 try:
     stepLength = 300 #step length in simulation seconds
-    for i in range(0,1*24*3600,stepLength):
+    for i in range(0,30*24*3600,stepLength):
         print(i)
         sim.step(stepLength)
 except:
