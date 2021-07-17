@@ -14,10 +14,7 @@ filepath = os.path.join(dataDirectory,filename)
 
 buildingConfigPath = os.path.join("..","config","tsukuba-tu-building-data.csv")
 osmMap = map.readFile(filepath,buildingCSV = buildingConfigPath)
-sim = Simulator.Simulator("../config/jobs.csv",osmMap,agentNum = 5000,threadNumber = 12, infectedAgent = 10)
-
-x = threading.Thread(target=showData, args=(sim,))
-x.start()
+sim = Simulator.Simulator("../config/jobs.csv",osmMap,agentNum = 2000,threadNumber = 8, infectedAgent = 10)
 
 try:
     stepLength = 300 #step length in simulation seconds

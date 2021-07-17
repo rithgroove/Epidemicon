@@ -39,7 +39,7 @@ class Agent:
         self.hunger = float(random.randint(2,10))/10.0
         self.hungerReduction = 1.0
         self.hungerCap = float(random.randint(40,65))/100.0
-        self.eatingOutPref = float(random.randint(0,7))/10.0
+        self.eatingOutPref = float(random.randint(0,70))/10.0
         self.idle = 0
         self.energy = 100.0
         self.faveRetailer = self.osmMap.getRandomBuilding("retail")
@@ -94,7 +94,7 @@ class Agent:
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
             elif self.idle <= 0:
                 if self.hunger <= self.hungerCap:
-                    whereToEatProbability = random.randint(0,10)
+                    whereToEatProbability = random.randint(0,100)/100.0
                     if (whereToEatProbability <= self.eatingOutPref):
                         #print(f"agent id {self.agentId} is eating outside") 
                         self.activities = "go to restaurant"            
@@ -133,14 +133,16 @@ class Agent:
     def step(self,day,hour,steps=1):
         if (self.activities == "eat at home" and self.idle <= 0):
             self.home.consumeGroceries()
-            hunger = 1.0
+            #print(f"eat at home, agentId = {self.agentId} hunger = {self.hunger}, hungerCap = {self.hungerCap}")
+            self.hunger = 1.0
             self.idle = 2400
             self.activities = "idle"
         elif (self.activities == "eat at hospital" and self.idle <= 0):
-            hunger = 1.0
+            self.hunger = 1.0
             self.activities = "idle"
         elif (self.activities == "go to restaurant" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "restaurant"):
-            hunger = 1.0
+            #print(f"eat outside, agentId = {self.agentId} hunger = {self.hunger}, hungerCap = {self.hungerCap}")
+            self.hunger = 1.0
             self.idle = 2400
             self.activities = "idle"
         elif (self.activities == "go to barbershop" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "barbershop"):
