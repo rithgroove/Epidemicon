@@ -11,9 +11,10 @@ import lib.Simulation.Simulator as Simulator
 dataDirectory = os.path.join("..","osmData")
 filename = "TX-To-TU.osm"
 filepath = os.path.join(dataDirectory,filename)
+buildConnFile = "buildingConnection.csv"
 
 buildingConfigPath = os.path.join("..","config","tsukuba-tu-building-data.csv")
-osmMap = map.readFile(filepath,buildingCSV = buildingConfigPath)
+osmMap = map.readFile(filepath, buildConnFile=buildConnFile, buildingCSV = buildingConfigPath)
 sim = Simulator.Simulator("../config/jobs.csv",osmMap,agentNum = 240,threadNumber = 12, infectedAgent = 10)
 
 stepLength = 300 #step length in simulation seconds
