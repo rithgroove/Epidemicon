@@ -126,3 +126,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# csv of the closest road from the center of each building
+buildingConnection.csv
