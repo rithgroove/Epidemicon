@@ -14,7 +14,7 @@ import datetime
 import csv
 import time
 class Simulator:
-    def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4, infectedAgent = 5):
+    def __init__(self,jobCSVPath,osmMap,agentNum = 1000,threadNumber = 4, infectedAgent = 5,vaccinationPercentage = 0.0):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -47,12 +47,13 @@ class Simulator:
         self.returnDict = None
         self.activitiesDict = None
         self.lastHour = -1
+        self.vaccinationPercentage = vaccinationPercentage
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
         self.queue = []
         self.threads = []
-
+ 
         
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
@@ -85,7 +86,14 @@ class Simulator:
             self.agents.append(agent)
             self.unshuffledAgents.append(agent)
             
+        random.shuffle(self.agents) #shuffle so that we can randomly assign vaccine 
+        
+        
+        for i in range(0,int(self.vaccinationPercentage*len(self.agents))):
+            self.agents[i].setVaccinated()
+
         random.shuffle(self.agents) #shuffle so that we can randomly assign a household 
+        
         housePop = 0
         building = None
         home = None
@@ -122,8 +130,8 @@ class Simulator:
             self.agentChunks.remove(self.agentChunks[-1])
             
     def generateThread(self):
-        for x in self.threads:
-            x.terminate()
+        #for x in self.threads:
+            #x.terminate()
         self.queue = []
         self.threads = []
         i = 1
@@ -144,7 +152,8 @@ class Simulator:
 
     def step(self,steps = 3600):
         day, hour, minutes = self.currentHour()
-        print("Day = {} Current Time = {:02d}:{:02d}".format(day,hour,minutes))
+        week = int(self.stepCount/ (7*24*3600))
+        print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         if (self.lastHour != hour):
             
             self.generateThread()
@@ -155,15 +164,6 @@ class Simulator:
             time.sleep(30) # sleep for 20 second to help the threads starts their work
             #wait for all thread to finish running
             for i in range(0,len(self.threads)):
-#                 queue = self.queue[i]
-#                 while True:
-#                     temp =None
-#                     try:
-#                         temp = queue.get(False)
-#                     except:
-#                         passco
-#                     if temp is not None:
-#                         break
                 self.threads[i].join()
                     
             for returnDict in self.returnDict:
