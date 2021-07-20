@@ -142,7 +142,6 @@ class Simulator:
             # Do not refactor into other function
             # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
             ###############################################################################################
-            queues = []
             threads = []
             i = 1
             manager = multiprocessing.Manager()
@@ -151,11 +150,9 @@ class Simulator:
             for chunkOfAgent in self.agentChunks:
                 returnDict = manager.dict()
                 activitiesDict = manager.dict()
-                queue = multiprocessing.Queue()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,queue)
-                queues.append(queue)
+                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
                 threads.append(thread)
                 i += 1  
             ###############################################################################################
@@ -164,7 +161,7 @@ class Simulator:
 
             
             for thread in threads:
-                #thread.daemon = True
+                thread.daemon = True
                 thread.setStateToStep(steps)
                 thread.start()
             time.sleep(30) # sleep for 20 second to help the threads starts their work
