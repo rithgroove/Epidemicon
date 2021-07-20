@@ -129,3 +129,6 @@ dmypy.json
 
 # vscode
 .vscode/
+
+# csv of the closest road from the center of each building
+buildingConnection.csv

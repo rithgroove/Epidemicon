@@ -204,7 +204,6 @@ class View():
                 self.canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
                 self.drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
             if (temp.entryPoint is not None):
-                #print("rendering entry Point")
                 self.drawLine(temp.entryPoint.lon,temp.entryPoint.lat, temp.coordinate.lon, temp.coordinate.lat, '#000000')
                 
         for temp in self.osmMap.roads:
@@ -225,11 +224,11 @@ class View():
         lat = self.osmMap.origin.lat    
         for i in range(0, self.osmMap.gridSize[1]):
             self.drawLine(self.osmMap.origin.lon, lat, self.osmMap.end.lon,lat, "#AA0000")  
-            lat += self.osmMap.distanceLat 
+            lat += self.osmMap.gridCellHeight 
         lon = self.osmMap.origin.lon
         for j in range(0, self.osmMap.gridSize[0]):
             self.drawLine(lon, self.osmMap.origin.lat, lon, self.osmMap.end.lat, "#AA0000")  
-            lon += self.osmMap.distanceLon 
+            lon += self.osmMap.gridCellWidth 
 
     def drawCircle(self, lon, lat, radius, color, name=None):
         x = (lon - self.canvasOrigin[0]) * self.scale + self.viewPort[0]
@@ -274,7 +273,6 @@ class View():
         x = ((agent.currentLocation.lon - self.canvasOrigin[0]) * self.scale + self.viewPort[0])- xmid 
         y = ((self.canvasSize[1]-( agent.currentLocation.lat - self.canvasOrigin[1])) * self.scale + self.viewPort[1]) -ymid 
 
-        #print((x,y,agent.oval))
         if (agent.infectionStatus == "Exposed"):
             self.canvas.itemconfig(agent.oval,fill="#CCCC33")
         elif (agent.infectionStatus == "Infectious"):

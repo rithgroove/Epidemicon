@@ -1,8 +1,6 @@
 import xml.etree.ElementTree as ET
-import os
 import osmium
-import numpy as np
-import geopy.distance as distance
+from pathlib import Path
 from .Node import  Node
 from .Way import Way
 from .Road import Road
@@ -42,8 +40,8 @@ class Map(osmium.SimpleHandler):
         - grids         : [(int,int)] Two dimensional array of grids
         
         - others        : List of other openstreetmap ways that yet to be categorized.
-        - distanceLat   : height of 1 grid in latitude
-        - distanceLon   : width of 1 grid in longitude
+        - gridCellHeight   : height of 1 grid in latitude
+        - gridCellWidth   : width of 1 grid in longitude
         - gridsize      : tuple of 2 integer that shows how many grids we have
     """
     def __init__(self,grid = (10,10)):
@@ -82,8 +80,8 @@ class Map(osmium.SimpleHandler):
         
         self.grids = [[0 for x in range(grid[1])] for y in range(grid[0])]
         self.others = []
-        self.distanceLat = None
-        self.distanceLon = None
+        self.gridCellHeight = None
+        self.gridCellWidth = None
         self.gridSize = grid
         
     def node(self, n):
@@ -144,56 +142,35 @@ class Map(osmium.SimpleHandler):
         [Method] generateGrid
         Generate the grids. This function needs to be called after setBounds()
         """
-        temp = self.end.getVectorDistance(self.origin)
-        #print(temp)
-        self.distanceLat = (temp.lat)/self.gridSize[1]
-        self.distanceLon = (temp.lon)/self.gridSize[0]
-        print(f'{self.distanceLon},{self.distanceLat}')
-        temp = Coordinate(self.origin.lat, self.origin.lon)
+        boundDistance = self.end.getVectorDistance(self.origin)
+        self.gridCellHeight = (boundDistance.lat) / self.gridSize[1]
+        self.gridCellWidth = (boundDistance.lon) / self.gridSize[0]
+
+        coord = Coordinate(self.origin.lat, self.origin.lon)
         for i in range(0,self.gridSize[0]):
-            temp.lon = self.origin.lon
+            coord.lon = self.origin.lon
             for j in range(0,self.gridSize[1]):
-                self.grids[j][i] = Grid(temp, self.distanceLat, self.distanceLon)  
-                temp = temp.newCoordinateWithTranslation(lon = self.distanceLon)
-            temp = temp.newCoordinateWithTranslation(lat = self.distanceLat)
+                self.grids[j][i] = Grid(coord, self.gridCellHeight, self.gridCellWidth)  
+                coord = coord.newCoordinateWithTranslation(lon = self.gridCellWidth)
+            coord = coord.newCoordinateWithTranslation(lat = self.gridCellHeight)
             
     def mapNodesToGrid(self):
         """
         [Method] mapNodesToGrid
         Map the nodes to the grids. This function needs to be called after generateGrid()
         """
-        if(self.distanceLat is not None and self.distanceLon is not None):
+        if(self.gridCellHeight is not None and self.gridCellWidth is not None):
             for node in self.nodes:
-                xAxis = int((node.coordinate.lon - self.origin.lon) / self.distanceLon)
-                yAxis = int((node.coordinate.lat - self.origin.lat) / self.distanceLat)
+                xAxis = int((node.coordinate.lon - self.origin.lon) / self.gridCellWidth)
+                yAxis = int((node.coordinate.lat - self.origin.lat) / self.gridCellHeight)
                 if xAxis >= self.gridSize[0]:
                     xAxis = self.gridSize[0]-1
                 if yAxis >= self.gridSize[1]:
                     yAxis = self.gridSize[1]-1             
-                if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
-                    grid =self.grids[xAxis][yAxis]
-                    valid = True
-                    if (node.coordinate.lat < grid.origin.lat or node.coordinate.lat > grid.end.lat):
-                        valid = False
-#                         print("fault in lat")
-                    if (node.coordinate.lon < grid.origin.lon or node.coordinate.lon > grid.end.lon):
-                        valid = False
-#                         print("fault in lon")
-                    if (valid):                 
-                        grid.addNode(node)
-                        node.grid = self.grids[xAxis][yAxis]
-#                     else:
-#                         print(f'######################################################')
-#                         print("okay")
-#                         print(f'{xAxis},{yAxis}')
-#                         print(f'{self.distanceLon},{self.distanceLat}')
-#                         print(self.origin)
-#                         print(self.end)
-#                         print(x)
-#                         print(self.grids[xAxis][yAxis])
-#                         print(f'######################################################')   
-#                 else:
-#                     print("dokay")
+                if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
+                    grid =self.grids[xAxis][yAxis]             
+                    grid.addNode(node)
+                    node.grid = self.grids[xAxis][yAxis]
             
                 
     def constructMap(self):
@@ -202,33 +179,14 @@ class Map(osmium.SimpleHandler):
         Method to construct the Map. This method will separate which nodes are roads and which 
         
         """
-        buildingId = 1
         for x in self.ways:
             if 'building' in x.tags.keys():
-                temp = Building(f"b{buildingId}",x)
-                buildingId += 1
-                if(self.distanceLat is not None and self.distanceLon is not None):                   
-                    if temp.coordinate.lat < self.origin.lat or temp.coordinate.lon < self.origin.lon or temp.coordinate.lat > self.end.lat or temp.coordinate.lon > self.end.lon: 
+                build = Building(x)
+                if(self.gridCellHeight is not None and self.gridCellWidth is not None):
+                    if build.coordinate.lat < self.origin.lat or build.coordinate.lon < self.origin.lon or build.coordinate.lat > self.end.lat or build.coordinate.lon > self.end.lon: 
                         continue
-                    xAxis = int((temp.coordinate.lon-self.origin.lon)/self.distanceLon)
-                    yAxis = int((temp.coordinate.lat-self.origin.lat)/self.distanceLat)
-                    #print(f'{xAxis},{yAxis}')               
-                    if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
-                        self.buildings.append(temp)
-                        if temp.type not in self.buildingsDict.keys():
-                            self.buildingsDict[temp.type] =[]
-                        self.buildingsDict[temp.type].append(temp)
-                        self.buildingsMap[temp.buildingId] = temp
-                        grid =self.grids[xAxis][yAxis]
-                        x=temp
-                        valid = True
-                        if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
-                            valid = False
-                        if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
-                            valid = False
-                        if (valid):                 
-                            grid.addBuilding(temp)
-                            #x.grid = self.grids[xAxis][yAxis]
+                    self.addBuilding(build)
+
             elif 'natural' in x.tags.keys():
                 self.naturals.append(x)
             elif 'leisure' in x.tags.keys():
@@ -239,7 +197,18 @@ class Map(osmium.SimpleHandler):
                 self.processRoad(x)
             else :
                 self.others.append(x)
-                
+
+    def addBuilding(self, building):
+        xAxis = int((building.coordinate.lon-self.origin.lon) / self.gridCellWidth)
+        yAxis = int((building.coordinate.lat-self.origin.lat) / self.gridCellHeight)
+        self.buildings.append(building)
+        if building.type not in self.buildingsDict.keys():
+            self.buildingsDict[building.type] =[]
+        self.buildingsDict[building.type].append(building)
+        self.buildingsMap[building.buildingId] = building
+        grid = self.grids[xAxis][yAxis]               
+        grid.addBuilding(building)
+
     def processRoad(self,road):
         """
         [Method] processRoad
@@ -271,16 +240,55 @@ class Map(osmium.SimpleHandler):
                 self.roadNodes.append(node)
             
                 
-    def recalculateGrid(self):
+    def recalculateGrid(self, buildConnFileName):
         """
         [Method] recalculateGrid
         Method to recalculate building to the right grid
+
+        Parameter:
+            - buildConnFileName = [str] the name of the file used to cache the connections between the roads and buildings
         """
+        file = None
+        connectionDict = {}
+        if buildConnFileName != "":
+            Path(buildConnFileName).touch()
+            file = open(buildConnFileName, "r+")
+            connectionDict = self.buildConnectionDict(file)
+
         for i in range(0,self.gridSize[1]):
             for j in range(0,self.gridSize[0]):
-                self.grids[j][i].remapBuilding()
+                self.grids[j][i].remapBuilding(file, connectionDict)
         for i in self.roads:
             self.roadNodes.extend(i.generateNodes())
+
+        if file != None:
+            file.close()
+
+    def buildConnectionDict(self, file):
+        """
+        [Method] buildConnectionDict
+        Method that creates an dictionary in the format: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        that maps the wayIDof the building to an entry coordinate and a minimum distance
+
+        Parameter:
+            - file = [FileIO] a file to cache the connections between the roads and buildings 
+
+        Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        """
+
+        wayIdDict={}
+        for line in file.readlines():
+            if line[-1:] == "\n": # remove \n at the end of line if necessary
+                line = line[:-1]
+            try:
+                wayID, min_dist, lat, lon = line.split(";")
+                coord = Coordinate(float(lat), float(lon))
+                wayIdDict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
+            except ValueError:
+                # This exception occurs if the split does not return the correct number of arguments
+                # This means that or the csv is invalid or the line is wrong, in any case the process continues
+                continue
+        return wayIdDict
         
     def findPath(self,agent,building):
         """
@@ -332,20 +340,20 @@ class Map(osmium.SimpleHandler):
         for x in buildingMap.keys():
             print (f"{x} = {buildingMap[x]}")
     
-def readFile(filepath,grid = (10,10)):
+def readFile(OSMfilePath, buildConnFile="", grid = (10,10)):
     """
     [Function] readFile
     Function to generate map fom osm File
     
     parameter:
-        - filepath : [string] path to the OSM file
+        - OSMfilePath : [string] path to the OSM file
         - grid     : [(int,int)] grid size, default value = (10,10)
     """
     generatedMap = Map(grid)
-    generatedMap.apply_file(filepath)
-    generatedMap.setBounds(filepath)
+    generatedMap.apply_file(OSMfilePath)
+    generatedMap.setBounds(OSMfilePath)
     generatedMap.generateGrid()
     generatedMap.mapNodesToGrid()
     generatedMap.constructMap()
-    generatedMap.recalculateGrid()
+    generatedMap.recalculateGrid(buildConnFile)
     return generatedMap
