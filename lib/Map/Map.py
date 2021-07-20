@@ -261,7 +261,7 @@ class Map(osmium.SimpleHandler):
     def recalculateGrid(self, buildConnFileName = ""):
         """
         [Method] recalculateGrid
-        Method to recalculate building to the right grid
+        Method to recalculate building to the right grid and also map it to the road
         Parameter:
             - buildConnFileName = [str] the name of the file used to cache the connections between the roads and buildings
         """
@@ -276,6 +276,10 @@ class Map(osmium.SimpleHandler):
             for j in range(0,self.gridSize[0]):
                 self.grids[j][i].remapBuilding(file, connectionDict)
         for i in self.roads:
+            generatedNodes = i.generateNodes()
+            self.roadNodes.extend(generatedNodes)
+            for newNodes in generatedNodes:
+                self.roadNodesDict[newNodes.osmId] = newNodes
             self.roadNodes.extend(i.generateNodes())
 
         if file != None:
