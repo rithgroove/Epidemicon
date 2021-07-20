@@ -129,25 +129,6 @@ class Simulator:
             self.agentChunks[0].extend(self.agentChunks[-1])
             self.agentChunks.remove(self.agentChunks[-1])
             
-    def generateThread(self):
-        #for x in self.threads:
-            #x.terminate()
-        self.queue = []
-        self.threads = []
-        i = 1
-        manager = multiprocessing.Manager()
-        self.returnDict = []
-        self.activitiesDict = []
-        for chunkOfAgent in self.agentChunks:
-            returnDict = manager.dict()
-            activitiesDict = manager.dict()
-            queue = multiprocessing.Queue()
-            self.returnDict.append(returnDict)
-            self.activitiesDict.append(activitiesDict)
-            thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,queue)
-            self.queue.append(queue)
-            self.threads.append(thread)
-            i += 1  
             
 
     def step(self,steps = 3600):
@@ -156,20 +137,45 @@ class Simulator:
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         if (self.lastHour != hour):
             
-            self.generateThread()
-            for thread in self.threads:
+            ###############################################################################################
+            # Generate Threads
+            # Do not refactor into other function
+            # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
+            ###############################################################################################
+            queues = []
+            threads = []
+            i = 1
+            manager = multiprocessing.Manager()
+            returnDicts = [] #if not working, probably this must be allocated locally
+            activitiesDicts = [] #if not working, probably this must be allocated locally
+            for chunkOfAgent in self.agentChunks:
+                returnDict = manager.dict()
+                activitiesDict = manager.dict()
+                queue = multiprocessing.Queue()
+                returnDicts.append(returnDict)
+                activitiesDicts.append(activitiesDict)
+                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,queue)
+                queues.append(queue)
+                threads.append(thread)
+                i += 1  
+            ###############################################################################################
+            # Generate Threads end
+            ###############################################################################################
+
+            
+            for thread in threads:
                 #thread.daemon = True
                 thread.setStateToStep(steps)
                 thread.start()
             time.sleep(30) # sleep for 20 second to help the threads starts their work
             #wait for all thread to finish running
-            for i in range(0,len(self.threads)):
-                self.threads[i].join()
+            for i in range(0,len(threads)):
+                threads[i].join()
                     
-            for returnDict in self.returnDict:
+            for returnDict in returnDicts:
                 for key in returnDict.keys():
                     self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
-            for activitiesDict in self.activitiesDict:
+            for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
             flush()
