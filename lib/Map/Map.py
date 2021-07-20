@@ -276,19 +276,19 @@ class Map(osmium.SimpleHandler):
         Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
         """
 
-        dict={}
+        wayIdDict={}
         for line in file.readlines():
             if line[-1:] == "\n": # remove \n at the end of line if necessary
                 line = line[:-1]
             try:
                 wayID, min_dist, lat, lon = line.split(";")
                 coord = Coordinate(float(lat), float(lon))
-                dict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
+                wayIdDict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
             except ValueError:
                 # This exception occurs if the split does not return the correct number of arguments
                 # This means that or the csv is invalid or the line is wrong, in any case the process continues
                 continue
-        return dict
+        return wayIdDict
         
     def findPath(self,agent,building):
         """
