@@ -280,7 +280,6 @@ class Map(osmium.SimpleHandler):
             self.roadNodes.extend(generatedNodes)
             for newNodes in generatedNodes:
                 self.roadNodesDict[newNodes.osmId] = newNodes
-            self.roadNodes.extend(i.generateNodes())
 
         if file != None:
             file.close()
