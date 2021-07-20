@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import osmium
+from pathlib import Path
 from .Node import  Node
 from .Way import Way
 from .Road import Road
@@ -239,16 +240,55 @@ class Map(osmium.SimpleHandler):
                 self.roadNodes.append(node)
             
                 
-    def recalculateGrid(self, buildConnFile):
+    def recalculateGrid(self, buildConnFileName):
         """
         [Method] recalculateGrid
         Method to recalculate building to the right grid
+
+        Parameter:
+            - buildConnFileName = [str] the name of the file used to cache the connections between the roads and buildings
         """
+        file = None
+        connectionDict = {}
+        if buildConnFileName != "":
+            Path(buildConnFileName).touch()
+            file = open(buildConnFileName, "r+")
+            connectionDict = self.buildConnectionDict(file)
+
         for i in range(0,self.gridSize[1]):
             for j in range(0,self.gridSize[0]):
-                self.grids[j][i].remapBuilding(buildConnFile)
+                self.grids[j][i].remapBuilding(file, connectionDict)
         for i in self.roads:
             self.roadNodes.extend(i.generateNodes())
+
+        if file != None:
+            file.close()
+
+    def buildConnectionDict(self, file):
+        """
+        [Method] buildConnectionDict
+        Method that creates an dictionary in the format: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        that maps the wayIDof the building to an entry coordinate and a minimum distance
+
+        Parameter:
+            - file = [FileIO] a file to cache the connections between the roads and buildings 
+
+        Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        """
+
+        dict={}
+        for line in file.readlines():
+            if line[-1:] == "\n": # remove \n at the end of line if necessary
+                line = line[:-1]
+            try:
+                wayID, min_dist, lat, lon = line.split(";")
+                coord = Coordinate(float(lat), float(lon))
+                dict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
+            except ValueError:
+                # This exception occurs if the split does not return the correct number of arguments
+                # This means that or the csv is invalid or the line is wrong, in any case the process continues
+                continue
+        return dict
         
     def findPath(self,agent,building):
         """

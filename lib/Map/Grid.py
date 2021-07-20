@@ -64,39 +64,24 @@ class Grid():
         """
         self.roads.append(road)
     
-    def remapBuilding(self, buildConnFileName = ""):
+    def remapBuilding(self, buildConnFile = None, connectionDict = {}):
         """
         [Method] remapBuilding
         find closest nodes inside this grid 
        
+       Parameter:
+            - buildConnFile = [FileIO] a file to cache the connections between the roads and buildings 
+            - connectionDict = [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]] a dicionary
+                                that maps the wayIDof the building to an entry coordinate and a minimum distance
+
         to do : maybe even create a new nodes
         """
 
-        file = None
-        connectionDict = {}
-
-        if buildConnFileName != "":
-            file = open(buildConnFileName, "r+")
-            connectionDict = self.buildConnectionDict(file)
-            
         for building in self.buildings:
             if building.way.osmId in connectionDict:
                 self.loadEntryPoint(building, connectionDict[building.way.osmId])
             else:
-                self.calculateEntryPoint(building, file)
-
-    def buildConnectionDict(self, file):
-        dict={}
-        for line in file.readlines():
-            if line[-1:] == "\n": # remove \n at the end of line if necessary
-                line = line[:-1]
-            try:
-                wayID, min_dist, lat, lon = line.split(";")
-                coord = Coordinate(float(lat), float(lon))
-                dict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
-            except:
-                continue
-        return dict
+                self.calculateEntryPoint(building, buildConnFile)
 
     def loadEntryPoint(self, building, entryPoint):
         closest_coord = entryPoint["min_dist"]
