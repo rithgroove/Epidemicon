@@ -1,72 +1,120 @@
 from .View import View
 import platform
+import time
+import threading
 
 #todo: there are stuff from View that should be moved here
 
 class Controller():
-    def __init__(self, osmMap, simulation=None, path=None):
-        self.window = View(mymap=osmMap, simulation=simulation, path=path)
+    def __init__(self, model, view, path=None):
+        self.model = model
+        self.view  = view
+        
+        # for convinience 
+        self.mymap = self.model.osmMap
         
         ### platform specific methods and stuff ###
         self.OS = platform.system()
-        
         # scroll
-        self.onMouseScroll = self.scroll_windows_mac
+        self.on_mouse_scroll = self.__scroll_windows_mac
         if self.OS == "Linux":
-            self.onMouseScroll = self.scroll_linux
+            self.on_mouse_scroll = self.__scroll_linux
             
+        ## set key events
+        self.view.set_events(self)
         
-        self.window.setController(self)
+        ## some attributes related to the view ##
+        self.zoom_in_param = 1.1
+        self.zoom_out_param = (10.0/11.0)
+        
+        self.thread_finished = False
+        
+        # todo merge changes 
+        self.view.initial_draw()
     
-    def mainloop(self):
-        self.window.root.mainloop()
+    ## MAIN METHODS ##
+    def main_loop(self):
+        self.view.root.mainloop()
+        
+    def update_view(self):
+        self.view.step(self.model.agents, self.model.stepCount)
     
-    def onMouseScroll(self, event):
+    def on_closing(self):
+        self.view.thread_run = False
+        while not self.thread_finished:
+            time.sleep(1)
+        self.view.close()
+    
+    ## ZOOM ##
+    def on_mouse_scroll(self, event):
         pass
 
-    def scroll_linux(self, event):
+    def __scroll_linux(self, event):
         if event.num == 4:
-            self.zoom_in()
+            self.on_zoom_in()
         elif event.num == 5:
-            self.zoom_out()
+            self.on_zoom_out()
         
-    def scroll_windows_mac(self, event):
+    def __scroll_windows_mac(self, event):
         value = -1*(event.delta)
         if (value>0):
-            self.zoom_in()
+            self.on_zoom_in()
         elif (value<0):
-            self.zoom_out()
+            self.on_zoom_out()
     
-    def zoom_in(self):
-        self.window.canvas.scale('all', 0, 0, 1.1, 1.1)
-        self.window.scale *=  1.1
+    def on_zoom_in(self):
+        self.view.zoom(self.zoom_in_param)
         
-    def zoom_out(self):
-        self.window.canvas.scale('all', 0, 0, 10.0/11.0, 10.0/11.0)
-        self.window.scale *= (10.0/11.0)
-        
-    def test(self):
-        print("test")
+    def on_zoom_out(self):
+        self.view.zoom(self.zoom_out_param)
     
+    ## MOVING THE MAP ##
+    def on_mouse_release(self, event):
+        self.view.mouse_release() 
+        
+    def on_mouse_hold(self, event):
+        self.view.mouse_hold(event.x, event.y)
     
-    def onMouseDoubleClick(self, event):
-        self.window.animating = not self.window.animating
+    ## RUN ##
+    #cmd = buttons
+    def cmd_start(self):
+        self.view.btn_start_change_method(text="Play ", method=self.cmd_play)
         
-    def onMouseRelease(self, event):
-        self.window.prevPosition = None
+        self.thread = threading.Thread(target=self.run_step, args=())
+        self.thread.start()
         
-    def onMouseHold(self, event):
-        if self.window.prevPosition is not None:
-            translation = (self.window.prevPosition[0]-event.x, self.window.prevPosition[1]-event.y)
-            self.window.viewPort = (self.window.viewPort[0]-translation[0], self.window.viewPort[1]- translation[1])
-            if(self.window.viewPort[0] > 0):
-                self.window.viewPort = (0, self.window.viewPort[1])
-            elif(self.window.viewPort[0] < -1* self.window.scale *self.window.canvasSize[0] + self.window.windowSize[0]):
-                self.window.viewPort = (int( -1* self.window.scale *self.window.canvasSize[0] + self.window.windowSize[0]), self.window.viewPort[1])
-            if(self.window.viewPort[1] > 0):
-                self.window.viewPort = (self.window.viewPort[0], 0)
-            elif(self.window.viewPort[1] < -1* self.window.scale *self.window.canvasSize[1] + self.window.windowSize[1]):
-                self.window.viewPort = (self.window.viewPort[0], int( -1* self.window.scale *self.window.canvasSize[1] + self.window.windowSize[1]))
-            
-        self.window.prevPosition = (event.x,event.y)
-        self.window.canvas.scan_dragto(self.window.viewPort[0], self.window.viewPort[1], gain=1)
+    def cmd_play(self):
+        self.view.btn_start_change_method(text="Pause", method=self.cmd_pause)
+        self.thread = threading.Thread(target=self.run_auto, args=())
+        self.view.thread_run = True
+        self.thread.start()
+        
+    def cmd_pause(self):
+        self.view.btn_start_change_method(text="Play ", method=self.cmd_play)
+        self.view.thread_run = False
+                
+    def cmd_step(self):
+        self.thread = threading.Thread(target=self.run_step, args=())
+        self.thread.start()
+    
+    # 
+    def run_auto(self):
+        self.thread_finished = False
+        while self.view.thread_run:
+            print("Processing... ", end="", flush=True)
+            self.model.step(steps=self.view.steps_to_advance)
+            self.update_view()
+            print("Done!", flush=True)
+            time.sleep(1)
+        self.thread_finished = True
+        
+    def run_step(self):
+        self.thread_finished = False
+        print("Processing... ", end="", flush=True)
+        self.model.step(steps=self.view.steps_to_advance)
+        self.update_view()
+        print("Done!", flush=True)
+        self.thread_finished = True
+    
+    ## DRAWING ##
+    
