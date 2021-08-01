@@ -27,7 +27,8 @@ class Controller():
         self.zoom_in_param = 1.1
         self.zoom_out_param = (10.0/11.0)
         
-        self.thread_finished = False
+        self.thread_finished = True
+        self.thread_ask_stop = False
         
         # todo merge changes 
         self.view.initial_draw()
@@ -40,7 +41,7 @@ class Controller():
         self.view.step(self.model.agents, self.model.stepCount)
     
     def on_closing(self):
-        self.view.thread_run = False
+        self.thread_ask_stop = True
         while not self.thread_finished:
             time.sleep(1)
         self.view.close()
@@ -86,12 +87,13 @@ class Controller():
     def cmd_play(self):
         self.view.btn_start_change_method(text="Pause", method=self.cmd_pause)
         self.thread = threading.Thread(target=self.run_auto, args=())
-        self.view.thread_run = True
+        self.thread_ask_stop = False
         self.thread.start()
         
     def cmd_pause(self):
         self.view.btn_start_change_method(text="Play ", method=self.cmd_play)
-        self.view.thread_run = False
+        self.thread_ask_stop = True
+        
                 
     def cmd_step(self):
         self.thread = threading.Thread(target=self.run_step, args=())
@@ -100,7 +102,7 @@ class Controller():
     # 
     def run_auto(self):
         self.thread_finished = False
-        while self.view.thread_run:
+        while not self.thread_ask_stop:
             print("Processing... ", end="", flush=True)
             self.model.step(steps=self.view.steps_to_advance)
             self.update_view()

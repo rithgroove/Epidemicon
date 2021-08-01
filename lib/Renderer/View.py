@@ -1,6 +1,5 @@
 import tkinter as tk
 import time
-import threading
 
 class View():
     def __init__(self, mymap, simulation=None, path=None):
