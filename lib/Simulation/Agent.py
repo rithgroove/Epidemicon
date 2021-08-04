@@ -173,9 +173,6 @@ class Agent:
                 self.currentNode.removeAgent(self)
                 self.currentNode = self.activeSequence.currentNode
                 self.currentNode.addAgent(self)
-                #self.evaluate()
-                #print(f"leftover = {leftOver}")
-            
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
             

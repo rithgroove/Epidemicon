@@ -1,4 +1,4 @@
-import geopy.distance as distance
+import numpy as np
 from .Coordinate import Coordinate
 import numpy as np
 
@@ -131,7 +131,7 @@ class Grid():
         if self.defaultBuildings is not None:
             for building in nonTaggedBuildings:
                 building.setType(self.defaultBuildings["type"])
-        
+
     def __str__(self):
         """
         [Method] __str__        

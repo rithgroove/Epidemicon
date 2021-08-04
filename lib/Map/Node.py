@@ -51,7 +51,7 @@ class Node():
         for tag in osmNode.tags:
             self.tags[tag.k] = tag.v
         if 'highway' in self.tags.keys():
-            isRoad = True
+            self.isRoad = True
             
     def setAsBuildingConnector(self, coordinate, generatedId =""):
         """
@@ -68,7 +68,7 @@ class Node():
         """
         self.osmId = f"{generatedId}"
         self.coordinate = coordinate
-        isRoad = True
+        self.isRoad = True
         
     def addWay(self,way):
         """
