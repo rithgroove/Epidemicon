@@ -25,7 +25,7 @@ def main():
     sim = Simulator.Simulator(jobfile, osmMap, agentNum=200)
     # x = threading.Thread(target=showData, args=(sim,))
     # x.start()
-    sim.stepCount = 3600*8
+    #sim.stepCount = 3600*8
     
     # Draw    
     view = View(mymap=osmMap, simulation=sim)

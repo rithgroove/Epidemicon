@@ -146,19 +146,19 @@ class Map(osmium.SimpleHandler):
         [Method] generateGrid
         Generate the grids. This function needs to be called after setBounds()
         """
-<<<<<<< HEAD
-        temp = self.end.getVectorDistance(self.origin)
-        self.distanceLat = (temp.lat)/self.gridSize[1]
-        self.distanceLon = (temp.lon)/self.gridSize[0]
-        print(f'{self.distanceLon},{self.distanceLat}')
-        temp = Coordinate(self.origin.lat, self.origin.lon)
-=======
+# <<<<<<< HEAD
+#         temp = self.end.getVectorDistance(self.origin)
+#         self.distanceLat = (temp.lat)/self.gridSize[1]
+#         self.distanceLon = (temp.lon)/self.gridSize[0]
+#         print(f'{self.distanceLon},{self.distanceLat}')
+#         temp = Coordinate(self.origin.lat, self.origin.lon)
+# =======
         boundDistance = self.end.getVectorDistance(self.origin)
         self.gridCellHeight = (boundDistance.lat) / self.gridSize[1]
         self.gridCellWidth = (boundDistance.lon) / self.gridSize[0]
 
         coord = Coordinate(self.origin.lat, self.origin.lon)
->>>>>>> main
+# >>>>>>> main
         for i in range(0,self.gridSize[0]):
             coord.lon = self.origin.lon
             for j in range(0,self.gridSize[1]):
@@ -278,12 +278,17 @@ class Map(osmium.SimpleHandler):
             Path(buildConnFileName).touch()
             file = open(buildConnFileName, "r+")
             connectionDict = self.buildConnectionDict(file)
-
+        
         for i in range(0,self.gridSize[1]):
             for j in range(0,self.gridSize[0]):
                 self.grids[j][i].remapBuilding(file, connectionDict)
+            
         for i in self.roads:
-            self.roadNodes.extend(i.generateNodes())
+            generatedNodes = i.generateNodes()
+            self.roadNodes.extend(generatedNodes)
+            for newNodes in generatedNodes:
+                self.roadNodesDict[newNodes.osmId] = newNodes
+            self.roadNodes.extend(generatedNodes)
 
         if file != None:
             file.close()
@@ -307,6 +312,7 @@ class Map(osmium.SimpleHandler):
             try:
                 wayID, min_dist, lat, lon = line.split(";")
                 coord = Coordinate(float(lat), float(lon))
+                wayIdDict[wayID] = {"min_dist": int(min_dist), "entryCoordinate": coord}
             except ValueError:
                 # This exception occurs if the split does not return the correct number of arguments
                 # This means that or the csv is invalid or the line is wrong, in any case the process continues

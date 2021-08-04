@@ -243,11 +243,11 @@ def draw():
     lat = osmMap.origin.lat    
     for i in range(0,osmMap.gridSize[1]):
         drawLine(osmMap.origin.lon, lat, osmMap.end.lon,lat, "#AA0000")  
-        lat += osmMap.distanceLat 
+        lat += osmMap.gridCellHeight 
     lon = osmMap.origin.lon
     for j in range(0,osmMap.gridSize[0]):
         drawLine(lon, osmMap.origin.lat, lon,osmMap.end.lat, "#AA0000")  
-        lon += osmMap.distanceLon 
+        lon += osmMap.gridCellWidth
         
         
 def drawPath(path):

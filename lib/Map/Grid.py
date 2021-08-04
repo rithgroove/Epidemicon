@@ -80,6 +80,7 @@ class Grid():
         """
 
         for building in self.buildings:
+            #print(building.way.osmId)
             if building.way.osmId in connectionDict:
                 self.loadEntryPoint(building, connectionDict[building.way.osmId])
             else:

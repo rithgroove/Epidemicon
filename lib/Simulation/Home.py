@@ -68,7 +68,7 @@ class Home:
         return self.building.node
     
     def buyGroceries(self):
-        self.groceries += self.occupant * 6
+        self.groceries += len(self.occupants) * 6
     
     def consumeGroceries(self):
         self.groceries -= 1
