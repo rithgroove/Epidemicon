@@ -1,11 +1,12 @@
-import tkinter 
+import tkinter as tk
 import time
-import threading
 
 class View():
     def __init__(self, mymap, simulation=None, path=None):
         #todo: there are part of functions that should go to controller
         self.animating = False
+        
+        self.path = path
         
         self.lastStep = 0
         self.sim      = simulation
@@ -21,59 +22,126 @@ class View():
         self.prevPosition = None
         
         ## root
-        self.root = tkinter.Tk()
-        self.root.resizable(True, True)
+        self.root = tk.Tk()
+        self.root.title("Epidemicon")
+        self.root.resizable(False, False)
         
         ## frames
-        self.frame_btn    = tkinter.Frame(self.root)
-        self.frame_canvas = tkinter.Frame(self.root)
+        self.frame_btn    = tk.Frame(self.root)
+        self.frame_canvas = tk.Frame(self.root)
+        
+        for i in range(11):
+            self.frame_btn.columnconfigure(i, weight=10)
     
         ## canvas
-        self.canvas = tkinter.Canvas(self.frame_canvas)
+        self.canvas = tk.Canvas(self.frame_canvas)
     
-        ## buttons
-        self.root.btn_zoom_in  = tkinter.Button(self.frame_btn, text="Zoom in (+)")#, command=lambda:zoom_in(canvas, scale))
-        self.root.btn_zoom_out = tkinter.Button(self.frame_btn, text="Zoom out (-)")#, command=lambda:zoom_out(canvas, scale))
-        self.root.btn_zoom_in.pack(side="left")
-        self.root.btn_zoom_out.pack(side="left")
+        ## button bar
+        # zoom
+        self.root.btn_zoom_in  = tk.Button(self.frame_btn, text="+")
+        self.root.btn_zoom_out = tk.Button(self.frame_btn, text="-")
         
-        # ## bind button
-        #todo: ask abe whats this for
-        # if OS == "Linux": #todo: platform.system()
-            # self.root.bind_all('<4>', scroll, add='+')
-            # self.root.bind_all('<5>', scroll, add='+')
-        # else: #Windows and MacOS
-            # self.root.bind_all("<MouseWheel>", scroll, add='+')
+        #play pause step
+        self.root.btn_start   = tk.Button(self.frame_btn, text="Init")
+        self.root.btn_step  = tk.Button(self.frame_btn, text="Forward")
+        self.root.btn_step["state"] = tk.DISABLED #disabled until we click on INIT
         
+        #number of steps
+        self.root.label_step = tk.Label(self.frame_btn, text="Step: 0")
+        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size", from_=1, to=100, orient=tk.HORIZONTAL)
+        
+        #add to grid
+        self.root.btn_start.grid(row=0,    column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.label_step.grid(row=0,   column=1, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.step_scale.grid(row=0,   column=2, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.btn_step.grid(row=0,     column=3, sticky=(tk.N, tk.S, tk.E, tk.W))
+        
+        self.root.btn_zoom_out.grid(row=0, column=9, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.btn_zoom_in.grid(row=0,  column=10, sticky=(tk.N, tk.S, tk.E, tk.W))
+        
+        
+        ## canvas pack and size
         self.canvas.pack()
         self.canvas.config(width=self.windowSize[0], height=self.windowSize[1])
-            
+        
+        ## frames pack
+        self.frame_btn.pack(side="top", fill=tk.X, expand=True)   
+        self.frame_canvas.pack(side="bottom")
+    
+    def set_events(self, controller): #todo: need more thoughts on decoupling
+        ## bindings
+        # buttons
+        self.root.btn_zoom_in["command"]  = controller.on_zoom_in
+        self.root.btn_zoom_out["command"] = controller.on_zoom_out
+        self.root.btn_step["command"]     = controller.cmd_step
+        self.root.btn_start["command"]    = controller.cmd_start
+        
+        # canvas
+        self.canvas.bind("<MouseWheel>"     , controller.on_mouse_scroll)
+        self.canvas.bind("<B1-Motion>"      , controller.on_mouse_hold)
+        self.canvas.bind("<ButtonRelease-1>", controller.on_mouse_release)
+        
+        self.root.protocol("WM_DELETE_WINDOW", controller.on_closing)
+    
+    def initial_draw(self):
         self.draw()
-        if path is not None:
+        if self.path is not None:
             self.drawPath(path)
         if self.sim is not None:
             self.drawAgent()
-            x = threading.Thread(target=self.start, args=())
-            x.start()
-            self.canvas.after(1000, self.step)
+    
+    ## commands ##
+    def zoom(self, scale):
+        self.scale *=  scale
+        self.canvas.scale('all', 0, 0, scale, scale)
+
+    def mouse_release(self):
+        self.prevPosition = None
+    
+    def mouse_hold(self, x, y): #todo: decouple
+        if self.prevPosition is not None:
+            translation = (self.prevPosition[0]-x, self.prevPosition[1]-y)
+            self.viewPort = (self.viewPort[0]-translation[0], self.viewPort[1]- translation[1])
+            #print(translation)
+            if(self.viewPort[0] > 0):
+                self.viewPort = (0, self.viewPort[1])
+            elif(self.viewPort[0] < -1* self.scale *self.canvasSize[0] + self.windowSize[0]):
+                #print("too far x")
+                self.viewPort = (int( -1* self.scale *self.canvasSize[0] + self.windowSize[0]), self.viewPort[1])
+            if(self.viewPort[1] > 0):
+                self.viewPort = (self.viewPort[0], 0)
+            elif(self.viewPort[1] < -1* self.scale *self.canvasSize[1] + self.windowSize[1]):
+                #print("too far y")
+                self.viewPort = (self.viewPort[0], int( -1* self.scale *self.canvasSize[1] + self.windowSize[1]))
             
-        ## frames pack
-        self.frame_btn.pack(side="top")   
-        self.frame_canvas.pack(side="bottom")
+        self.prevPosition = (x, y)
+        self.canvas.scan_dragto(self.viewPort[0], self.viewPort[1], gain=1)
 
-    def setController(self, controller):
-        self.controller = controller
+    def close(self):
+        self.root.destroy()
+
+    def step(self, agents, stepcount=""):
+        for a in agents:
+            self.moveAgent(a)
+        self.root.label_step["text"] = f"Step: {stepcount}"
+    
+    def btn_start_change_method(self, text, method):
+        self.root.btn_start["text"]    = text
+        self.root.btn_start["command"] = method
         
-        # bindings
-        ## buttons
-        self.root.btn_zoom_in["command"]  = controller.zoom_in
-        self.root.btn_zoom_out["command"] = controller.zoom_out
-        ## canvas
-        self.canvas.bind("<MouseWheel>"     , controller.onMouseScroll)
-        self.canvas.bind("<Double-Button-1>", controller.onMouseDoubleClick)
-        self.canvas.bind("<B1-Motion>"      , controller.onMouseHold)
-        self.canvas.bind("<ButtonRelease-1>", controller.onMouseRelease)
+        
+        self.root.btn_step["state"] = tk.NORMAL
+        if text == "Pause": # auto-running
+            self.root.btn_step["state"] = tk.DISABLED
+        
+        
+    ## setters and getters ##
+    @property
+    def steps_to_advance(self):
+        return self.root.step_scale.get()
 
+
+    ##refactoring
     def draw(self): #todo: break this into smaller functions
         for temp in self.osmMap.amenities:
             path = []
@@ -204,6 +272,7 @@ class View():
                 self.canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
                 self.drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
             if (temp.entryPoint is not None):
+                #print("rendering entry Point")
                 self.drawLine(temp.entryPoint.lon,temp.entryPoint.lat, temp.coordinate.lon, temp.coordinate.lat, '#000000')
                 
         for temp in self.osmMap.roads:
@@ -273,6 +342,7 @@ class View():
         x = ((agent.currentLocation.lon - self.canvasOrigin[0]) * self.scale + self.viewPort[0])- xmid 
         y = ((self.canvasSize[1]-( agent.currentLocation.lat - self.canvasOrigin[1])) * self.scale + self.viewPort[1]) -ymid 
 
+        #print((x,y,agent.oval))
         if (agent.infectionStatus == "Exposed"):
             self.canvas.itemconfig(agent.oval,fill="#CCCC33")
         elif (agent.infectionStatus == "Infectious"):
@@ -283,27 +353,3 @@ class View():
             self.canvas.itemconfig(agent.oval,fill="#33CC33")        
         self.canvas.move(agent.oval,x,y)
     
-    def start(self):
-        while True:
-            if self.animating:
-                self.sim.step()
-                print("finish stepping")
-            time.sleep(10)
-            
-    def step(self):
-        if self.lastStep != self.sim.stepCount:
-            for x in self.sim.agents:
-                self.moveAgent(x)
-            self.lastStep = self.sim.stepCount
-        self.canvas.after(1000, self.step)
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
