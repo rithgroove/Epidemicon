@@ -158,6 +158,7 @@ class Agent:
             self.hair = float(random.randint(0,int(self.hairCap/2)))
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
             self.activities = "idle"        
+            self.home.buyGroceries()
         
         self.hair += 0.44/(24*(3600/steps))
         self.hunger -= self.hungerReduction/(24*(3600/steps))
@@ -299,9 +300,9 @@ class Agent:
         temp["eating_out_preference"] = self.eatingOutPref
         
         if (self.vaccinated):
-        	temp["vaccinated"] = "True"
+            temp["vaccinated"] = "True"
         else:
-        	temp["vaccinated"] = "False"
+            temp["vaccinated"] = "False"
         
         return temp
     

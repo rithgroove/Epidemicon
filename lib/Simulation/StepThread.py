@@ -2,7 +2,7 @@
 import multiprocessing 
 import time 
 import random
-from atpbar import atpbar,register_reporter, find_reporter
+#from atpbar import atpbar,register_reporter, find_reporter
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
@@ -41,11 +41,13 @@ class StepThread(multiprocessing.Process):
             self.finalize()
         #self.confirmationQueue.task_done()
         self.finished = True
+        print(f'{self.name} finished')
 
     def step(self):
         day, hour = self.currentHour()
-        register_reporter(find_reporter())
-        for i in atpbar(range(len(self.agents)), name= f"{self.name} Step Function"):
+        #register_reporter(find_reporter())
+        #for i in atpbar(range(len(self.agents)), name= f"{self.name} Step Function"):
+        for i in range(0,len(self.agents)):
             result = self.agents[i].checkSchedule(day,hour,self.stepValue)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:

@@ -1,7 +1,7 @@
 import csv
 import random
 import multiprocessing
-from atpbar import flush
+#from atpbar import flush
 from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
@@ -175,7 +175,7 @@ class Simulator:
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
-            flush()
+            #flush()
             self.lastHour = hour
         
         #print("Finished checking activity, proceeding to move agents")
