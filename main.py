@@ -28,7 +28,7 @@ def read_validate_config(file_path):
     with open(file_path, "r") as f:
         config = yaml.safe_load(f)
     err = False
-    errMessage = "Missing required attribute in config file: "
+    errMessage = "Missing required attributes in config file: "
     for c in requiredConfigs:
         if c not in config:
             err = True

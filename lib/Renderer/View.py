@@ -86,7 +86,7 @@ class View():
     def initial_draw(self):
         self.draw()
         if self.path is not None:
-            self.drawPath(path)
+            self.drawPath(self.path)
         if self.sim is not None:
             self.drawAgent()
     
