@@ -227,6 +227,7 @@ class Map(osmium.SimpleHandler):
         yAxis = int((building.coordinate.lat-self.origin.lat) / self.gridCellHeight)
         self.buildings.append(building)
         if building.type not in self.buildingsDict.keys():
+            print(building.type)
             self.buildingsDict[building.type] =[]
         self.buildingsDict[building.type].append(building)
         self.buildingsMap[building.buildingId] = building
