@@ -136,7 +136,7 @@ class Simulator:
         week = int(self.stepCount/ (7*24*3600))
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         if (self.lastHour != hour):
-            
+            self.lastHour = hour
             ###############################################################################################
             # Generate Threads
             # Do not refactor into other function
@@ -177,7 +177,9 @@ class Simulator:
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
             #flush()
             self.lastHour = hour
-        
+            
+            self.threads = []
+                
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
             x.step(day,hour,steps)
@@ -233,7 +235,10 @@ class Simulator:
         self.infectionHistory.append(result)
         
         return result
-
+    
+    def killStepThreads(self):
+        for thread in self.threads:
+            thread.terminate()
             
     def extract(self):
         current_time = datetime.datetime.now()

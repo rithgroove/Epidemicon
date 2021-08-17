@@ -42,7 +42,7 @@ class View():
         self.root.btn_zoom_out = tk.Button(self.frame_btn, text="-")
         
         #play pause step
-        self.root.btn_start   = tk.Button(self.frame_btn, text="Init")
+        self.root.btn_start   = tk.Button(self.frame_btn, text="Play")
         self.root.btn_step  = tk.Button(self.frame_btn, text="Forward")
         self.root.btn_step["state"] = tk.DISABLED #disabled until we click on INIT
         
@@ -74,7 +74,7 @@ class View():
         self.root.btn_zoom_in["command"]  = controller.on_zoom_in
         self.root.btn_zoom_out["command"] = controller.on_zoom_out
         self.root.btn_step["command"]     = controller.cmd_step
-        self.root.btn_start["command"]    = controller.cmd_start
+        self.root.btn_start["command"]    = controller.cmd_play
         
         # canvas
         self.canvas.bind("<MouseWheel>"     , controller.on_mouse_scroll)
@@ -133,7 +133,6 @@ class View():
         self.root.btn_step["state"] = tk.NORMAL
         if text == "Pause": # auto-running
             self.root.btn_step["state"] = tk.DISABLED
-        
         
     ## setters and getters ##
     @property

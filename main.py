@@ -13,16 +13,20 @@ from lib.Renderer.GraphViewer import showData
 
 OSMfile = "TX-To-TU.osm"
 buildConnFile = "buildingConnection.csv"
-jobfile = "config/jobs.csv"
+jobfile = "jobs.csv"
+buildingTaggingConfigFile = "tsukuba-tu-building-data.csv"
 
 def main():
-    filePath = f"osmData\{OSMfile}"
+    filePath = os.path.join("osmData",OSMfile)
+    buildConnFilePath = os.path.join("example",buildConnFile)
+    jobfilePath = os.path.join("config",jobfile)
+    buildingTaggingConfigFilePath = os.path.join("config",buildingTaggingConfigFile)
     
     # Load the data
-    osmMap = mmap.readFile(filePath, buildConnFile=buildConnFile)
+    osmMap = mmap.readFile(filePath, buildConnFile=buildConnFilePath, buildingCSV = buildingTaggingConfigFilePath)
         
     # Start Simulator
-    sim = Simulator.Simulator(jobfile, osmMap, agentNum=200)
+    sim = Simulator.Simulator(jobfilePath, osmMap, agentNum=200)
     # x = threading.Thread(target=showData, args=(sim,))
     # x.start()
     #sim.stepCount = 3600*8
@@ -31,6 +35,7 @@ def main():
     view = View(mymap=osmMap, simulation=sim)
     app = Controller(model=sim, view=view)
     app.main_loop()
+    sim.extract()
 
 if __name__ == "__main__":
     main()
