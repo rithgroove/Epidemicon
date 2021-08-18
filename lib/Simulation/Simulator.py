@@ -12,6 +12,7 @@ from os.path import join
 from lib.Map.MovementSequence import reconstruct
 import datetime
 import csv
+from pathlib import Path
 import time
 class Simulator:
     def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0):
@@ -235,10 +236,11 @@ class Simulator:
         return result
 
             
-    def extract(self):
+    def extract(self, report_path):
         current_time = datetime.datetime.now()
-        path = current_time.strftime("%Y%m%d-%H%M")
-        os.mkdir(path)
+        new_dir = current_time.strftime("%Y%m%d-%H%M")
+        path = os.path.join(report_path, new_dir)
+        Path(path).mkdir(parents=True, exist_ok=True)
         
 
         with open(join(path,'infection_summary.csv'), 'w', newline='') as csvfile:

@@ -21,6 +21,9 @@ requiredConfigs = [
     "threadNumber",
     "infectedAgent",
     "vaccinationPercentage",
+    "windowWidth",
+    "windowHeight",
+    "reportDir",
 ]
 
 def read_validate_config(file_path):
@@ -55,9 +58,11 @@ def main():
         c["vaccinationPercentage"])
 
     # Draw    
-    view = View(mymap=osmMap, simulation=sim)
+    windowSize = (c["windowWidth"], c["windowHeight"])
+    view = View(mymap=osmMap, simulation=sim, windowSize=windowSize)
     app = Controller(model=sim, view=view)
     app.main_loop()
+    sim.extract(c["reportDir"])
 
 if __name__ == "__main__":
     main()
