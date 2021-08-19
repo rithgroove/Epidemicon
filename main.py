@@ -65,6 +65,7 @@ def main():
     view = View(mymap=osmMap, simulation=sim, windowSize=windowSize)
     app = Controller(model=sim, view=view)
     app.main_loop()
+    sim.extract()
 
 if __name__ == "__main__":
     main()

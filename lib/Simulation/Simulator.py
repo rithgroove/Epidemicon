@@ -58,6 +58,7 @@ detailsFieldnames = [
     'severeHour',
     'severeMinutes',
 ]
+
 class Simulator:
     def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report/", reportInterval=10):
         self.jobClasses = []
