@@ -14,8 +14,52 @@ import datetime
 import csv
 from pathlib import Path
 import time
+
+summaryFieldnames = [
+    'Day',
+    'Hour',
+    'Minutes',
+    'CurrentStep',
+    'Susceptible',
+    'Exposed',
+    'Infectious',
+    'Recovered'
+]
+
+detailsFieldnames = [
+    'infectedAgentId',
+    'infectedAgentProfession',
+    'originAgentId',
+    'originAgentProfession',
+    'location',
+    'lat',
+    'lon',
+    'nodeId',
+    'exposedTimeStamp',
+    'exposedDay',
+    'exposedHour',
+    'exposedMinutes',
+    'incubationDuration',
+    'infectiousTimeStamp',
+    'infectiousDay',
+    'infectiousHour',
+    'infectiousMinutes',
+    'recoveryDuration',
+    'recoveredTimeStamp',
+    'recoveredDay',
+    'recoveredHour',
+    'recoveredMinutes',
+    'symptomaticTimeStamp',
+    'symptomaticDay',
+    'symptomaticHour',
+    'symptomaticMinutes',
+    'severeTimeStamp',
+    'severeDay',
+    'severeHour',
+    'severeMinutes',
+]
 class Simulator:
-    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0):
+    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report/"):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -54,8 +98,16 @@ class Simulator:
         self.infectionHistory = []
         self.queue = []
         self.threads = []
+        self.path = self.createReportDir(reportPath)
  
-        
+    def createReportDir(self, reportPath):
+        current_time = datetime.datetime.now()
+        new_dir = current_time.strftime("%Y%m%d-%H%M")
+        path = os.path.join(reportPath, new_dir)
+        Path(path).mkdir(parents=True, exist_ok=True)
+
+        return path  
+
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
         self.osmMap
@@ -237,39 +289,38 @@ class Simulator:
 
             
     def extract(self, report_path):
-        current_time = datetime.datetime.now()
-        new_dir = current_time.strftime("%Y%m%d-%H%M")
-        path = os.path.join(report_path, new_dir)
-        Path(path).mkdir(parents=True, exist_ok=True)
-        
+        # current_time = datetime.datetime.now()
+        # new_dir = current_time.strftime("%Y%m%d-%H%M")
+        # path = os.path.join(report_path, new_dir)
+        # Path(path).mkdir(parents=True, exist_ok=True)
 
-        with open(join(path,'infection_summary.csv'), 'w', newline='') as csvfile:
-            fieldnames = ['Day','Hour','Minutes','CurrentStep','Susceptible','Exposed','Infectious','Recovered']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        summaryFile = join(self.path,'infection_summary.csv')
+        with open(summaryFile, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=summaryFieldnames)
             writer.writeheader()
             for x in self.infectionHistory:
                 writer.writerow(x)
                 
-        infectionDetails = []        
-        for i in self.agents:
-            if (i.infection is not None):
-                infectionDetails.append(i.infection.summarize())
-         
-        with open(join(path,'infection_details.csv'), 'w', newline='') as csvfile:
-            fieldnames = ['infectedAgentId','infectedAgentProfession','originAgentId','originAgentProfession','location','lat','lon','nodeId'
-,"exposedTimeStamp","exposedDay","exposedHour","exposedMinutes","incubationDuration"                   
-,"infectiousTimeStamp","infectiousDay","infectiousHour","infectiousMinutes","recoveryDuration"                   
-,"recoveredTimeStamp","recoveredDay","recoveredHour","recoveredMinutes"            
-,"symptomaticTimeStamp","symptomaticDay","symptomaticHour","symptomaticMinutes"            
-,"severeTimeStamp","severeDay","severeHour","severeMinutes"]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        # infectionDetails = []        
+        # for i in self.agents:
+        #     if (i.infection is not None):
+        #         infectionDetails.append(i.infection.summarize())
+        
+        detailsFile = join(self.path,'infection_details.csv')
+        with open(detailsFile, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=detailsFieldnames)
             writer.writeheader()
-            for x in infectionDetails:
-                writer.writerow(x)
+            for i in self.agents:
+                if (i.infection is not None):
+                    summary = i.infection.summarize()
+                    writer.writerow(summary)
+            # for x in infectionDetails:
+            #     writer.writerow(x)
          
-        with open(join(path,'agents.csv'), 'w', newline='') as csvfile:
-            fieldnames = getAgentKeys()
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        agentsFile = join(self.path,'agents.csv')
+        with open(agentsFile, 'w', newline='') as csvfile:
+            agentFieldnames = getAgentKeys()
+            writer = csv.DictWriter(csvfile, fieldnames=agentFieldnames)
             writer.writeheader()
             for x in self.agents:
                 writer.writerow(x.extract())
