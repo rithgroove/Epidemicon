@@ -4,6 +4,9 @@ def get_window_resolution(root, windowWidth, windowHeight):
     width = 1024
     height = 768
 
+    # If a width contains a "%", the window size is relative to the screen size
+    # if it contains only a int, its an absolute value
+
     if isinstance(windowWidth, str) and windowWidth[-1] == "%":
         scale = int(windowWidth[:-1])/100
         width = root.winfo_screenwidth() * scale
@@ -19,7 +22,7 @@ def get_window_resolution(root, windowWidth, windowHeight):
     return (width, height)
 
 class View():
-    def __init__(self, mymap, windowSize, simulation=None, path=None):
+    def __init__(self, mymap, simulation=None, path=None, windowSize=(1024, 768)):
         #todo: there are part of functions that should go to controller
         self.animating = False
         

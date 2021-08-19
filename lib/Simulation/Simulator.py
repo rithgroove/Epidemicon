@@ -98,7 +98,7 @@ class Simulator:
         self.infectionHistory = []
         self.queue = []
         self.threads = []
-        self.path = self.createReportDir(reportPath)
+        self.reportPath = self.createReportDir(reportPath)
         self.reportIntervalCount = 0
         self.reportInterval = reportInterval
  
@@ -299,7 +299,7 @@ class Simulator:
         # This function always open and close the files 
         # to guarantee that they are being rewriten from scratch
 
-        summaryFilePath = join(self.path,'infection_summary.csv')
+        summaryFilePath = join(self.reportPath,'infection_summary.csv')
         with open(summaryFilePath, 'w', newline='') as summaryFile:
             writer = csv.DictWriter(summaryFile, fieldnames=summaryFieldnames)
             writer.writeheader()
@@ -307,7 +307,7 @@ class Simulator:
                 writer.writerow(x)
             summaryFile.close()
         
-        detailsFilePath = join(self.path,'infection_details.csv')
+        detailsFilePath = join(self.reportPath,'infection_details.csv')
         with open(detailsFilePath, 'w', newline='') as detailsFile:
             writer = csv.DictWriter(detailsFile, fieldnames=detailsFieldnames)
             writer.writeheader()
@@ -317,7 +317,7 @@ class Simulator:
                     writer.writerow(summary)
             detailsFile.close()
          
-        agentsFilePath = join(self.path,'agents.csv')
+        agentsFilePath = join(self.reportPath,'agents.csv')
         with open(agentsFilePath, 'w', newline='') as agentsFile:
             agentFieldnames = getAgentKeys()
             writer = csv.DictWriter(agentsFile, fieldnames=agentFieldnames)
