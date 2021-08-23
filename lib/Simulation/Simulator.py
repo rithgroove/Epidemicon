@@ -60,7 +60,7 @@ detailsFieldnames = [
 ]
 
 class Simulator:
-    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report/", reportInterval=10):
+    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -100,8 +100,8 @@ class Simulator:
         self.queue = []
         self.threads = []
         self.reportPath = self.createReportDir(reportPath)
-        self.reportIntervalCount = 0
         self.reportInterval = reportInterval
+        self.reportCooldown = reportInterval
  
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
@@ -248,10 +248,11 @@ class Simulator:
         self.summarize()
         self.printInfectionLocation()
 
-        if self.reportIntervalCount % self.reportInterval == 0:
+        if self.reportCooldown < 1:
             print("Extracting data")
             self.extract()
-        self.reportIntervalCount += 1
+            self.reportCooldown = self.reportInterval
+        self.reportCooldown -= 1
         
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
@@ -300,6 +301,7 @@ class Simulator:
         # This function always open and close the files 
         # to guarantee that they are being rewriten from scratch
 
+        # TODO: Remember where in the "infection history" we stopped saving the log, and continue later.
         summaryFilePath = join(self.reportPath,'infection_summary.csv')
         with open(summaryFilePath, 'w', newline='') as summaryFile:
             writer = csv.DictWriter(summaryFile, fieldnames=summaryFieldnames)
@@ -318,6 +320,8 @@ class Simulator:
                     writer.writerow(summary)
             detailsFile.close()
          
+        # TODO Issue: Consider if we want to keep the history of the agents in the future (maybe this is too much data)
+ 
         agentsFilePath = join(self.reportPath,'agents.csv')
         with open(agentsFilePath, 'w', newline='') as agentsFile:
             agentFieldnames = getAgentKeys()
