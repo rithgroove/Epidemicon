@@ -12,9 +12,55 @@ from os.path import join
 from lib.Map.MovementSequence import reconstruct
 import datetime
 import csv
+from pathlib import Path
 import time
+
+summaryFieldnames = [
+    'Day',
+    'Hour',
+    'Minutes',
+    'CurrentStep',
+    'Susceptible',
+    'Exposed',
+    'Infectious',
+    'Recovered'
+]
+
+detailsFieldnames = [
+    'infectedAgentId',
+    'infectedAgentProfession',
+    'originAgentId',
+    'originAgentProfession',
+    'location',
+    'lat',
+    'lon',
+    'nodeId',
+    'exposedTimeStamp',
+    'exposedDay',
+    'exposedHour',
+    'exposedMinutes',
+    'incubationDuration',
+    'infectiousTimeStamp',
+    'infectiousDay',
+    'infectiousHour',
+    'infectiousMinutes',
+    'recoveryDuration',
+    'recoveredTimeStamp',
+    'recoveredDay',
+    'recoveredHour',
+    'recoveredMinutes',
+    'symptomaticTimeStamp',
+    'symptomaticDay',
+    'symptomaticHour',
+    'symptomaticMinutes',
+    'severeTimeStamp',
+    'severeDay',
+    'severeHour',
+    'severeMinutes',
+]
+
 class Simulator:
-    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0):
+    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -53,8 +99,18 @@ class Simulator:
         self.infectionHistory = []
         self.queue = []
         self.threads = []
+        self.reportPath = self.createReportDir(reportPath)
+        self.reportInterval = reportInterval
+        self.reportCooldown = reportInterval
  
-        
+    def createReportDir(self, reportPath):
+        current_time = datetime.datetime.now()
+        new_dir = current_time.strftime("%Y%m%d-%H%M")
+        path = os.path.join(reportPath, new_dir)
+        Path(path).mkdir(parents=True, exist_ok=True)
+
+        return path
+
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
         self.osmMap
@@ -131,7 +187,7 @@ class Simulator:
             
             
 
-    def step(self,steps = 3600):
+    def step(self,stepSize = 3600):
         day, hour, minutes = self.currentHour()
         week = int(self.stepCount/ (7*24*3600))
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
@@ -162,10 +218,10 @@ class Simulator:
             
             for thread in threads:
                 thread.daemon = True
-                thread.setStateToStep(steps)
+                thread.setStateToStep(stepSize)
                 thread.start()
             time.sleep(30) # sleep for 20 second to help the threads starts their work
-            #wait for all thread to finish running
+            # wait for all thread to finish running
             for i in range(0,len(threads)):
                 threads[i].join()
                     
@@ -180,17 +236,23 @@ class Simulator:
         
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(day,hour,steps)
+            x.step(day,hour,stepSize)
         #print("Finished moving agents, proceeding to check for infection")
         for x in self.agents:
-            x.checkInfection(self.stepCount,steps)
+            x.checkInfection(self.stepCount,stepSize)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
-            x.finalize(self.stepCount,steps)
+            x.finalize(self.stepCount,stepSize)
         print("Finished finalizing the infection")
-        self.stepCount += steps
+        self.stepCount += stepSize
         self.summarize()
         self.printInfectionLocation()
+
+        if self.reportCooldown < 1:
+            print("Extracting data")
+            self.extract()
+            self.reportCooldown = self.reportInterval
+        self.reportCooldown -= 1
         
     def currentHour(self):
         hour = int(self.stepCount / 3600)% 24
@@ -236,41 +298,38 @@ class Simulator:
 
             
     def extract(self):
-        current_time = datetime.datetime.now()
-        path = current_time.strftime("%Y%m%d-%H%M")
-        os.mkdir(path)
-        
+        # This function always open and close the files 
+        # to guarantee that they are being rewriten from scratch
 
-        with open(join(path,'infection_summary.csv'), 'w', newline='') as csvfile:
-            fieldnames = ['Day','Hour','Minutes','CurrentStep','Susceptible','Exposed','Infectious','Recovered']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        # TODO: Remember where in the "infection history" we stopped saving the log, and continue later.
+        summaryFilePath = join(self.reportPath,'infection_summary.csv')
+        with open(summaryFilePath, 'w', newline='') as summaryFile:
+            writer = csv.DictWriter(summaryFile, fieldnames=summaryFieldnames)
             writer.writeheader()
             for x in self.infectionHistory:
                 writer.writerow(x)
-                
-        infectionDetails = []        
-        for i in self.agents:
-            if (i.infection is not None):
-                infectionDetails.append(i.infection.summarize())
-         
-        with open(join(path,'infection_details.csv'), 'w', newline='') as csvfile:
-            fieldnames = ['infectedAgentId','infectedAgentProfession','originAgentId','originAgentProfession','location','lat','lon','nodeId'
-,"exposedTimeStamp","exposedDay","exposedHour","exposedMinutes","incubationDuration"                   
-,"infectiousTimeStamp","infectiousDay","infectiousHour","infectiousMinutes","recoveryDuration"                   
-,"recoveredTimeStamp","recoveredDay","recoveredHour","recoveredMinutes"            
-,"symptomaticTimeStamp","symptomaticDay","symptomaticHour","symptomaticMinutes"            
-,"severeTimeStamp","severeDay","severeHour","severeMinutes"]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            summaryFile.close()
+        
+        detailsFilePath = join(self.reportPath,'infection_details.csv')
+        with open(detailsFilePath, 'w', newline='') as detailsFile:
+            writer = csv.DictWriter(detailsFile, fieldnames=detailsFieldnames)
             writer.writeheader()
-            for x in infectionDetails:
-                writer.writerow(x)
+            for i in self.agents:
+                if (i.infection is not None):
+                    summary = i.infection.summarize()
+                    writer.writerow(summary)
+            detailsFile.close()
          
-        with open(join(path,'agents.csv'), 'w', newline='') as csvfile:
-            fieldnames = getAgentKeys()
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        # TODO Issue: Consider if we want to keep the history of the agents in the future (maybe this is too much data)
+ 
+        agentsFilePath = join(self.reportPath,'agents.csv')
+        with open(agentsFilePath, 'w', newline='') as agentsFile:
+            agentFieldnames = getAgentKeys()
+            writer = csv.DictWriter(agentsFile, fieldnames=agentFieldnames)
             writer.writeheader()
             for x in self.agents:
                 writer.writerow(x.extract())
+            agentsFile.close()
          
                 
        

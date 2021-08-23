@@ -1,8 +1,28 @@
 import tkinter as tk
-import time
+
+def get_window_resolution(root, windowWidth, windowHeight):
+    width = 1024
+    height = 768
+
+    # If a width contains a "%", the window size is relative to the screen size
+    # if it contains only a int, its an absolute value
+
+    if isinstance(windowWidth, str) and windowWidth[-1] == "%":
+        scale = int(windowWidth[:-1])/100
+        width = root.winfo_screenwidth() * scale
+    elif isinstance(windowWidth, int):
+        width = windowWidth
+    
+    if isinstance(windowHeight, str) and windowHeight[-1] == "%":
+        scale = int(windowHeight[:-1])/100
+        height = root.winfo_screenheight() * scale
+    elif isinstance(windowHeight, int):
+        height = windowHeight
+
+    return (width, height)
 
 class View():
-    def __init__(self, mymap, simulation=None, path=None):
+    def __init__(self, mymap, simulation=None, path=None, windowSize=(1024, 768)):
         #todo: there are part of functions that should go to controller
         self.animating = False
         
@@ -17,7 +37,6 @@ class View():
         self.canvasSize   = self.osmMap.end.getVectorDistance(self.osmMap.origin).getLonLat()
 
         self.scale        = 100000
-        self.windowSize   = (1024,768)
         self.viewPort     = (0,0)
         self.prevPosition = None
         
@@ -25,6 +44,9 @@ class View():
         self.root = tk.Tk()
         self.root.title("Epidemicon")
         self.root.resizable(False, False)
+
+        ## window size
+        self.windowSize   = get_window_resolution(self.root, windowSize[0], windowSize[1])
         
         ## frames
         self.frame_btn    = tk.Frame(self.root)
