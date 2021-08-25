@@ -7,6 +7,7 @@ from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
 from .StepThread import StepThread
+from .Business import Business
 import os
 from os.path import join
 from lib.Map.MovementSequence import reconstruct
@@ -80,6 +81,7 @@ class Simulator:
                     self.jobClasses.append(temp)
             print(f'Processed {line_count} lines.')
         self.agents = []
+        self.business = []
         self.unshuffledAgents = []
         #self.stepCount = 3600*8
         self.stepCount = 0
@@ -94,6 +96,7 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
+        self.generateBusiness(osmMap)
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
@@ -110,6 +113,12 @@ class Simulator:
         Path(path).mkdir(parents=True, exist_ok=True)
 
         return path
+
+    def generateBusiness(self, osmMap):
+        for building in osmMap.buildings:
+            if building.type in ["restaurant", "barbershop", "retail"]:
+                self.business = Business()
+        pass
 
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
