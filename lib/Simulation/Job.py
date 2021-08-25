@@ -21,7 +21,8 @@ class Job:
         self.startHour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
         indexes = np.where(jobClass.workDays)[0]
         if len(indexes) < self.activityPerWeek+1:
-            print("warning, activities per week is lower than the optional workdays")
+            # TODO: Add an issue to move "prints" to a logging framework.
+            # print("warning, activities per week is lower than the optional workdays")
             self.activityPerWeek = len(indexes)
         np.random.shuffle(indexes)
         self.workdays = 0

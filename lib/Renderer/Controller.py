@@ -107,7 +107,6 @@ class Controller():
         self.thread = threading.Thread(target=self.run_step, args=())
         self.thread.start()
     
-    # 
     def run_auto(self):
         self.thread_finished = False
         while not self.thread_ask_stop:
@@ -121,7 +120,7 @@ class Controller():
     def run_step(self):
         self.thread_finished = False
         print("Processing... ", end="", flush=True)
-        self.model.step(steps=self.view.steps_to_advance)
+        self.model.step(stepSize=self.view.steps_to_advance)
         self.update_view()
         print("Done!", flush=True)
         self.thread_finished = True

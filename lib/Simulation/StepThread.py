@@ -1,8 +1,6 @@
 #import threading
 import multiprocessing 
-import time 
-import random
-#from atpbar import atpbar,register_reporter, find_reporter
+from atpbar import atpbar
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):

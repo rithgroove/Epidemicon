@@ -127,11 +127,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-<<<<<<< HEAD
-=======
 # vscode
 .vscode/
 
->>>>>>> main
 # csv of the closest road from the center of each building
 buildingConnection.csv
+
+# reports
+report/
