@@ -60,26 +60,21 @@ detailsFieldnames = [
     'severeMinutes',
 ]
 
+def readCVS (cvsPath):
+    with open(cvsPath) as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        data_dict = [row for row in csv_reader]
+    return data_dict
+
 class Simulator:
     def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
         self.jobClasses = []
         self.osmMap = osmMap
-        with open(jobCSVPath) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            line_count = 0
-            keys = []
-            for row in csv_reader:
-                data = {}
-                if len(keys) == 0:
-                    keys = row
-                elif len(row) != 0:         
-                    print(row)
-                    for i in range(0,len(keys)):
-                        data[keys[i]]=row[i]
-                    temp =JobClass(data)
-                    temp.buildings = osmMap.buildingsDict.get(temp.place)
-                    self.jobClasses.append(temp)
-            print(f'Processed {line_count} lines.')
+        jobClassData = readCVS(jobCSVPath)
+        for jobClass in jobClassData:
+            temp =JobClass(jobClass)
+            temp.buildings = osmMap.buildingsDict.get(temp.place)
+            self.jobClasses.append(temp)
         self.agents = []
         self.business = []
         self.unshuffledAgents = []
@@ -117,7 +112,7 @@ class Simulator:
     def generateBusiness(self, osmMap):
         for building in osmMap.buildings:
             if building.type in ["restaurant", "barbershop", "retail"]:
-                self.business = Business()
+                self.business = Business(building)
         pass
 
     def generateAgents(self, count, infectedAgent = 5):
