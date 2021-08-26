@@ -9,10 +9,12 @@ class InfectionType(Enum):
     OffMap = 8
     
 class Infect:
-    def __init__(self, flatInfectionRate = 20.0, roadInfectionRate = 68.0, offMapInfectionRate = 20.0):
+    def __init__(self, sim, osmMap, flatInfectionRate = 20.0, roadInfectionRate = 68.0, offMapInfectionRate = 20.0):
         self.flatInfectionRate = flatInfectionRate
         self.roadInfectionRate = roadInfectionRate
         self.offMapInfectionRate = offMapInfectionRate
+        self.sim = sim
+        self.osmMap = osmMap
         
     def infectAgents(self,agent, infectionType = InfectionType.SameNode, useDistance = False, stepLength, currentStepNumber): 
         infectionPercentage = self.offMapInfectionRate/ (24 * 3600/ stepLength)

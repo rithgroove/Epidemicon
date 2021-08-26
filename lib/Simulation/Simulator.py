@@ -60,7 +60,7 @@ detailsFieldnames = [
 ]
 
 class Simulator:
-    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
+    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -102,6 +102,9 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
+        self.infectionModel = infectionModel
+        if self.infectionModel is None:
+            self.infectionModel = InfectionModel(self,self.osmMap)
  
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
