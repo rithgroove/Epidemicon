@@ -70,7 +70,7 @@ class View():
         
         #number of steps
         self.root.label_step = tk.Label(self.frame_btn, text="Step: 0")
-        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size", from_=1, to=100, orient=tk.HORIZONTAL)
+        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size (In Seconds)", from_=1, to=100, orient=tk.HORIZONTAL)
         
         #add to grid
         self.root.btn_start.grid(row=0,    column=0, sticky=(tk.N, tk.S, tk.E, tk.W))

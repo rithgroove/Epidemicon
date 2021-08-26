@@ -111,7 +111,7 @@ class Controller():
         self.thread_finished = False
         while not self.thread_ask_stop:
             print("Processing... ", end="", flush=True)
-            self.model.step(steps=self.view.steps_to_advance)
+            self.model.step(stepSize=self.view.steps_to_advance)
             self.update_view()
             print("Done!", flush=True)
             time.sleep(1)

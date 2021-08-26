@@ -1,5 +1,5 @@
 import random
-class InfectionModel:
+class Infection:
     """
     [Class] Infection
         

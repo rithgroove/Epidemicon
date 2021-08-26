@@ -6,6 +6,7 @@ from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
+from .InfectionModel import InfectionModel
 from .StepThread import StepThread
 import os
 from os.path import join
@@ -72,7 +73,7 @@ class Simulator:
                 if len(keys) == 0:
                     keys = row
                 elif len(row) != 0:         
-                    print(row)
+                    #print(row)
                     for i in range(0,len(keys)):
                         data[keys[i]]=row[i]
                     temp =JobClass(data)
@@ -126,6 +127,7 @@ class Simulator:
         for x in houses:
             if x.node is None:
                 houses.remove(x)
+                
         for x in self.jobClasses:
             total += x.populationProportion
         for x in self.jobClasses:
@@ -176,6 +178,8 @@ class Simulator:
             home.addOccupant(agent)
             housePop -= 1
             building.node.addAgent(agent)
+            
+            
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0, infectedAgent):
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
@@ -243,8 +247,9 @@ class Simulator:
         for x in self.agents:
             x.step(day,hour,stepSize)
         #print("Finished moving agents, proceeding to check for infection")
-        for x in self.agents:
-            x.checkInfection(self.stepCount,stepSize)
+        for agent in self.agents:
+            self.infectionModel.infect(agent,stepSize,self.stepCount)
+            #x.checkInfection(self.stepCount,stepSize)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
             x.finalize(self.stepCount,stepSize)
