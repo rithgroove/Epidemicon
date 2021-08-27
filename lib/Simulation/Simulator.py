@@ -6,7 +6,7 @@ from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
-from .InfectionModel import InfectionModel
+from .BasicInfectionModel import BasicInfectionModel
 from .StepThread import StepThread
 import os
 from os.path import join
@@ -104,7 +104,7 @@ class Simulator:
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
         if infectionModel is None:
-            self.infectionModel = InfectionModel(self,self.osmMap)
+            self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
             self.infectionModel = infectionModel
            
