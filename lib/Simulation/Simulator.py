@@ -103,10 +103,11 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
-        self.infectionModel = infectionModel
-        if self.infectionModel is None:
+        if infectionModel is None:
             self.infectionModel = InfectionModel(self,self.osmMap)
- 
+        else:
+            self.infectionModel = infectionModel
+           
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
         new_dir = current_time.strftime("%Y%m%d-%H%M")

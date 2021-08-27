@@ -9,7 +9,7 @@ class InfectionType(Enum):
     OffMap = 4
     
 class InfectionModel:
-    def __init__(self, sim, osmMap, flatInfectionRate = 20.0, roadInfectionRate = 68.0, offMapInfectionRate = 20.0):
+    def __init__(self, sim, osmMap, flatInfectionRate = 0.2, roadInfectionRate = 0.68, offMapInfectionRate = 0.2):
         self.flatInfectionRate = flatInfectionRate
         self.roadInfectionRate = roadInfectionRate
         self.offMapInfectionRate = offMapInfectionRate
@@ -43,11 +43,11 @@ class InfectionModel:
                 
                 if infectionType == InfectionType.OnTheRoad: 
                     # if on the road, change infection rate based on distance for the on the road infection
-                    gradient = 5 - self.roadInfectionRate / 2
+                    gradient = 0.05 - self.roadInfectionRate / 2.0
                     distance = stranger.currentLocation.calculateDistance(agent.currentLocation)                
                     infectionPercentage = ((gradient* distance) + self.roadInfectionRate)/(24 * 3600/ stepSize)
                     
-                if infectionPercentage > 0 and random.uniform(0.0,100.0) < infectionPercentage: # infect
+                if infectionPercentage > 0 and random.uniform(0.0,1.0) < infectionPercentage: # infect
                     # non off map infection
                     location = "On the Road"
                     if (agent.currentNode.isBuildingCentroid):
@@ -58,8 +58,9 @@ class InfectionModel:
                                                dormant = random.randint(24,72) *3600, #maybe put it in config?
                                                recovery = random.randint(72,14*24) *3600, #maybe put it in config?
                                                location = location) 
+                    break 
                     
-        elif infectionPercentage > 0 and random.uniform(0.0,100.0) < infectionPercentage: # infect
+        elif infectionPercentage > 0 and random.uniform(0.0,1.0) < infectionPercentage: # infect
             # off map infection
             self.infection = Infection(agent, 
                                        agent,
