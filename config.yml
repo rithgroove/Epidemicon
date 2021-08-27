@@ -9,7 +9,7 @@ vaccinationPercentage: 0.0
 verbose: false
 gridHeight: 10
 gridWidth: 10
-windowWidth: 75%
-windowHeight: 75%
+windowWidth: 1024
+windowHeight: 768
 reportDir: report
 reportInterval: 5
