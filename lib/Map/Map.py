@@ -381,7 +381,7 @@ class Map(osmium.SimpleHandler):
                 if len(keys) == 0:
                     keys = row
                 elif len(row) != 0:         
-                    print(row)
+                    #print(row)
                     for i in range(0,len(keys)):
                         data[keys[i]]=row[i]
                     self.grids[int(data["x"])][int(data["y"])].addBuildingSettings(data)

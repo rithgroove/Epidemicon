@@ -1,6 +1,5 @@
 #import threading
 import multiprocessing 
-from atpbar import atpbar
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
@@ -43,8 +42,6 @@ class StepThread(multiprocessing.Process):
 
     def step(self):
         day, hour = self.currentHour()
-        #register_reporter(find_reporter())
-        #for i in atpbar(range(len(self.agents)), name= f"{self.name} Step Function"):
         for i in range(0,len(self.agents)):
             result = self.agents[i].checkSchedule(day,hour,self.stepValue)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
