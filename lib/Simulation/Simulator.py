@@ -6,7 +6,7 @@ from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
-from .InfectionModel import InfectionModel
+from .BasicInfectionModel import BasicInfectionModel
 from .StepThread import StepThread
 import os
 from os.path import join
@@ -103,10 +103,11 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
-        self.infectionModel = infectionModel
-        if self.infectionModel is None:
-            self.infectionModel = InfectionModel(self,self.osmMap)
- 
+        if infectionModel is None:
+            self.infectionModel = BasicInfectionModel(self,self.osmMap)
+        else:
+            self.infectionModel = infectionModel
+           
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
         new_dir = current_time.strftime("%Y%m%d-%H%M")
