@@ -129,7 +129,7 @@ class Node():
         
         Return: [string] String of summarized map Information.
         """
-        tempstring = f"id: {self.osmId}\n"
+        tempstring = f"[Node]\nid: {self.osmId}\n"
         tempstring = tempstring + f"lat = {self.coordinate.lat} lon = {self.coordinate.lon}\n"
         tempstring = tempstring + f"number of ways : {self.ways.__len__()}\n"
         tempstring = tempstring + f"number of connections : {self.connections.__len__()}\n"
@@ -177,3 +177,7 @@ class Node():
     def setBuilding(self,building):
         self.building = building
         self.isBuildingCentroid = True
+        
+        
+    def onClick(self,event):
+        print(self)

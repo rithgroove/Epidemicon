@@ -66,3 +66,6 @@ class Building:
         houseType = ["residential","apartments","house"]
         if (self.type in houseType):
             self.color = "#99CC99"
+            
+    def onClick(self,event):
+        print(self)

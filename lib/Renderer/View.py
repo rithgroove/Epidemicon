@@ -223,7 +223,6 @@ class View():
                     fill = '#676768'
                     
                 self.canvas.create_polygon(path, outline=outline, fill=fill, width=1)
-                
         for temp in self.osmMap.leisures:
             path = []
             for node in temp.nodes:
@@ -290,7 +289,8 @@ class View():
                 path.append(x)
                 path.append(y)
             if (path.__len__() > 6): #at least a triangle if not don't render
-                self.canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
+                building = self.canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)  
+                self.canvas.tag_bind(building, "<1>", temp.onClick)
                 self.drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
             if (temp.entryPoint is not None):
                 #print("rendering entry Point")
@@ -298,18 +298,11 @@ class View():
                 
         for temp in self.osmMap.roads:
             data = temp.getPathForRendering()
-            
-    #         x =  (data[0] - canvasOrigin[0]) * scale +viewPort[0]
-    #         y = (canvasSize[1]-(data[1] - canvasOrigin[1])) * scale + viewPort[1]
-    #         #drawCircle(temp.lon,temp.lat,1, "#476042")
-    #         x1 = (data[2] - canvasOrigin[0]) * scale +viewPort[0]
-    #         y1 = (canvasSize[1]-(data[3] - canvasOrigin[1])) * scale + viewPort[1]
-    #         canvas.create_line(x,y,x1,y1)
-            
             self.drawLine(data[0],data[1], data[2], data[3], temp.color , width = temp.width)
             
         for temp in self.osmMap.roadNodes:
-            self.drawCircle(temp.coordinate.lon,temp.coordinate.lat,1, "#476042")  
+            node = self.drawCircle(temp.coordinate.lon,temp.coordinate.lat,1, "#476042")              
+            self.canvas.tag_bind(node, "<1>", temp.onClick)
             
         lat = self.osmMap.origin.lat    
         for i in range(0, self.osmMap.gridSize[1]):
@@ -319,6 +312,10 @@ class View():
         for j in range(0, self.osmMap.gridSize[0]):
             self.drawLine(lon, self.osmMap.origin.lat, lon, self.osmMap.end.lat, "#AA0000")  
             lon += self.osmMap.gridCellWidth 
+            
+    def nodeClicked(self,node):
+        print(node)
+        print(self.name)
 
     def drawCircle(self, lon, lat, radius, color, name=None):
         x = (lon - self.canvasOrigin[0]) * self.scale + self.viewPort[0]
