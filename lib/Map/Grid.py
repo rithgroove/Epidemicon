@@ -70,23 +70,37 @@ class Grid():
     def remapBuilding(self, buildConnFile = None, connectionDict = {}):
         """
         [Method] remapBuilding
-        find closest nodes inside this grid 
+        Method to give each building their entry points.
        
-       Parameter:
+        Parameter:
             - buildConnFile = [FileIO] a file to cache the connections between the roads and buildings 
-            - connectionDict = [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]] a dicionary
-                                that maps the wayIDof the building to an entry coordinate and a minimum distance
-        to do : maybe even create a new nodes
+            - connectionDict = [Dict] a dictionary of the building entry points
+                | Key = [wayID] str, 
+                    | min_dist: [int] the distance from the building's centroid to the closest point on the road 
+                    | entryCoordinate: [Coordinate] coordinate on the road that act as the connecting point
         """
 
         for building in self.buildings:
-            #print(building.way.osmId)
             if building.way.osmId in connectionDict:
+                #if building have precalculated entry point, load the precalculated entry point.
                 self.loadEntryPoint(building, connectionDict[building.way.osmId])
             else:
+                #if not, recalculate the entry point of this building.
                 self.calculateEntryPoint(building, buildConnFile)
 
     def loadEntryPoint(self, building, entryPoint):
+        """
+        [Method] loadEntryPoint
+        Load the entry point of this building from the file
+       
+        Parameter:
+            - building = [Building] The building
+            - connectionDict = [Dict] a dictionary of the building entry points
+                | Key = [wayID] str, 
+                    | min_dist: [int] the distance from the building's centroid to the closest point on the road 
+                    | entryCoordinate: [Coordinate] coordinate on the road that act as the connecting point
+        to do : Move it to building class?
+        """
         closest_coord = entryPoint["min_dist"]
         closest = self.roads[closest_coord]
         building.closestRoad = closest
@@ -95,16 +109,39 @@ class Grid():
 
 
     def calculateEntryPoint(self, building, file = None):
+        """
+        [Method] calculateEntryPoint
+        calculate the building's entry point from the road
+       
+        Parameter:
+            - building = [Building] The building
+            - file = [FileIO] a file to write the connections between the roads and buildings 
+        to do : Move it to building class?
+        """
         road_min_dist = np.argmin([road.distanceToCoordinate(building.coordinate) for road in self.roads])
         closest = self.roads[road_min_dist]
         building.closestRoad = closest
         closest.addBuilding(building)
         building.entryPoint = closest.getClosestCoordinate(building.coordinate)
+        
         if file != None:
+            # write the calculated point to the file
             line = f"{building.way.osmId};{road_min_dist};{building.entryPoint.lat};{building.entryPoint.lon}\n"
             file.write(line)
 
     def addBuildingSettings(self,setting):
+        """
+        [Method] addBuildingSettings
+        Add configuration for retagging this buildings
+        
+        Parameter:
+            - setting = [Dict] the dictionary that defines the type of buildings in this Grid. 
+                | type = the building type
+                | number = the number of building of said type in this grid                
+        """
+        
+        print(setting)
+                
         if (setting["number"] == "All"):
             self.defaultBuildings = setting
         else:
@@ -112,6 +149,13 @@ class Grid():
             self.buildingSettings.append(setting)
         
     def retagBuildings(self):
+        """
+        [Method] retagBuildings
+        Give the building without clear tags (for example building with tag "yes" or "+") a building type based on the settings
+        
+        See: [Method] Grid.addBuildingSettings
+        
+        """
         #collect all buildings that have the type "yes" and "+"
         nonTaggedBuildings = []        
         for building in self.buildings:
@@ -138,7 +182,7 @@ class Grid():
         [Method] __str__        
         return a string that summarized the grid
         """
-        temp = f"Grid\n"
+        temp = f"[Grid]\n"
         temp = temp + f"\tstarting = (lat = {self.origin.lat}, lon = {self.origin.lon})\n"
         temp = temp + f"\tend = (lat = {self.end.lat}, lon = {self.end.lon})\n"
         temp = temp + f"\tnodes = {self.nodes.__len__()}\n"
