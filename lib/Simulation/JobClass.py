@@ -6,11 +6,20 @@ class JobClass:
     [Class] JobClass
     
     Properties:
-        - home : [] the building the house is in
-        - currentLocation : [Coordinate] the agents that live inside this home
-        - infection_status : [string] SEIR (Susceptible, Exposed, Infectious, Recovered)
-        - age :[int] Age
-        - mainJob : [Job] job
+        - name : [String] Job name
+        - minWorkHour : [int] minimum possible workhour the agent can work for a day
+        - maxWorkHour : [int] maximum possible workhour the agent can work for a day
+        - place : [string] the type of building this job takes place
+        - minAge : [int] minimum age of the agent that have this profession 
+        - minAge : [int] maximum age of the agent that have this profession 
+        - populationProportion : [int] the proportion of agents with this job in the simulated area
+        - minStartHour : [int] minimum possible start hour for the job
+        - maxStartHour : [int] maximum possible start hour for the job
+        - workDays : [array] array of boolean to represent each day from monday to sunday
+        - minActivityPerWeek : [int] minimum number of workdays per week
+        - maxActivityPerWeek : [int] maximum number of workdays per week
+        - outsideCity : [boolean] maximum number of workdays per week
+        - generatedJobs : [array] all the job this job class generated
     """
     def __init__(self,csvDict):
         self.name = csvDict["name"]
@@ -56,12 +65,16 @@ class JobClass:
         #self.randomInfectionRate = float(csvDict["random_infection_rate"])
         
     def addBuilding(self,building):
+        """
+        [Method] addBuilding        
+        add a building where this job might happen.
+        """
         self.buildings.append(building)
         
     def __str__(self):
         """
         [Method] __str__        
-        return a string that summarized the building
+        return a string that summarized the job class
         """
         tempstring = f"[Job Class]\n"
         tempstring = tempstring + f"name : {self.name}\n"
@@ -81,6 +94,10 @@ class JobClass:
         return tempstring
     
     def generateJob(self):
+        """
+        [Method] generateJob        
+        generate a job instance based on this class
+        """
         temp = Job(self)
         self.generatedJobs.append(temp)
         return temp

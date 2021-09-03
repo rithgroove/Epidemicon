@@ -68,9 +68,17 @@ class Home:
         return self.building.node
     
     def buyGroceries(self):
+        """
+        [Method] buyGroceries        
+        method to add stock of food at home. 
+        """
         self.groceries += len(self.occupants) * 6
     
     def consumeGroceries(self):
+        """
+        [Method] consumeGroceries        
+        method to consume 1 portion of the groceries stock.
+        """
         self.groceries -= 1
         
     def __str__(self):

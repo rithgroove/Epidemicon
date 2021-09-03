@@ -62,7 +62,50 @@ detailsFieldnames = [
 ]
 
 class Simulator:
+    """
+    [Class] Simulator
+    The main simulator class
+    
+    Properties:
+        - osmMap = [Map] the map used to simulate it
+        - jobClasses = [array] array of jobClasses
+        - agents = [array] array of agents
+        - unshuffledAgents = [array] array of agents the agent is sorted based on their id 
+        - stepCount = [int] current step count which represent how many simulated seconds from the beggining of the simulation
+        - history = [Dictionary] of SEIR status that was staged after each step was finished
+        - timeStamp = [array]  the timestamp of the history proporties
+        - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
+        - lastHour = [int] last calculated hour, used to trigger pathfinding.
+        - vaccinationPercentage = [float] percentage of people that got the vaccine in the simulation.
+        - infectionHistory = [array] array of infection that happened in our simulation
+        - reportPath = [string] path for the records
+        - reportInterval = [int] how many step do we want to wait before we extract the data
+        - reportCooldown = [int] the current value of report interval
+        - infectionModel = [InfectionModel] the infection model
+        
+    Don't Access Properties:
+        - returnDict = [array] (DO NOT USE) array of dictionary that was returned by the thread 
+        - activitiesDict = [array] (DO NOT USE) array of dictionary that was returned by the thread 
+        - queue = [array] (DO NOT USE) array of queues that was returned by the thread 
+        - threads = [array] (DO NOT USE) array of StepThreads that was returned by the thread 
+        
+    """
     def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
+        """
+        [Constructor]
+        The constructor for Simulator class
+
+        Properties:
+            - osmMap = [Map] the map used to simulate it
+            - jobCSVPath = [string] path to the job.csv
+            - agentNum = [int] number of agent that will be generated
+            - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
+            - infectedAgent = [int] how many agents are infected at the beginning of our simulation
+            - vaccinationPercentage = [float] percentage of people that got the vaccine in the simulation.
+            - reportPath = [string] path for the records
+            - reportInterval = [int] how many step do we want to wait before we extract the data
+            - infectionModel = [InfectionModel] the infection model
+        """
         self.jobClasses = []
         self.osmMap = osmMap
         with open(jobCSVPath) as csv_file:
@@ -110,6 +153,13 @@ class Simulator:
             self.infectionModel = infectionModel
            
     def createReportDir(self, reportPath):
+        """
+        [Method] createReportdir
+        Method to create the report directory
+
+        Properties:
+            - reportPath = [string] path for the records
+        """
         current_time = datetime.datetime.now()
         new_dir = current_time.strftime("%Y%m%d-%H%M")
         path = os.path.join(reportPath, new_dir)
@@ -118,6 +168,14 @@ class Simulator:
         return path
 
     def generateAgents(self, count, infectedAgent = 5):
+        """
+        [Method] generateAgents
+        Method to create the report directory
+
+        Properties:
+            - count = [int] number of agent that will be generated
+            - infectedAgent = [int] how many agents are infected at the beginning of our simulation
+        """
         total = 0
         self.osmMap
         houses = []
@@ -188,6 +246,12 @@ class Simulator:
             
         
     def splitAgentsForThreading(self):
+        """
+        [Method] splitAgentsForThreading
+        Method to split agents into several array for threading purposes
+        
+        TODO = change name to mark it as private
+        """
         chunksize = int(len(self.agents)/ self.threadNumber)
         self.agentChunks = [self.agents[chunksize*i:chunksize*(i+1)] for i in range(int(len(self.agents)/chunksize) + 1)]
         if(len(self.agentChunks[-1]) < chunksize):
@@ -197,6 +261,18 @@ class Simulator:
             
 
     def step(self,stepSize = 3600):
+        """
+        [Method] step
+        The step function. there are 5 main step:
+            - pathfinding (triggered when the hour changes)
+            - move the agents
+            - check infection of the agents
+            - finalize the infection 
+            - summarize
+        
+        Parameter: 
+            - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
+        """
         day, hour, minutes = self.currentHour()
         week = int(self.stepCount/ (7*24*3600))
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
@@ -267,12 +343,25 @@ class Simulator:
         self.reportCooldown -= 1
         
     def currentHour(self):
+        """
+        [Method] currentHour
+        method to return the current tiem
+        
+        return: 
+            - day = [int] current simulated day (0-6) 0 = Monday, 6 = Sunday
+            - hour = [int] current simulated hour
+            - minutes = [int] current simulated minutes
+        """
         hour = int(self.stepCount / 3600)% 24
         day = int(self.stepCount /(24*3600)) % 7
         minutes = int(self.stepCount/60)%60
         return day,hour, minutes
     
     def printInfectionLocation(self):
+        """
+        [Method] printInfectionLocation
+        method to print where the infection happened to command line 
+        """
         summary = {}
         for agent in self.agents:
             if agent.infection is not None:
@@ -288,6 +377,10 @@ class Simulator:
     
     
     def summarize(self):
+        """
+        [Method] summarize
+        method to do staged data collection for current simulated time
+        """
         result = {}
         day, hour,minutes = self.currentHour()
         result["CurrentStep"] = self.stepCount
@@ -309,10 +402,18 @@ class Simulator:
         return result
     
     def killStepThreads(self):
+        """
+        [Method] killStepThreads
+        method to force terminate the StepThreads
+        """
         for thread in self.threads:
             thread.terminate()
             
     def extract(self):
+        """
+        [Method] extract
+        method to write the simulation result to files
+        """
         # This function always open and close the files 
         # to guarantee that they are being rewriten from scratch
 

@@ -86,6 +86,13 @@ class MovementVector:
         return leftOver
     
     def extract(self):
+        """
+        [Method] extract  
+        return the osmId of the origin and destination node
+            
+        return :
+            - [(string,string)] : (startingNode.osmId, destinationNode.osmId)            
+        """
         return (self.startingNode.osmId, self.destinationNode.osmId)
     
     def clone(self):
