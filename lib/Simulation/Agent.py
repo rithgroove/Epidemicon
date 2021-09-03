@@ -48,6 +48,10 @@ class Agent:
         self.status = "Normal"
         self.activities = "idle"
         self.vaccinated = False
+        self.anxious = False
+        self.testedPositive = None
+        self.visitHistory = {}
+        
         
     def setVaccinated(self):
         self.vaccinated = True
@@ -63,7 +67,19 @@ class Agent:
     def getSpeed(self):
         return self.speed
     
-    def checkSchedule(self,day,hour,steps=1):        
+    def setAnxious(self,anxious):
+        self.anxious = anxious
+        
+    def getTested(self,test):
+        self.testedPositive = test.test(self)
+        if (self.testedPositive == "Positive" ):
+            self.anxious = True
+        else:
+            self.anxious = False
+    
+    def checkSchedule(self,timestamp,steps=1):       
+        day = (timestamp/(24*3600))%7
+        hour = (hour/3600) %24
         if (self.activeSequence is None or self.activeSequence.finished):
 
             if self.status == "Symptomatics":
@@ -129,7 +145,6 @@ class Agent:
                     #print("go home")
                     self.activities = "going home"  
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
-            
         if (self.activeSequence is not None and self.activeSequence.new):
             return self.activeSequence.extract()
         return None
@@ -164,7 +179,7 @@ class Agent:
         self.hunger -= self.hungerReduction/(24*(3600/steps))
         self.idle -= steps
         
-        if self.activeSequence is not None and self.idle <= 0:
+        if self.activeSequence is noselft None and self.idle <= 0:
             #after recalculate
             leftOver = steps * self.getSpeed()
             
@@ -173,13 +188,21 @@ class Agent:
                 self.currentNode.removeAgent(self)
                 self.currentNode = self.activeSequence.currentNode
                 self.currentNode.addAgent(self)
+                if self.currentNode.isBuildingCentroid:
+                    self.addVisitHistory(self.currentNode.building,
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
       
     def finalize(self,currentStepNumber,stepLength):
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength)
-            
+    
+    def addVisitHistory(self, building, timestamp):
+        day = timestamp/(24*3600)
+        if self.visitHistory.get(day) is None:
+            self.visitHistory = []
+        self.visitHistory.append((timestamp,building))
+                
     def extract(self):
         temp = {}
         temp["agent_id"]=self.agentId

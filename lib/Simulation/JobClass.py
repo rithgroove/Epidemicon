@@ -84,3 +84,4 @@ class JobClass:
         temp = Job(self)
         self.generatedJobs.append(temp)
         return temp
+

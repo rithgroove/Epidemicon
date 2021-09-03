@@ -8,6 +8,7 @@ from .Home import Home
 from .Infection import Infection
 from .BasicInfectionModel import BasicInfectionModel
 from .StepThread import StepThread
+from .TimeStamp import TimeStamp
 import os
 from os.path import join
 from lib.Map.MovementSequence import reconstruct
@@ -89,7 +90,7 @@ class Simulator:
         self.history ["Exposed"] = []
         self.history ["Infectious"] = []
         self.history ["Recovered"] = []
-        self.timeStamp = []
+        self.historyTimeStamp = []
         self.threadNumber = threadNumber
         self.returnDict = None
         self.activitiesDict = None
@@ -246,7 +247,7 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(day,hour,stepSize)
+            x.step(selfstepCount.,stepSize)
         #print("Finished moving agents, proceeding to check for infection")
         for agent in self.agents:
             self.infectionModel.infect(agent,stepSize,self.stepCount)
@@ -302,7 +303,7 @@ class Simulator:
         for x in result.keys():
             if x in self.history.keys():
                 self.history[x].append(result[x])
-        self.timeStamp.append(self.stepCount/3600)
+        self.historyTimeStamp.append(self.stepCount/3600)
         self.infectionHistory.append(result)
         
         return result
