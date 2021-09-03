@@ -73,7 +73,7 @@ class Simulator:
         - unshuffledAgents = [array] array of agents the agent is sorted based on their id 
         - stepCount = [int] current step count which represent how many simulated seconds from the beggining of the simulation
         - history = [Dictionary] of SEIR status that was staged after each step was finished
-        - timeStamp = [array]  the timestamp of the history proporties
+        - historyTimeStamp = [array]  the timestamp of the history properties (used for drawing graph)
         - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
         - lastHour = [int] last calculated hour, used to trigger pathfinding.
         - vaccinationPercentage = [float] percentage of people that got the vaccine in the simulation.
@@ -126,8 +126,7 @@ class Simulator:
             print(f'Processed {line_count} lines.')
         self.agents = []
         self.unshuffledAgents = []
-        #self.stepCount = 3600*8
-        self.stepCount = 0
+        self.timeStamp = TimeStamp()
         self.history = {}
         self.history ["Susceptible"] = []
         self.history ["Exposed"] = []
@@ -242,7 +241,7 @@ class Simulator:
             
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0, infectedAgent):
-            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
+            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.timeStamp.clone(),dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
             
         
     def splitAgentsForThreading(self):
@@ -273,9 +272,12 @@ class Simulator:
         Parameter: 
             - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
         """
-        day, hour, minutes = self.currentHour()
-        week = int(self.stepCount/ (7*24*3600))
-        print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
+        #day = self.timeStamp.getDayofWeek)
+        #day, hour, minutes = self.currentHour()
+        #week = int(self.stepCount/ (7*24*3600))
+        #print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
+        print(self.timeStamp)
+        hour = self.timeStamp.getHour()
         if (self.lastHour != hour):
             self.lastHour = hour
             ###############################################################################################
@@ -293,7 +295,7 @@ class Simulator:
                 activitiesDict = manager.dict()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+                thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict)
                 threads.append(thread)
                 i += 1  
             ###############################################################################################
@@ -323,16 +325,16 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(selfstepCount.,stepSize)
+            x.step(self.timeStamp,stepSize)
         #print("Finished moving agents, proceeding to check for infection")
         for agent in self.agents:
-            self.infectionModel.infect(agent,stepSize,self.stepCount)
+            self.infectionModel.infect(agent,stepSize,self.timeStamp)
             #x.checkInfection(self.stepCount,stepSize)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
-            x.finalize(self.stepCount,stepSize)
+            x.finalize(self.timeStamp,stepSize)
         print("Finished finalizing the infection")
-        self.stepCount += stepSize
+        self.timeStamp.step(stepSize)
         self.summarize()
         self.printInfectionLocation()
 
@@ -341,21 +343,6 @@ class Simulator:
             self.extract()
             self.reportCooldown = self.reportInterval
         self.reportCooldown -= 1
-        
-    def currentHour(self):
-        """
-        [Method] currentHour
-        method to return the current tiem
-        
-        return: 
-            - day = [int] current simulated day (0-6) 0 = Monday, 6 = Sunday
-            - hour = [int] current simulated hour
-            - minutes = [int] current simulated minutes
-        """
-        hour = int(self.stepCount / 3600)% 24
-        day = int(self.stepCount /(24*3600)) % 7
-        minutes = int(self.stepCount/60)%60
-        return day,hour, minutes
     
     def printInfectionLocation(self):
         """
@@ -382,11 +369,10 @@ class Simulator:
         method to do staged data collection for current simulated time
         """
         result = {}
-        day, hour,minutes = self.currentHour()
-        result["CurrentStep"] = self.stepCount
-        result["Day"] = day
-        result["Hour"] = hour
-        result["Minutes"] = minutes
+        result["CurrentStep"] = self.timeStamp.stepCount
+        result["Day"] = self.timeStamp.getDay()
+        result["Hour"] = self.timeStamp.getHour()
+        result["Minutes"] = self.timeStamp.getMinutes()
         result["Susceptible"] = 0
         result["Infectious"] = 0
         result["Exposed"] = 0
@@ -396,7 +382,7 @@ class Simulator:
         for x in result.keys():
             if x in self.history.keys():
                 self.history[x].append(result[x])
-        self.historyTimeStamp.append(self.stepCount/3600)
+        self.historyTimeStamp.append(self.timeStamp.stepCount/3600)
         self.infectionHistory.append(result)
         
         return result
