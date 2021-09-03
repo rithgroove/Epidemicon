@@ -63,15 +63,15 @@ class Infection:
 
     
     def summarize(self):
-    """
-    [Method] summarize
-    Method to extract information of this infection instance into a dictionary
-    
-    return:
-        -[Dictionary] = information about this infection instance
-        
-    TODO : change the function name to extract
-    """    
+        """
+        [Method] summarize
+        Method to extract information of this infection instance into a dictionary
+
+        return:
+            -[Dictionary] = information about this infection instance
+
+        TODO : change the function name to extract
+        """    
         result = {}
         result["location"] = self.location
         result["lat"] = self.lat
