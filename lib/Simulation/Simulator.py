@@ -78,7 +78,7 @@ class Simulator:
             self.jobClasses.append(temp)
         self.agents = []
         self.unshuffledAgents = []
-        self.business = self.generateBusinesses(businessCVSPath, osmMap)
+        self.businessesDict = self.generateBusinesses(businessCVSPath, osmMap)
         #self.stepCount = 3600*8
         self.stepCount = 0
         self.history = {}
@@ -102,21 +102,19 @@ class Simulator:
         self.reportCooldown = reportInterval
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
-        businessDict = {}
-        businessResult = []
-        for business in readCVS(businessCVSPath):
-            businessType = business["building_type"]
-            businessDict[businessType] = business
+        businessTypeInfoArr = {}
+        businessDictByType = {}
+        for line in readCVS(businessCVSPath):
+            businessType = line["building_type"]
+            businessTypeInfoArr[businessType] = line
+            businessDictByType[businessType] = []
         for building in osmMap.buildings:
-            if building.type in businessDict:
-                businessType = businessDict[building.type]
-            elif "default" in businessDict:
-                businessType = businessDict["default"]
-            else:
-                raise KeyError("\"defalut\" value for business not in csv file not found")
-            b = Business(building, businessType)
-            businessResult.append(b)
-        return businessResult
+            if building.type not in businessTypeInfoArr:
+                continue
+            businessTypeInfo = businessTypeInfoArr[building.type]
+            b = Business(building, businessTypeInfo)
+            businessDictByType[building.type].append(b)
+        return businessDictByType
  
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
@@ -128,7 +126,6 @@ class Simulator:
 
     def generateAgents(self, count, infectedAgent = 5):
         total = 0
-        self.osmMap
         houses = []
         houses.extend(self.osmMap.buildingsDict['residential'])
         houses.extend(self.osmMap.buildingsDict['house'])
@@ -144,7 +141,7 @@ class Simulator:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
             for i in range(0,temp):             
-                agent = Agent(agentId, self.osmMap,x.minAge+random.randint(0,ageRange),x)
+                agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessesDict)
                 agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
@@ -152,7 +149,7 @@ class Simulator:
             x = self.jobClasses[0]
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            agent = Agent(agentId, self.osmMap,x.minAge+random.randint(0,ageRange),x)
+            agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessesDict)
             agentId +=1         
             self.agents.append(agent)
             self.unshuffledAgents.append(agent)

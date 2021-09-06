@@ -22,9 +22,9 @@ class Business:
             workdays = [5, 6]
         activityPerWeek =  random.randint (min_activity_per_week, max_activity_per_week)
         activityPerWeek = np.min([activityPerWeek, len(workdays)])
-        self.workdays = np.random.choice (workdays, activityPerWeek)
+        self.workdays = np.random.choice(workdays, activityPerWeek)
 
-    def isOpen(self,day, hour):
+    def isOpen(self, day, hour):
         if day in self.workdays and (self.startHour <= hour <= self.startHour+self.workhour) :
             return True
         return False
