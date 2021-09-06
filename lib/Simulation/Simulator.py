@@ -7,6 +7,7 @@ from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
+from .BasicInfectionModel import BasicInfectionModel
 from .StepThread import StepThread
 from .Business import Business
 import os
@@ -68,7 +69,7 @@ def readCVS (cvsPath):
     return data_dict
 
 class Simulator:
-    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
+    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
         self.jobClasses = []
         self.osmMap = osmMap
         jobClassData = readCVS(jobCSVPath)
@@ -100,6 +101,10 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
+        if infectionModel is None:
+            self.infectionModel = BasicInfectionModel(self,self.osmMap)
+        else:
+            self.infectionModel = infectionModel
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
         businessTypeInfoArr = {}
@@ -115,7 +120,7 @@ class Simulator:
             b = Business(building, businessTypeInfo)
             businessDictByType[building.type].append(b)
         return businessDictByType
- 
+
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
         new_dir = current_time.strftime("%Y%m%d-%H%M")
@@ -135,6 +140,7 @@ class Simulator:
         for x in houses:
             if x.node is None:
                 houses.remove(x)
+                
         for x in self.jobClasses:
             total += x.populationProportion
         for x in self.jobClasses:
@@ -185,6 +191,8 @@ class Simulator:
             home.addOccupant(agent)
             housePop -= 1
             building.node.addAgent(agent)
+            
+            
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0, infectedAgent):
             self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
@@ -204,7 +212,7 @@ class Simulator:
         week = int(self.stepCount/ (7*24*3600))
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         if (self.lastHour != hour):
-            
+            self.lastHour = hour
             ###############################################################################################
             # Generate Threads
             # Do not refactor into other function
@@ -245,13 +253,16 @@ class Simulator:
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
             #flush()
             self.lastHour = hour
-        
+            
+            self.threads = []
+                
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
             x.step(day,hour,stepSize)
         #print("Finished moving agents, proceeding to check for infection")
-        for x in self.agents:
-            x.checkInfection(self.stepCount,stepSize)
+        for agent in self.agents:
+            self.infectionModel.infect(agent,stepSize,self.stepCount)
+            #x.checkInfection(self.stepCount,stepSize)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
             x.finalize(self.stepCount,stepSize)
@@ -307,7 +318,10 @@ class Simulator:
         self.infectionHistory.append(result)
         
         return result
-
+    
+    def killStepThreads(self):
+        for thread in self.threads:
+            thread.terminate()
             
     def extract(self):
         # This function always open and close the files 

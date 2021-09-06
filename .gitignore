@@ -135,3 +135,6 @@ buildingConnection.csv
 
 # reports
 report/
+
+# main.ipynb used for personal test run
+main.ipynb
