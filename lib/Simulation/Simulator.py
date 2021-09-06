@@ -1,4 +1,5 @@
 import csv
+from lib.Map.Map import Map
 import random
 import multiprocessing
 #from atpbar import flush
@@ -67,16 +68,28 @@ def readCVS (cvsPath):
     return data_dict
 
 class Simulator:
-    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
+    def __init__(self, osmMap: Map, jobCSVPath, businessCVS, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
         self.jobClasses = []
         self.osmMap = osmMap
         jobClassData = readCVS(jobCSVPath)
         for jobClass in jobClassData:
-            temp =JobClass(jobClass)
+            temp = JobClass(jobClass)
             temp.buildings = osmMap.buildingsDict.get(temp.place)
             self.jobClasses.append(temp)
         self.agents = []
         self.business = []
+        businessData = {}
+        for business in readCVS(businessCVS):
+            businessType = business["building_type"]
+            businessData[businessType] = business
+        for building in osmMap.buildings:
+            if building.type in businessData:
+                businessType = businessData[building.type]
+            else:
+                businessType = None
+            b = Business(building, businessType)
+            self.business.append(b)
+            pass
         self.unshuffledAgents = []
         #self.stepCount = 3600*8
         self.stepCount = 0

@@ -1,7 +1,7 @@
 import random
 
 class Business:
-    def __init__(self, building) -> None:
+    def __init__(self, building, businessData) -> None:
         self.building = building
         # self.workhour =  random.randint(jobClass.minWorkhour,jobClass.maxWorkhour)
         # self.building = random.choice(jobClass.buildings)

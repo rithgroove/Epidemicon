@@ -16,6 +16,7 @@ requiredConfigs = [
     "OSMfile",
     "buildConnFile",
     "jobsFile",
+    "businessFile",
     "numberOfAgents",
     "buildingConfigPath",
     "threadNumber",
@@ -52,7 +53,8 @@ def main():
     # Start Simulator
     sim = Simulator(
         osmMap, 
-        c["jobsFile"], 
+        c["jobsFile"],
+        c["businessFile"],
         c["numberOfAgents"], 
         c["threadNumber"], 
         c["infectedAgent"], 
