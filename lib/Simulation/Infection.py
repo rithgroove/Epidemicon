@@ -96,31 +96,31 @@ class Infection:
         result["exposedTimeStamp"] = self.timeStamp.stepCount
         result["exposedDay"] = self.timeStamp.getDay()
         result["exposedHour"] = self.timeStamp.getHour()
-        result["exposedMinutes"] = self.timeStamp.getMinutes()
+        result["exposedMinute"] = self.timeStamp.getMinute()
         result["incubationDuration"] = self.dormant
         
         # infectious
         result["infectiousTimeStamp"] = self.infectiousTimeStamp.stepCount
         result["infectiousDay"] = self.infectiousTimeStamp.getDay()
         result["infectiousHour"] = self.infectiousTimeStamp.getHour()
-        result["infectiousMinutes"] = self.infectiousTimeStamp.getMinutes()
+        result["infectiousMinute"] = self.infectiousTimeStamp.getMinute()
         result["recoveryDuration"] = self.recovery
         
         # recovered
         result["recoveredTimeStamp"] = self.recoveredTimeStamp.stepCount
         result["recoveredDay"] = self.recoveredTimeStamp.getDay()
         result["recoveredHour"] = self.recoveredTimeStamp.getHour()
-        result["recoveredMinutes"] = self.recoveredTimeStamp.getMinutes()
+        result["recoveredMinute"] = self.recoveredTimeStamp.getMinute()
         
         result["symptomaticTimeStamp"] = self.symptomaticsTimeStamp.stepCount
         result["symptomaticDay"] = self.symptomaticsTimeStamp.getDay()
         result["symptomaticHour"] = self.symptomaticsTimeStamp.getHour()
-        result["symptomaticMinutes"] = self.symptomaticsTimeStamp.getMinutes()
+        result["symptomaticMinute"] = self.symptomaticsTimeStamp.getMinute()
         
         result["severeTimeStamp"] = self.severeTimeStamp.stepCount
         result["severeDay"] = self.severeTimeStamp.getDay()
         result["severeHour"] = self.severeTimeStamp.getHour()
-        result["severeMinutes"] = self.severeTimeStamp.getMinutes()
+        result["severeMinute"] = self.severeTimeStamp.getMinute()
         
         return result
         

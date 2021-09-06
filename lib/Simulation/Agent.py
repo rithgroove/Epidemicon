@@ -1,5 +1,6 @@
 import random
 from .Infection import Infection 
+from .VisitLog import VisitLog
 class Agent:
     """
     [Class] Agent
@@ -50,8 +51,8 @@ class Agent:
         self.vaccinated = False
         self.anxious = False
         self.testedPositive = None
-        self.visitHistory = {}
-        
+        self.visitHistory = {}        
+        self.newVisitLog = None
         
     def setVaccinated(self, vaccinated = True):
         """
@@ -215,12 +216,16 @@ class Agent:
                 self.currentNode.removeAgent(self)
                 self.currentNode = self.activeSequence.currentNode
                 self.currentNode.addAgent(self)
-                if self.currentNode.isBuildingCentroid:
-                    building = self.currentNode.building
-                    self.addVisitHistory(building, timeStamp)
-                    building.addVisitHistory(self,timeStamp)
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
+            
+        if (self.activeSequence is not None and self.activeSequence.finished):
+            building = self.currentNode.building
+            log = VisitLog(self,building,timeStamp) 
+            self.addVisitHistory(log)
+            building.addVisitHistory(log)    
+            self.newVisitLog = log
+            self.activeSequence = None
       
     def finalize(self,currentStepNumber,stepLength):
         """
@@ -234,12 +239,15 @@ class Agent:
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength)
     
-    def addVisitHistory(self, building, timestamp):
-        day =timestamp.getDay()
+    def addVisitHistory(self, log):
+        day = log.timeStamp.getDay()
         if self.visitHistory.get(day) is None:
             self.visitHistory[day] = []
-        self.visitHistory[day].append((timestamp,building))
-                
+        self.visitHistory[day].append(log)
+    
+    def getProfession(self):
+        return self.mainJob.jobClass.name
+    
     def extract(self):
         """
         [Method] extract
@@ -266,7 +274,7 @@ class Agent:
         temp["home_lat"] = self.home.node().coordinate.lat
         temp["home_lon"] = self.home.node().coordinate.lon
         
-        temp["profession"] = self.mainJob.jobClass.name
+        temp["profession"] = self.getProfession()
         temp["work_place"] = self.mainJob.building.buildingId
         temp["work_place_type"] =  self.mainJob.building.type
         temp["work_place_building_id"] =  self.mainJob.building.buildingId

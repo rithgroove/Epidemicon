@@ -33,7 +33,7 @@ class TimeStamp:
         if (temp == 6):
             return "Sun"
       
-    def getMinutes(self):
+    def getMinute(self):
         return int(int(self.stepCount/60) % 60)
 
     def getWeek(self):
@@ -48,5 +48,5 @@ class TimeStamp:
     def __str__(self):        
         week = self.getWeek()
         tempString = "{}, Week = {} Day = {}\n".format(self.getDayOfWeekStr(), self.getWeek(), self.getDay())
-        tempString += "Current Time = {:02d}:{:02d}:{:02d}".format(self.getHour(),self.getMinutes(),self.getSecond())
+        tempString += "Current Time = {:02d}:{:02d}:{:02d}".format(self.getHour(),self.getMinute(),self.getSecond())
         return tempString
