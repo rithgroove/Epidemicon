@@ -1,4 +1,5 @@
 building_type,min_workhour,max_workhour,min_start_hour,max_start_hour,day,min_activity_per_week,max_activity_per_week
-restaurant, 10, 24, 0, 11, everyday, 5, 7
-barbershop, 8, 8, 9, 11, everyday, 5, 7
-retail, 8, 24, 8, 10, everyday, 7, 7
+restaurant,10,24,0,11,everyday,5,7
+barbershop,8,10,9,11,everyday,5,7
+retail,8,24,8,10,everyday,7,7
+default,8,10,10,12,weekday,5,7

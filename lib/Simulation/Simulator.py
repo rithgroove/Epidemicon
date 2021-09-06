@@ -68,7 +68,7 @@ def readCVS (cvsPath):
     return data_dict
 
 class Simulator:
-    def __init__(self, osmMap: Map, jobCSVPath, businessCVS, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
+    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10):
         self.jobClasses = []
         self.osmMap = osmMap
         jobClassData = readCVS(jobCSVPath)
@@ -77,20 +77,8 @@ class Simulator:
             temp.buildings = osmMap.buildingsDict.get(temp.place)
             self.jobClasses.append(temp)
         self.agents = []
-        self.business = []
-        businessData = {}
-        for business in readCVS(businessCVS):
-            businessType = business["building_type"]
-            businessData[businessType] = business
-        for building in osmMap.buildings:
-            if building.type in businessData:
-                businessType = businessData[building.type]
-            else:
-                businessType = None
-            b = Business(building, businessType)
-            self.business.append(b)
-            pass
         self.unshuffledAgents = []
+        self.business = self.generateBusinesses(businessCVSPath, osmMap)
         #self.stepCount = 3600*8
         self.stepCount = 0
         self.history = {}
@@ -104,7 +92,6 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
-        self.generateBusiness(osmMap)
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
@@ -113,6 +100,23 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
+
+    def generateBusinesses(self, businessCVSPath, osmMap) :
+        businessDict = {}
+        businessResult = []
+        for business in readCVS(businessCVSPath):
+            businessType = business["building_type"]
+            businessDict[businessType] = business
+        for building in osmMap.buildings:
+            if building.type in businessDict:
+                businessType = businessDict[building.type]
+            elif "default" in businessDict:
+                businessType = businessDict["default"]
+            else:
+                raise KeyError("\"defalut\" value for business not in csv file not found")
+            b = Business(building, businessType)
+            businessResult.append(b)
+        return businessResult
  
     def createReportDir(self, reportPath):
         current_time = datetime.datetime.now()
@@ -121,12 +125,6 @@ class Simulator:
         Path(path).mkdir(parents=True, exist_ok=True)
 
         return path
-
-    def generateBusiness(self, osmMap):
-        for building in osmMap.buildings:
-            if building.type in ["restaurant", "barbershop", "retail"]:
-                self.business = Business(building)
-        pass
 
     def generateAgents(self, count, infectedAgent = 5):
         total = 0

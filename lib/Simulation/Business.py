@@ -1,19 +1,30 @@
 import random
+import numpy as np
 
 class Business:
     def __init__(self, building, businessData) -> None:
         self.building = building
-        # self.workhour =  random.randint(jobClass.minWorkhour,jobClass.maxWorkhour)
-        # self.building = random.choice(jobClass.buildings)
-        # self.activityPerWeek =  random.randint(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
-        # self.startHour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
-        # indexes = np.where(jobClass.workDays)[0]
-        # if len(indexes) < self.activityPerWeek+1:
-        #     # TODO: Add an issue to move "prints" to a logging framework.
-        #     # print("warning, activities per week is lower than the optional workdays")
-        #     self.activityPerWeek = len(indexes)
-        # np.random.shuffle(indexes)
-        # self.workdays = 0
-        # for i in indexes[:(self.activityPerWeek-1)]:
-        #     self.workdays  += (2**(6-i))
-        pass
+
+        min_workhour = int(businessData["min_workhour"])
+        max_workhour = int(businessData["max_workhour"])
+        min_start_hour = int(businessData["min_start_hour"])
+        max_start_hour = int(businessData["max_start_hour"])
+        min_activity_per_week = int(businessData["min_activity_per_week"])
+        max_activity_per_week = int(businessData["max_activity_per_week"])
+
+        self.workhour =  random.randint (min_workhour, max_workhour)
+        self.startHour =  random.randint (min_start_hour, max_start_hour)
+
+        workdays =  [0, 1, 2, 3,4 , 5, 6]
+        if businessData["day"] == "weekday":
+            workdays = [0, 1, 2, 3, 4]
+        elif businessData["day"] == "weekend":
+            workdays = [5, 6]
+        activityPerWeek =  random.randint (min_activity_per_week, max_activity_per_week)
+        activityPerWeek = np.min([activityPerWeek, len(workdays)])
+        self.workdays = np.random.choice (workdays, activityPerWeek)
+
+    def isOpen(self,day, hour):
+        if day in self.workdays and (self.startHour <= hour <= self.startHour+self.workhour) :
+            return True
+        return False
