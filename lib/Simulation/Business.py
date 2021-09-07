@@ -32,6 +32,6 @@ class Business:
             # could be done in one line but for readbility i divided in two
             if self.startHour <= self.finishHour and (self.startHour <= hour < self.finishHour):
                 return True
-            elif self.startHour >= self.finishHour and not(self.finishHour < hour <= self.startHour):
+            elif self.startHour >= self.finishHour and not(self.finishHour <= hour < self.startHour):
                 return True
         return False

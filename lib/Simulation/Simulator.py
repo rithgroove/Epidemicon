@@ -123,7 +123,7 @@ class Simulator:
             self.jobClasses.append(temp)
         self.agents = []
         self.unshuffledAgents = []
-        self.businessesDict = self.generateBusinesses(businessCVSPath, osmMap)
+        self.businessDict = self.generateBusinesses(businessCVSPath, osmMap)
         #self.stepCount = 3600*8
         self.stepCount = 0
         self.history = {}
@@ -206,7 +206,7 @@ class Simulator:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
             for i in range(0,temp):             
-                agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessesDict)
+                agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessDict)
                 agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
@@ -214,7 +214,7 @@ class Simulator:
             x = self.jobClasses[0]
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessesDict)
+            agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessDict)
             agentId +=1         
             self.agents.append(agent)
             self.unshuffledAgents.append(agent)
@@ -305,7 +305,7 @@ class Simulator:
                 activitiesDict = manager.dict()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessesDict)
+                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
                 threads.append(thread)
                 i += 1  
             ###############################################################################################
