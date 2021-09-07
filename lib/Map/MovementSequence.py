@@ -92,6 +92,15 @@ class MovementSequence:
         return self.currentActiveVector.currentPosition
     
     def extract(self):
+        """
+        [Method] extract  
+        Return the pickle-able path that this sequence used. 
+            
+        return :
+            - ([array],float) : array that represent this sequence
+                | [array] = array of tuple : (string,string) from the MovementVector.extract()
+                | float : total distance of this path
+        """
         seq = []
         for vector in self.sequence:
             seq.append(vector.extract())
@@ -112,6 +121,19 @@ class MovementSequence:
         return MovementSequence(temp,self.totalDistance)
 
 def reconstruct(nodesDictionary, sequences, totalDistance):
+    """
+    [Function] reconstruct  
+    Reconstruct the extracted data from MovementSequence
+    
+    Parameter:
+        - nodesDictionary : dictionary of all nodes (from the Map.)
+        - 
+
+    return :
+        - ([array],float) : array that represent this sequence
+            | [array] = array of tuple : (string,string) from the MovementVector.extract()
+            | float : total distance of this path
+    """
     sequence = []
     for x in sequences:
         sequence.append(MovementVector(nodesDictionary[x[0]],nodesDictionary[x[1]]))

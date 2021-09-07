@@ -4,7 +4,39 @@ import atpbar
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
+    """
+    [Class] StepThread
+    Class for doing pathfinding in multithreading like process.
+    
+    Properties:
+        - name = [string] name of this thread
+        - agents = [array] array of agents
+        - stepCount = [int] current step count which represent how many simulated seconds from the beggining of the simulation
+        - stepValue = [int] how many step forward do we want to 
+        - timeStamp = [array]  the timestamp of the history proporties
+        - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
+        - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
+        - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
+        
+    Deprecated Properties:
+        - state = [string] current state (Deprecated, will be removed soon)
+        - finished = [boolean] flag if the process is finished or not 
+        
+    TO DO: remove unused pipeline
+    """
     def __init__(self, name, agents,stepCount,returnDict,activitiesDict,businessesDict):
+        """
+        [Constructor] 
+        Constructor for StepThread class
+
+        Parameters:
+            - name = [string] name of this thread
+            - agents = [array] array of agents
+            - stepCount = [int] current step count
+            - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
+            - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
+            - businessesDict = [dict] dictionary that maps the an array of business by their type. key = business's id
+        """
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
         self.name = name
@@ -18,18 +50,39 @@ class StepThread(multiprocessing.Process):
         self.businessDict = businessesDict
         
     def setStateToStep(self,stepValue):
+        """
+        [Method] setStateToStep 
+        mark that the stepthread is going to do pathfinding 
+
+        Parameters:
+            - stepValue : [int] How many seconds we want to step forward
+        """
         self.state = "step"
         self.stepValue = stepValue
         
     def setStateToInfect(self,stepValue):
+        """
+        [Method] setStateToInfect 
+        DEPRECATED
+        """
         self.state = "infect"
         self.stepValue = stepValue
         
     def setStateToFinalize(self,stepValue):
+        """
+        [Method] setStateToFinalize 
+        DEPRECATED
+        """
         self.state = "finalize"
         self.stepValue = stepValue
         
     def run(self):
+        """
+        [Method] run 
+        main function that the MultiProcess class will run
+        
+        TO DO: remove unused pipeline
+        """
         #voodoo line, do not remove, this helps to trigger the progress bar correctly
         print(' ', end='', flush=True)
         if self.state == "step":
@@ -43,6 +96,12 @@ class StepThread(multiprocessing.Process):
         print(f'{self.name} finished')
 
     def step(self):
+        """
+        [Method] step 
+        pathfind function
+        
+        TO DO: merge with run
+        """
         day, hour = self.currentHour()
         availableRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
         availableHospitals = [x for x in self.businessDict["hospital"] if x.isOpen(day, hour)]
@@ -54,14 +113,30 @@ class StepThread(multiprocessing.Process):
         
            
     def infect(self):
+        """
+        [Method] infect 
+        DEPRECATED
+        """
         for i in atpbar(range(len(self.agents)), name= f"{self.name} Infect Function"):
             self.agents[i].checkInfection(self.stepValue)
 
     def finalize(self):
+        """
+        [Method] finalize 
+        DEPRECATED
+        """
         for i in atpbar(range(len(self.agents)), name= f"{self.name} Finalize Function"):
             self.agents[i].finalize(self.stepValue)
                      
     def currentHour(self):
+        """
+        [Method] currentHour
+        method to return the current tiem
+        
+        return: 
+            - day = [int] current simulated day (0-6) 0 = Monday, 6 = Sunday
+            - hour = [int] current simulated hour
+        """
         hour = int(self.stepCount / 3600)% 24
         day = int(self.stepCount / (24*3600)) % 7
         return day,hour
