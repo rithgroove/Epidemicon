@@ -228,7 +228,7 @@ class Simulator:
                 activitiesDict = manager.dict()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessesDict)
                 threads.append(thread)
                 i += 1  
             ###############################################################################################

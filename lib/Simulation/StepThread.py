@@ -4,7 +4,7 @@ import atpbar
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
-    def __init__(self, name, agents,stepCount,returnDict,activitiesDict):
+    def __init__(self, name, agents,stepCount,returnDict,activitiesDict,businessesDict):
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
         self.name = name
@@ -15,6 +15,7 @@ class StepThread(multiprocessing.Process):
         self.activitiesDict = activitiesDict
         self.returnDict = returnDict
         self.finished = False
+        self.businessDict = businessesDict
         
     def setStateToStep(self,stepValue):
         self.state = "step"
@@ -43,8 +44,10 @@ class StepThread(multiprocessing.Process):
 
     def step(self):
         day, hour = self.currentHour()
+        availableRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
+        availableHospitals = [x for x in self.businessDict["hospital"] if x.isOpen(day, hour)]
         for i in range(0,len(self.agents)):
-            result = self.agents[i].checkSchedule(day,hour,self.stepValue)
+            result = self.agents[i].checkSchedule(day,hour,self.stepValue,availableRestaurants,availableHospitals)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:
                 self.returnDict[f"{self.agents[i].agentId}"] = result

@@ -42,7 +42,6 @@ class Agent:
         self.eatingOutPref = float(random.randint(0,70))/10.0
         self.idle = 0
         self.energy = 100.0
-        self.businessDict = businessesDict
         self.faveRetailer = random.choice(businessesDict["retail"])
         self.faveBarber = random.choice(businessesDict["barbershop"])
         self.risk = random.randint(1,3)
@@ -64,7 +63,7 @@ class Agent:
     def getSpeed(self):
         return self.speed
     
-    def checkSchedule(self,day,hour,steps=1):        
+    def checkSchedule(self,day,hour,steps=1,openRestaurants=[],openHospitals=[]):        
         if (self.activeSequence is None or self.activeSequence.finished):
 
             if self.status == "Symptomatics":
@@ -84,10 +83,11 @@ class Agent:
                     #self.home.buyGroceries()
                     #self.idle = 4800
             elif self.status == "Severe":
-                if not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital":
+                if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
                     #print("I'm sick, I need to go to hospital")
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.osmMap.getRandomBuilding("hospital"))
+                    hospital = random.choice(openHospitals)
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building)
                 elif self.hunger <= self.hungerCap:
                     #print("I'm sick, so I eat at hospital")
                     #hunger = 1.0
@@ -100,11 +100,10 @@ class Agent:
             elif self.idle <= 0:
                 if self.hunger <= self.hungerCap:
                     whereToEatProbability = random.randint(0,100)/100.0
-                    possibleRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
-                    if (whereToEatProbability <= self.eatingOutPref) and len(possibleRestaurants) > 0:
+                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
                         #print(f"agent id {self.agentId} is eating outside") 
                         self.activities = "go to restaurant"            
-                        restaurant = random.choice(possibleRestaurants)
+                        restaurant = random.choice(openRestaurants)
                         self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building)
                         #self.idle = 4800
                         #hunger = 1.0
