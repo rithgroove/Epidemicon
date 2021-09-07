@@ -56,7 +56,7 @@ class Road:
         [Method] getPath
         Get a tuple of starting location and destination
                 
-        return: Tuple of 2 coordinate start,destination)
+        return: (Coordinate,Coordinate) Tuple of 2 coordinate (start,destination)
         """
         return (self.start, self.destination)        
         
@@ -65,7 +65,7 @@ class Road:
         [Method] getPath
         Get a tuple of starting location and destination
                 
-        return: Tuple of 2 coordinate start,destination)
+        return: (Coordinate,Coordinate) Tuple of 2 coordinate (start,destination)
         """
         return (self.start.coordinate.lon,self.start.coordinate.lat, self.destination.coordinate.lon, self.destination.coordinate.lat)        
     
@@ -82,6 +82,9 @@ class Road:
         """
         [Method] __str__        
         return a string that summarized the road
+        
+        return:
+            - [String] the string
         """
         temp = f"staring = (lat = {self.start.coordinate.lat}, lon = {self.start.coordinate.lon})\n"
         temp = temp + f"destination = (lat = {self.destination.coordinate.lat}, lon = {self.destination.coordinate.lon})\n"
@@ -164,7 +167,7 @@ class Road:
     def generateNodes(self):
         """
         [Method] generatesNodes
-        Do not call this function, this function is to generate nodes that connects the buildings and roads
+        Function to generate nodes that connects the buildings and roads. This function is automatically called.
         """
         newNodes = []
         if (len(self.buildings) > 0):

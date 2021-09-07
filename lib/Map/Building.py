@@ -61,6 +61,13 @@ class Building:
         return (self.lat,self.lon);
    
     def setType(self, buildingType):
+        """
+        [Method]setType
+        Set the building type and set the color of the building into light green if the building is residential building. 
+
+        Parameter : 
+            - buildingType : [String] The building type.
+        """
         self.type = buildingType
         self.color = "#CCCCCC"
         houseType = ["residential","apartments","house"]

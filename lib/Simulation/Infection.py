@@ -63,6 +63,15 @@ class Infection:
 
     
     def summarize(self):
+        """
+        [Method] summarize
+        Method to extract information of this infection instance into a dictionary
+
+        return:
+            -[Dictionary] = information about this infection instance
+
+        TODO : change the function name to extract
+        """    
         result = {}
         result["location"] = self.location
         result["lat"] = self.lat
@@ -118,6 +127,15 @@ class Infection:
 
             
 def step2Hour(stepCount):
+    """
+    [Function] step2Hour
+    Method to convert the current step count into day, hour, minutes
+    
+    return:
+        - day = day number n since the simulation start
+        - hour = the stepcount hour
+        - minutes = the stepcount minutes
+    """    
     hour = int(stepCount / 3600)% 24
     day = int(stepCount /(24*3600))
     minutes = int(stepCount/60)%60
