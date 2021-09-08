@@ -1,5 +1,5 @@
-building_type,min_workhour,max_workhour,min_start_hour,max_start_hour,day,min_activity_per_week,max_activity_per_week
-restaurant,10,24,0,11,everyday,5,7
-barbershop,8,10,9,11,everyday,5,7
-retail,8,24,8,10,everyday,7,7
-hospital,24,24,0,0,everyday,7,7
+building_type,min_workhour,max_workhour,min_start_hour,max_start_hour,day,min_activity_per_week,max_activity_per_week,open_24_hours_chance
+restaurant,10,12,10,11,everyday,5,7,0.1
+barbershop,8,12,9,11,everyday,5,7,0
+retail,10,12,8,10,everyday,6,7,0.1
+hospital,24,24,0,0,everyday,7,7,1

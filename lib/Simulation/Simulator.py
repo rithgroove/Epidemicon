@@ -163,6 +163,11 @@ class Simulator:
             businessTypeInfo = businessTypeInfoArr[building.type]
             b = Business(building, businessTypeInfo)
             businessDictByType[building.type].append(b)
+
+        for bType in businessDictByType:
+            print(bType)
+            for b in businessDictByType[bType]:
+                print(b.building.buildingId,  b.startHour, b.finishHour, b.workdays)
         return businessDictByType
 
     def createReportDir(self, reportPath):
