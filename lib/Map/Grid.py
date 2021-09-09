@@ -140,7 +140,6 @@ class Grid():
                 | number = the number of building of said type in this grid                
         """
         
-                
         if (setting["number"] == "All"):
             self.defaultBuildings = setting
         else:

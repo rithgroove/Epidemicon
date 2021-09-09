@@ -290,37 +290,53 @@ class Simulator:
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         if (self.lastHour != hour):
             self.lastHour = hour
-            ###############################################################################################
-            # Generate Threads
-            # Do not refactor into other function
-            # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
-            ###############################################################################################
-            threads = []
-            i = 1
-            manager = multiprocessing.Manager()
-            returnDicts = [] #if not working, probably this must be allocated locally
-            activitiesDicts = [] #if not working, probably this must be allocated locally
-            for chunkOfAgent in self.agentChunks:
+            if self.threadNumber>1:
+                ###############################################################################################
+                # Generate Threads
+                # Do not refactor into other function
+                # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
+                ###############################################################################################
+                threads = []
+                i = 1
+                manager = multiprocessing.Manager()
+                returnDicts = [] #if not working, probably this must be allocated locally
+                activitiesDicts = [] #if not working, probably this must be allocated locally
+                for chunkOfAgent in self.agentChunks:
+                    returnDict = manager.dict()
+                    activitiesDict = manager.dict()
+                    returnDicts.append(returnDict)
+                    activitiesDicts.append(activitiesDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
+                    threads.append(thread)
+                    i += 1  
+                ###############################################################################################
+                # Generate Threads end
+                ###############################################################################################
+
+                for thread in threads:
+                    thread.daemon = True
+                    thread.setStateToStep(stepSize)
+                    thread.start()
+                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                # wait for all thread to finish running
+                for i in range(0,len(threads)):
+                    threads[i].join()
+            else:
+                chunkOfAgent = self.agentChunks[0]
+            
+                manager = multiprocessing.Manager()
+                returnDicts = [] 
+                activitiesDicts = [] 
+                
                 returnDict = manager.dict()
                 activitiesDict = manager.dict()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
-                threads.append(thread)
-                i += 1  
-            ###############################################################################################
-            # Generate Threads end
-            ###############################################################################################
-
             
-            for thread in threads:
-                thread.daemon = True
-                thread.setStateToStep(stepSize)
-                thread.start()
-            time.sleep(30) # sleep for 20 second to help the threads starts their work
-            # wait for all thread to finish running
-            for i in range(0,len(threads)):
-                threads[i].join()
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
+                nothread.setStateToStep(stepSize)
+                nothread.run()
+
                     
             for returnDict in returnDicts:
                 for key in returnDict.keys():

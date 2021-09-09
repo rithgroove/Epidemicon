@@ -64,7 +64,7 @@ def main():
 
     # Draw    
     windowSize = (c["windowWidth"], c["windowHeight"])
-    view = View(mymap=osmMap, simulation=sim, windowSize=windowSize)
+    view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
     app = Controller(model=sim, view=view)
     app.main_loop()
     sim.extract()
