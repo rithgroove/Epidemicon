@@ -1,4 +1,5 @@
 import csv
+from lib.Map.Map import Map
 import random
 import multiprocessing
 #from atpbar import flush
@@ -8,6 +9,7 @@ from .Home import Home
 from .Infection import Infection
 from .BasicInfectionModel import BasicInfectionModel
 from .StepThread import StepThread
+from .Business import Business
 import os
 from os.path import join
 from lib.Map.MovementSequence import reconstruct
@@ -60,6 +62,12 @@ detailsFieldnames = [
     'severeMinutes',
 ]
 
+def readCVS (cvsPath):
+    with open(cvsPath) as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        data_dict = [row for row in csv_reader]
+    return data_dict
+
 class Simulator:
     """
     [Class] Simulator
@@ -89,7 +97,7 @@ class Simulator:
         - threads = [array] (DO NOT USE) array of StepThreads that was returned by the thread 
         
     """
-    def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
+    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
         """
         [Constructor]
         The constructor for Simulator class
@@ -97,6 +105,7 @@ class Simulator:
         Properties:
             - osmMap = [Map] the map used to simulate it
             - jobCSVPath = [string] path to the job.csv
+            - businessCSVPath = [string] path to the business.csv
             - agentNum = [int] number of agent that will be generated
             - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
             - infectedAgent = [int] how many agents are infected at the beginning of our simulation
@@ -107,24 +116,14 @@ class Simulator:
         """
         self.jobClasses = []
         self.osmMap = osmMap
-        with open(jobCSVPath) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            line_count = 0
-            keys = []
-            for row in csv_reader:
-                data = {}
-                if len(keys) == 0:
-                    keys = row
-                elif len(row) != 0:         
-                    #print(row)
-                    for i in range(0,len(keys)):
-                        data[keys[i]]=row[i]
-                    temp =JobClass(data)
-                    temp.buildings = osmMap.buildingsDict.get(temp.place)
-                    self.jobClasses.append(temp)
-            print(f'Processed {line_count} lines.')
+        jobClassData = readCVS(jobCSVPath)
+        for jobClass in jobClassData:
+            temp = JobClass(jobClass)
+            temp.buildings = osmMap.buildingsDict.get(temp.place)
+            self.jobClasses.append(temp)
         self.agents = []
         self.unshuffledAgents = []
+        self.businessDict = self.generateBusinesses(businessCVSPath, osmMap)
         #self.stepCount = 3600*8
         self.stepCount = 0
         self.history = {}
@@ -150,7 +149,22 @@ class Simulator:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
             self.infectionModel = infectionModel
-           
+
+    def generateBusinesses(self, businessCVSPath, osmMap) :
+        businessTypeInfoArr = {}
+        businessDictByType = {}
+        for line in readCVS(businessCVSPath):
+            businessType = line["building_type"]
+            businessTypeInfoArr[businessType] = line
+            businessDictByType[businessType] = []
+        for building in osmMap.buildings:
+            if building.type not in businessTypeInfoArr:
+                continue
+            businessTypeInfo = businessTypeInfoArr[building.type]
+            b = Business(building, businessTypeInfo)
+            businessDictByType[building.type].append(b)
+        return businessDictByType
+
     def createReportDir(self, reportPath):
         """
         [Method] createReportdir
@@ -176,7 +190,6 @@ class Simulator:
             - infectedAgent = [int] how many agents are infected at the beginning of our simulation
         """
         total = 0
-        self.osmMap
         houses = []
         houses.extend(self.osmMap.buildingsDict['residential'])
         houses.extend(self.osmMap.buildingsDict['house'])
@@ -193,7 +206,7 @@ class Simulator:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
             for i in range(0,temp):             
-                agent = Agent(agentId, self.osmMap,x.minAge+random.randint(0,ageRange),x)
+                agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessDict)
                 agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
@@ -201,7 +214,7 @@ class Simulator:
             x = self.jobClasses[0]
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            agent = Agent(agentId, self.osmMap,x.minAge+random.randint(0,ageRange),x)
+            agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessDict)
             agentId +=1         
             self.agents.append(agent)
             self.unshuffledAgents.append(agent)
@@ -293,7 +306,7 @@ class Simulator:
                     activitiesDict = manager.dict()
                     returnDicts.append(returnDict)
                     activitiesDicts.append(activitiesDict)
-                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
                     threads.append(thread)
                     i += 1  
                 ###############################################################################################
@@ -320,7 +333,7 @@ class Simulator:
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
             
-                nothread = StepThread(f"Nothread",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
                 nothread.setStateToStep(stepSize)
                 nothread.run()
 
