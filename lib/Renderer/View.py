@@ -1,8 +1,28 @@
 import tkinter as tk
-import time
+
+def get_window_resolution(root, windowWidth, windowHeight):
+    width = 1024
+    height = 768
+
+    # If a width contains a "%", the window size is relative to the screen size
+    # if it contains only a int, its an absolute value
+
+    if isinstance(windowWidth, str) and windowWidth[-1] == "%":
+        scale = int(windowWidth[:-1])/100
+        width = root.winfo_screenwidth() * scale
+    elif isinstance(windowWidth, int):
+        width = windowWidth
+    
+    if isinstance(windowHeight, str) and windowHeight[-1] == "%":
+        scale = int(windowHeight[:-1])/100
+        height = root.winfo_screenheight() * scale
+    elif isinstance(windowHeight, int):
+        height = windowHeight
+
+    return (width, height)
 
 class View():
-    def __init__(self, mymap, simulation=None, path=None):
+    def __init__(self, mymap, simulation=None, path=None, windowSize=(1024, 768)):
         #todo: there are part of functions that should go to controller
         self.animating = False
         
@@ -17,7 +37,6 @@ class View():
         self.canvasSize   = self.osmMap.end.getVectorDistance(self.osmMap.origin).getLonLat()
 
         self.scale        = 100000
-        self.windowSize   = (1024,768)
         self.viewPort     = (0,0)
         self.prevPosition = None
         
@@ -25,6 +44,9 @@ class View():
         self.root = tk.Tk()
         self.root.title("Epidemicon")
         self.root.resizable(False, False)
+
+        ## window size
+        self.windowSize   = get_window_resolution(self.root, windowSize[0], windowSize[1])
         
         ## frames
         self.frame_btn    = tk.Frame(self.root)
@@ -42,13 +64,13 @@ class View():
         self.root.btn_zoom_out = tk.Button(self.frame_btn, text="-")
         
         #play pause step
-        self.root.btn_start   = tk.Button(self.frame_btn, text="Init")
+        self.root.btn_start   = tk.Button(self.frame_btn, text="Play")
         self.root.btn_step  = tk.Button(self.frame_btn, text="Forward")
         self.root.btn_step["state"] = tk.DISABLED #disabled until we click on INIT
         
         #number of steps
         self.root.label_step = tk.Label(self.frame_btn, text="Step: 0")
-        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size", from_=1, to=100, orient=tk.HORIZONTAL)
+        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size (In Seconds)", from_=1, to=100, orient=tk.HORIZONTAL)
         
         #add to grid
         self.root.btn_start.grid(row=0,    column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
@@ -74,7 +96,7 @@ class View():
         self.root.btn_zoom_in["command"]  = controller.on_zoom_in
         self.root.btn_zoom_out["command"] = controller.on_zoom_out
         self.root.btn_step["command"]     = controller.cmd_step
-        self.root.btn_start["command"]    = controller.cmd_start
+        self.root.btn_start["command"]    = controller.cmd_play
         
         # canvas
         self.canvas.bind("<MouseWheel>"     , controller.on_mouse_scroll)
@@ -133,7 +155,6 @@ class View():
         self.root.btn_step["state"] = tk.NORMAL
         if text == "Pause": # auto-running
             self.root.btn_step["state"] = tk.DISABLED
-        
         
     ## setters and getters ##
     @property

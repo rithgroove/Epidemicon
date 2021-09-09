@@ -49,21 +49,65 @@ class Agent:
         self.activities = "idle"
         self.vaccinated = False
         
-    def setVaccinated(self):
-        self.vaccinated = True
+    def setVaccinated(self, vaccinated = True):
+        """
+        [Method] setVaccinated
+        set the vaccination status of the agent 
+
+        Parameter:
+        - vaccinated = [Bool] the vaccination status. Default value = True
+        """
+        self.vaccinated = vaccinated
         
     def setHome(self,home):
+        """
+        [Method] setHome
+        set the home where this agent live
+
+        Parameter:
+            - home = [Home] the home object
+        """
         self.home = home
         self.currentLocation = home.coordinate().newCoordinateWithTranslation()
         self.currentNode = home.node()
         
     def setMovementSequence(self, activeSequence):
+        """
+        [Method] setMovementSequence
+        set the movement sequence for this agent
+
+        Parameter =
+            - home = [MovementSequence] the sequence calculated by pathfinding function
+        """
         self.activeSequence = activeSequence
         
     def getSpeed(self):
+        """
+        [Method] getSpeed
+        get the agent speed
+
+        return:
+            - [float] the agent's speed
+
+        TODO: differentate speed if the agent use car / bus
+        """
         return self.speed
     
-    def checkSchedule(self,day,hour,steps=1):        
+    def checkSchedule(self,day,hour,steps=1):    
+        """
+        [Method] checkSchedule
+        Check what kind of activity the agent will do at current point. If there's an activity, we will generate a movement sequence, if not return None. This also set the type of activity the agents will do. 
+
+        parameter:
+            - day = [int] current simulated day (0-7) 0 = Monday, 7 = Sunday
+            - hour = [int] current simulated hour
+            - steps = [int] step length in seconds
+
+        return:
+            - [MovementSequence] the movement sequence for the activity the agent will do
+
+        Important: This method is being used by the StepThread.py which is a subclass of multiprocessing class. Hence why the method returns the movement sequence instead of just simply setting the sequence to the agents. In short, this method is not called by main thread but by subthread. 
+        """    
         if (self.activeSequence is None or self.activeSequence.finished):
 
             if self.status == "Symptomatics":
@@ -136,6 +180,15 @@ class Agent:
                 #gohome    
                 
     def step(self,day,hour,steps=1):
+        """
+        [Method] step
+        The actual step function used to trigger the movement sequence and move the agent position in the map.
+
+        parameter:
+            - day = [int] current simulated day (0-7) 0 = Monday, 7 = Sunday
+            - hour = [int] current simulated hour
+            - steps = [int] step length in seconds
+        """    
         if (self.activities == "eat at home" and self.idle <= 0):
             self.home.consumeGroceries()
             #print(f"eat at home, agentId = {self.agentId} hunger = {self.hunger}, hungerCap = {self.hungerCap}")
@@ -175,97 +228,27 @@ class Agent:
                 self.currentNode.addAgent(self)
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
-            
-    def checkInfection(self,currentStepNumber,stepLength):
-        if self.infectionStatus == "Susceptible":
-            #print("checking for infection")
-            #at node infection
-            if (self.currentNode == self.home.node()):
-                #this if means the agent is at home
-                self.infectAtHome(currentStepNumber,stepLength)
-            elif self.currentNode.isBuildingCentroid:
-                if self.currentNode.building == self.mainJob.building and self.mainJob.isOutsideCity():
-                    #this means they are working outside city
-                    self.infectFromOutsideOfCity(currentStepNumber,stepLength)
-                else:
-                    #this means infection is at a building locally
-                    self.infectAtBuilding(currentStepNumber,stepLength)
-            else:
-                self.infectOnTheRoad(currentStepNumber,stepLength)  
-
-    def infectOnTheRoad(self,currentStepNumber,stepLength):
-        modifier = 1
-        if (self.vaccinated):
-            modifier = 20
-        for stranger in self.currentNode.agents:
-            if (stranger.infectionStatus == "Infectious"):
-                distance = stranger.currentLocation.calculateDistance(self.currentLocation)
-                #infectionPercentage = (-23.28 * distance) + 20.0
-                infectionPercentage = (-23.28 * distance) + 63.2
-                #infectionPercentage = 20.0
-                infectionPercentage /= (24 * 3600/ stepLength)
-                if infectionPercentage > 0 and random.randint(0,int(10000*modifier)) < infectionPercentage*100:
-                    self.infection = Infection(stranger,self,currentStepNumber, dormant = random.randint(24,72) *3600,recovery = random.randint(72,14*24) *3600,  location = "On The Road")
-                    #print("I got infected!")
-                    break
-        if self.infection is None:
-            for node in self.currentNode.connections:
-                for stranger in node.agents:
-                    if (stranger.infectionStatus == "Infectious"):
-                        distance = stranger.currentLocation.calculateDistance(self.currentLocation)
-                        infectionPercentage = (-23.28 * distance) + 63.2
-                        infectionPercentage /= (24 * 3600/ stepLength)
-                        #print("I met an infected person!")
-                        if infectionPercentage > 0 and (random.randint(0,int(10000*modifier)) < (infectionPercentage*100)):
-                            self.infection = Infection(stranger,self,currentStepNumber, dormant = random.randint(24,72) *3600,recovery = random.randint(72,14*24) *3600, location = "On The Road")
-                            #print("I got infected!")
-                            break
-        
-        
-    def infectFromOutsideOfCity(self,currentStepNumber,stepLength):
-        modifier = 1
-        if (self.vaccinated):
-            modifier = 20
-        if random.randint(0,int(10000*modifier)) < 200/(24*3600/stepLength) :
-            self.infection = Infection(self,self,currentStepNumber, dormant = random.randint(24,72) *3600, recovery = random.randint(72,14*24) *3600, location = "Going out of city")
-            
-                                
-    def infectAtBuilding(self,currentStepNumber,stepLength):
-        modifier = 1
-        if (self.vaccinated):
-            modifier = 20
-        for stranger in self.currentNode.agents:
-            #if room mate is infectious and at home
-            if (stranger.infectionStatus == "Infectious"):
-                #infectionPercentage = (-23.28 * distance) + 20.0
-                infectionPercentage = 20.0
-                infectionPercentage /= (24 * 3600/ stepLength)
-                if infectionPercentage > 0 and random.randint(0,int(10000*modifier)) < infectionPercentage*100:
-                    self.infection = Infection(stranger,self,currentStepNumber, dormant = random.randint(24,72) *3600,recovery = random.randint(72,14*24) *3600, location = self.currentNode.building.type)
-                    #print("I got infected!")
-                    break
-                            
-    def infectAtHome(self,currentStepNumber,stepLength):
-        modifier = 1
-        if (self.vaccinated):
-            modifier = 20
-        for roomMate in self.home.occupants:
-            #if room mate is infectious and at home
-            if (roomMate.infectionStatus == "Infectious" and roomMate.currentNode == self.home.node()):
-                #infectionPercentage = (-23.28 * distance) + 20.0
-                infectionPercentage = 20.0
-                infectionPercentage /= (24 * 3600/ stepLength)
-                if infectionPercentage > 0 and random.randint(0,int(10000*modifier)) < infectionPercentage*100:
-                    self.infection = Infection(roomMate,self,currentStepNumber, dormant = random.randint(24,72) *3600, recovery = random.randint(72,14*24) *3600, location = "Home")
-                    #print("I got infected!")
-                    break
-                
       
     def finalize(self,currentStepNumber,stepLength):
+        """
+        [Method] finalize
+        Method to update the agent SEIR and health status
+
+        parameter:
+            - currentStepNumber = [int] current step number in seconds
+            - stepLength = [int] step length in seconds
+        """    
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength)
             
     def extract(self):
+        """
+        [Method] extract
+        Method to extract information of this agent into a dictionary
+
+        return:
+            -[Dictionary] = current information of the agent.
+        """    
         temp = {}
         temp["agent_id"]=self.agentId
         temp["gender"] = self.gender
@@ -304,6 +287,13 @@ class Agent:
         return temp
     
 def getAgentKeys():
+    """
+    [Function] getAgentKeys
+    Function to get all key for the Agent.extract() method.
+    
+    return:
+        -[Array] = All the key for the Agent.extract() method
+    """    
     temp = []
     temp.append("agent_id")
     temp.append("gender")

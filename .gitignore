@@ -132,3 +132,9 @@ dmypy.json
 
 # csv of the closest road from the center of each building
 buildingConnection.csv
+
+# reports
+report/
+
+# main.ipynb used for personal test run
+main.ipynb

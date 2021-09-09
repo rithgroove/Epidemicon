@@ -145,20 +145,11 @@ class Map(osmium.SimpleHandler):
         """
         [Method] generateGrid
         Generate the grids. This function needs to be called after setBounds()
-        """
-# <<<<<<< HEAD
-#         temp = self.end.getVectorDistance(self.origin)
-#         self.distanceLat = (temp.lat)/self.gridSize[1]
-#         self.distanceLon = (temp.lon)/self.gridSize[0]
-#         print(f'{self.distanceLon},{self.distanceLat}')
-#         temp = Coordinate(self.origin.lat, self.origin.lon)
-# =======
+        """        
         boundDistance = self.end.getVectorDistance(self.origin)
         self.gridCellHeight = (boundDistance.lat) / self.gridSize[1]
         self.gridCellWidth = (boundDistance.lon) / self.gridSize[0]
-
         coord = Coordinate(self.origin.lat, self.origin.lon)
-# >>>>>>> main
         for i in range(0,self.gridSize[0]):
             coord.lon = self.origin.lon
             for j in range(0,self.gridSize[1]):
@@ -179,23 +170,11 @@ class Map(osmium.SimpleHandler):
                     xAxis = self.gridSize[0]-1
                 if yAxis >= self.gridSize[1]:
                     yAxis = self.gridSize[1]-1             
-# <<<<<<< HEAD
-#                 if xAxis >= 0 and xAxis <self.gridSize[0] and yAxis >= 0 and yAxis <self.gridSize[1]:
-#                     grid =self.grids[xAxis][yAxis]
-#                     valid = True
-#                     if (x.coordinate.lat < grid.origin.lat or x.coordinate.lat > grid.end.lat):
-#                         valid = False
-#                     if (x.coordinate.lon < grid.origin.lon or x.coordinate.lon > grid.end.lon):
-#                         valid = False
-#                     if (valid):                 
-#                         grid.addNode(x)
-#                         x.grid = self.grids[xAxis][yAxis]
-# =======
                 if xAxis >= 0 and xAxis < self.gridSize[0] and yAxis >= 0 and yAxis < self.gridSize[1]:
                     grid =self.grids[xAxis][yAxis]             
                     grid.addNode(node)
                     node.grid = self.grids[xAxis][yAxis]          
-# >>>>>>> main
+
                 
     def constructMap(self):
         """
@@ -223,6 +202,13 @@ class Map(osmium.SimpleHandler):
                 self.others.append(x)
 
     def addBuilding(self, building):
+        """
+        [Method] addBuilding
+        Add a building to this map
+        
+        Parameter:
+            - building: [Building] The building
+        """
         xAxis = int((building.coordinate.lon-self.origin.lon) / self.gridCellWidth)
         yAxis = int((building.coordinate.lat-self.origin.lat) / self.gridCellHeight)
         self.buildings.append(building)
@@ -371,6 +357,13 @@ class Map(osmium.SimpleHandler):
             print (f"{x} = {buildingMap[x]}")
     
     def generateRandomBuildingType(self,buildingCSV):
+        """
+        [Method] generateRandomBuildingType
+        Retags buildings that does not have tags based on the CSV config.
+        
+        Parameter:
+            - buildingCSV = [String] path to the csv file
+        """
         # load the CSV and put the result into the grids
         with open(buildingCSV) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
@@ -381,7 +374,7 @@ class Map(osmium.SimpleHandler):
                 if len(keys) == 0:
                     keys = row
                 elif len(row) != 0:         
-                    print(row)
+                    #print(row)
                     for i in range(0,len(keys)):
                         data[keys[i]]=row[i]
                     self.grids[int(data["x"])][int(data["y"])].addBuildingSettings(data)
@@ -398,6 +391,16 @@ class Map(osmium.SimpleHandler):
             self.buildingsDict[building.type].append(building)
             
     def getRandomBuilding(self,buildingType):
+        """
+        [Method] getRandomBuilding
+        Get a random building based on the type
+        
+        Parameter:
+            - buildingType = [String] building type that we want (For example: restaurant)
+            
+        Return:
+            [Building] the building
+        """
         return random.choice(self.buildingsDict[buildingType])
                     
 def readFile(OSMfilePath, buildConnFile="",grid = (10,10),buildingCSV = None):

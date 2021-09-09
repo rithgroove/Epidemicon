@@ -2,6 +2,7 @@ from .View import View
 import platform
 import time
 import threading
+from tkinter import messagebox
 
 #todo: there are stuff from View that should be moved here
 
@@ -35,17 +36,25 @@ class Controller():
     
     ## MAIN METHODS ##
     def main_loop(self):
-        self.view.root.mainloop()
+        try:
+            self.view.root.mainloop()
+        except:
+            self.model.killStepThreads()
         
     def update_view(self):
         self.view.step(self.model.agents, self.model.stepCount)
     
     def on_closing(self):
-        self.thread_ask_stop = True
-        while not self.thread_finished:
-            time.sleep(1)
-        self.view.close()
-    
+        print("does it work?")
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.thread_ask_stop = True
+            self.model.killStepThreads()
+            #if (self.thread is not None):
+            #    self.thread.terminate()
+            #while not self.thread_finished:
+            #    time.sleep(1)
+            self.view.close()
+
     ## ZOOM ##
     def on_mouse_scroll(self, event):
         pass
@@ -80,7 +89,6 @@ class Controller():
     #cmd = buttons
     def cmd_start(self):
         self.view.btn_start_change_method(text="Play ", method=self.cmd_play)
-        
         self.thread = threading.Thread(target=self.run_step, args=())
         self.thread.start()
         
@@ -99,12 +107,11 @@ class Controller():
         self.thread = threading.Thread(target=self.run_step, args=())
         self.thread.start()
     
-    # 
     def run_auto(self):
         self.thread_finished = False
         while not self.thread_ask_stop:
             print("Processing... ", end="", flush=True)
-            self.model.step(steps=self.view.steps_to_advance)
+            self.model.step(stepSize=self.view.steps_to_advance)
             self.update_view()
             print("Done!", flush=True)
             time.sleep(1)
@@ -113,7 +120,7 @@ class Controller():
     def run_step(self):
         self.thread_finished = False
         print("Processing... ", end="", flush=True)
-        self.model.step(steps=self.view.steps_to_advance)
+        self.model.step(stepSize=self.view.steps_to_advance)
         self.update_view()
         print("Done!", flush=True)
         self.thread_finished = True

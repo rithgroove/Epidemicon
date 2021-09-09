@@ -60,7 +60,7 @@ class Coordinate():
         
         Return: [string] String of summarized map Information.
         """
-        tempstring = f"Coordinate (lat = {self.lat}, lon = {self.lon})"
+        tempstring = f"[Coordinate]\n (lat = {self.lat}, lon = {self.lon})"
         return tempstring
     
     def newCoordinateWithTranslation(self,lat =0,lon = 0):
@@ -71,6 +71,9 @@ class Coordinate():
         Parameter:
             - lat : [Double] latitude translation.
             - lon : [Double] longitude translation.
+            
+        return :
+            - [Coordinate] a clone of this coordinate with the translation applied.
         """
         temp = Coordinate(self.lat+lat,self.lon+lon)
         return temp
@@ -82,6 +85,10 @@ class Coordinate():
 
         Parameter:
             - scale : [Double] scaling factor.
+            
+        return :
+            - [Coordinate] a clone of this coordinate with the scaling applied.
+
         """
         temp = Coordinate(self.lat*scale,self.lon*scale)
         return temp
