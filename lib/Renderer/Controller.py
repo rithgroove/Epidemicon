@@ -53,7 +53,7 @@ class Controller():
             self.model.killStepThreads()
         
     def update_view(self):
-        self.view.step(self.model.agents, self.model.stepCount)
+        self.view.step(self.model.agents, self.model.timeStamp.stepCount)
     
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):

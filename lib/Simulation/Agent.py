@@ -48,6 +48,10 @@ class Agent:
         self.status = "Normal"
         self.activities = "idle"
         self.vaccinated = False
+        self.anxious = False
+        self.testedPositive = None
+        self.visitHistory = {}
+        
         
     def setVaccinated(self, vaccinated = True):
         """
@@ -93,7 +97,17 @@ class Agent:
         """
         return self.speed
     
-    def checkSchedule(self,day,hour,steps=1,openRestaurants=[],openHospitals=[]):    
+    def setAnxious(self,anxious):
+        self.anxious = anxious
+        
+    def getTested(self,test):
+        self.testedPositive = test.test(self)
+        if (self.testedPositive == "Positive" ):
+            self.anxious = True
+        else:
+            self.anxious = False
+    
+    def checkSchedule(self,timeStamp,steps=1,openRestaurants=[],openHospitals=[]):    
         """
         [Method] checkSchedule
         Check what kind of activity the agent will do at current point. If there's an activity, we will generate a movement sequence, if not return None. This also set the type of activity the agents will do. 
@@ -109,25 +123,20 @@ class Agent:
             - [MovementSequence] the movement sequence for the activity the agent will do
 
         Important: This method is being used by the StepThread.py which is a subclass of multiprocessing class. Hence why the method returns the movement sequence instead of just simply setting the sequence to the agents. In short, this method is not called by main thread but by subthread. 
-        """    
+        """      
+        day = timeStamp.getDayOfWeek()
+        hour = timeStamp.getHour()
         if (self.activeSequence is None or self.activeSequence.finished):
 
             if self.status == "Symptomatics":
                 if self.currentNode != self.home.node():       
-                    #print("I'm sick, I need to go home")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
                     self.activities = "going home"
                 elif self.hunger <= self.hungerCap:
-                    #print("I'm sick, so I eat at home")
-                    #self.home.consumeGroceries()
-                    #hunger = 1.0
                     self.activities = "eat at home"
                 elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    #print("I'm sick, but fridge are empty. I need to go to retailer")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building)
                     self.activities = "do groceries"
-                    #self.home.buyGroceries()
-                    #self.idle = 4800
             elif self.status == "Severe":
                 if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
@@ -135,13 +144,10 @@ class Agent:
                     hospital = random.choice(openHospitals)
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building)
                 elif self.hunger <= self.hungerCap:
-                    #print("I'm sick, so I eat at hospital")
-                    #hunger = 1.0
                     self.activities = "eat at hospital"
             elif self.mainJob.isWorking(day, hour):
                 if self.currentNode != self.mainJob.building.node:     
                     self.activities = "go to work"            
-                    #print(f"I'm {self.mainJob.getName()} Go to work at {self.mainJob.building.type}")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
             elif self.idle <= 0:
                 if self.hunger <= self.hungerCap:
@@ -154,36 +160,23 @@ class Agent:
                         #self.idle = 4800
                         #hunger = 1.0
                     else:
-                        #print("eat at home")
-                        #need fixing if agents are not at home
                         self.activities = "eat at home"
-                        #self.home.consumeGroceries()
-                        #hunger = 1.0
-                        #self.idle = 4800
                 elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
-                    #print("going to barbershop")
                     self.activities = "go to barbershop"            
-
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building)
-                    #self.hair = float(random.randint(0,int(self.hairCap/2)))
-                    #self.idle = 4800
+
                 elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    #print("go to retail")-
                     self.activities = "do groceries"          
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer.building)
-                    #self.home.buyGroceries()
-                    #self.idle = 4800
                 elif self.currentNode != self.home.node():       
-                    #print("go home")
                     self.activities = "going home"  
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)
-            
         if (self.activeSequence is not None and self.activeSequence.new):
             return self.activeSequence.extract()
         return None
                 #gohome    
                 
-    def step(self,day,hour,steps=1):
+    def step(self,timeStamp,steps=1):
         """
         [Method] step
         The actual step function used to trigger the movement sequence and move the agent position in the map.
@@ -230,6 +223,10 @@ class Agent:
                 self.currentNode.removeAgent(self)
                 self.currentNode = self.activeSequence.currentNode
                 self.currentNode.addAgent(self)
+                if self.currentNode.isBuildingCentroid:
+                    building = self.currentNode.building
+                    self.addVisitHistory(building, timeStamp)
+                    building.addVisitHistory(self,timeStamp)
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
       
@@ -244,7 +241,13 @@ class Agent:
         """    
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength)
-            
+    
+    def addVisitHistory(self, building, timestamp):
+        day =timestamp.getDay()
+        if self.visitHistory.get(day) is None:
+            self.visitHistory[day] = []
+        self.visitHistory[day].append((timestamp,building))
+                
     def extract(self):
         """
         [Method] extract
