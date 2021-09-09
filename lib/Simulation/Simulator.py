@@ -13,6 +13,8 @@ from lib.Map.MovementSequence import reconstruct
 import datetime
 import csv
 import time
+from .online_shopping import OnlineShopping
+
 class Simulator:
     def __init__(self, osmMap, jobCSVPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0):
         self.jobClasses = []
@@ -26,7 +28,7 @@ class Simulator:
                 if len(keys) == 0:
                     keys = row
                 elif len(row) != 0:         
-                    print(row)
+                    # print(row)
                     for i in range(0,len(keys)):
                         data[keys[i]]=row[i]
                     temp =JobClass(data)
@@ -53,6 +55,8 @@ class Simulator:
         self.infectionHistory = []
         self.queue = []
         self.threads = []
+        
+        self.online_shopping = OnlineShopping # tmp
  
         
     def generateAgents(self, count, infectedAgent = 5):
@@ -136,38 +140,53 @@ class Simulator:
         week = int(self.stepCount/ (7*24*3600))
         print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         if (self.lastHour != hour):
+            if 3<1:
+                ###############################################################################################
+                # Generate Threads
+                # Do not refactor into other function
+                # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
+                ###############################################################################################
+                threads = []
+                i = 1
+                manager = multiprocessing.Manager()
+                returnDicts = [] #if not working, probably this must be allocated locally
+                activitiesDicts = [] #if not working, probably this must be allocated locally
+                for chunkOfAgent in self.agentChunks:
+                    returnDict = manager.dict()
+                    activitiesDict = manager.dict()
+                    returnDicts.append(returnDict)
+                    activitiesDicts.append(activitiesDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+                    threads.append(thread)
+                    i += 1  
+                ###############################################################################################
+                # Generate Threads end
+                ###############################################################################################
+
+                
+                for thread in threads:
+                    thread.daemon = True
+                    thread.setStateToStep(steps)
+                    thread.start()
+                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                #wait for all thread to finish running
+                for i in range(0,len(threads)):
+                    threads[i].join()
+            else:
+                chunkOfAgent = self.agentChunks[0]
             
-            ###############################################################################################
-            # Generate Threads
-            # Do not refactor into other function
-            # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
-            ###############################################################################################
-            threads = []
-            i = 1
-            manager = multiprocessing.Manager()
-            returnDicts = [] #if not working, probably this must be allocated locally
-            activitiesDicts = [] #if not working, probably this must be allocated locally
-            for chunkOfAgent in self.agentChunks:
+                manager = multiprocessing.Manager()
+                returnDicts = [] 
+                activitiesDicts = [] 
+                
                 returnDict = manager.dict()
                 activitiesDict = manager.dict()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
-                threads.append(thread)
-                i += 1  
-            ###############################################################################################
-            # Generate Threads end
-            ###############################################################################################
-
             
-            for thread in threads:
-                thread.daemon = True
-                thread.setStateToStep(steps)
-                thread.start()
-            time.sleep(30) # sleep for 20 second to help the threads starts their work
-            #wait for all thread to finish running
-            for i in range(0,len(threads)):
-                threads[i].join()
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.stepCount,returnDict,activitiesDict)
+                nothread.setStateToStep(steps)
+                nothread.run()
                     
             for returnDict in returnDicts:
                 for key in returnDict.keys():
@@ -187,7 +206,7 @@ class Simulator:
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
             x.finalize(self.stepCount,steps)
-        print("Finished finalizing the infection")
+        # print("Finished finalizing the infection")
         self.stepCount += steps
         self.summarize()
         self.printInfectionLocation()
@@ -206,7 +225,7 @@ class Simulator:
                     summary[agent.infection.location]=0
                 summary[agent.infection.location] += 1
 
-        print("\nknown infection location")
+        # print("\nknown infection location")
         for key in summary.keys():
             print(f"{key} = {summary[key]}")
         print("\n")

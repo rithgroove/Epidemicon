@@ -1,9 +1,9 @@
 OSMfile: osmData/TX-To-TU.osm
 buildConnFile: buildingConnection.csv
 buildingConfigPath: config/tsukuba-tu-building-data.csv
-jobsFile: config/jobs.csv
-numberOfAgents: 1000
-threadNumber: 4
+jobsFile: config/myjobs.csv
+numberOfAgents: 10
+threadNumber: 1
 infectedAgent: 5
 vaccinationPercentage: 0.0
 verbose: false

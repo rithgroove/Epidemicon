@@ -21,7 +21,8 @@ class Home:
         self.building = building
         self.occupants = []
         self.agents = []
-        self.groceries = random.randint(6,15)
+        self.groceries = random.randint(1,5)#random.randint(6,15)
+        self.open_order = False #tmp
     
     def addOccupant(self,occupant):
         """
@@ -69,6 +70,7 @@ class Home:
     
     def buyGroceries(self):
         self.groceries += len(self.occupants) * 6
+        self.open_order = False
     
     def consumeGroceries(self):
         self.groceries -= 1

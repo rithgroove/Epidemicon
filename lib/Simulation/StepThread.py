@@ -2,7 +2,7 @@
 import multiprocessing 
 import time 
 import random
-#from atpbar import atpbar,register_reporter, find_reporter
+from atpbar import atpbar,register_reporter, find_reporter
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
@@ -41,7 +41,7 @@ class StepThread(multiprocessing.Process):
             self.finalize()
         #self.confirmationQueue.task_done()
         self.finished = True
-        print(f'{self.name} finished')
+        # print(f'{self.name} finished')
 
     def step(self):
         day, hour = self.currentHour()

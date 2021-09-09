@@ -1,5 +1,7 @@
 import random
 from .Infection import Infection 
+from .online_shopping import OnlineShopping
+
 class Agent:
     """
     [Class] Agent
@@ -49,6 +51,8 @@ class Agent:
         self.activities = "idle"
         self.vaccinated = False
         
+        self.orders = [] # tmp: for delivery person
+        
     def setVaccinated(self):
         self.vaccinated = True
         
@@ -78,8 +82,8 @@ class Agent:
                     self.activities = "eat at home"
                 elif self.home.groceries < len(self.home.occupants) * 2:
                     #print("I'm sick, but fridge are empty. I need to go to retailer")
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
-                    self.activities = "do groceries"
+                    #self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
+                    self.activities = "do groceries online"
                     #self.home.buyGroceries()
                     #self.idle = 4800
             elif self.status == "Severe":
@@ -92,8 +96,8 @@ class Agent:
                     #hunger = 1.0
                     self.activities = "eat at hospital"
             elif self.mainJob.isWorking(day, hour):
-                if self.currentNode != self.mainJob.building.node:     
-                    self.activities = "go to work"            
+                if self.currentNode != self.mainJob.building.node:
+                    self.activities = "go to work"
                     #print(f"I'm {self.mainJob.getName()} Go to work at {self.mainJob.building.type}")
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
             elif self.idle <= 0:
@@ -121,8 +125,8 @@ class Agent:
                     #self.idle = 4800
                 elif self.home.groceries < len(self.home.occupants) * 2:
                     #print("go to retail")
-                    self.activities = "do groceries"          
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
+                    self.activities = "do groceries online"
+                    # self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
                     #self.home.buyGroceries()
                     #self.idle = 4800
                 elif self.currentNode != self.home.node():       
@@ -159,6 +163,48 @@ class Agent:
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
             self.activities = "idle"        
             self.home.buyGroceries()
+        elif self.activities == "do groceries online":
+            self.idle = 2400
+            self.activities = "idle"
+            
+            if not self.home.open_order:
+                self.home.open_order = True
+                OnlineShopping.place_order(dest=self.home, retailer=self.faveRetailer, when_ordered=None)
+            
+        ## delivery routines ##
+        if self.mainJob.jobClass.name == "delivery_person":
+            print(f"I'm a delivery person with {len(self.orders)} orders, at work? {self.currentNode == self.mainJob.building.node} status {self.activities}")
+             
+            # at work
+            if self.currentNode == self.mainJob.building.node:
+                if len(self.orders) <= 0:
+                    print("+ Downloading new orders")
+                    self.orders = OnlineShopping.get_orders(n=3)
+                    
+                if len(self.orders) > 0:
+                    print("+ Going out to deliver")
+                    self.activities = "delivery in transit"
+                    self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[-1].dest.building)
+                    # self.idle = -1
+            # at clients home, arrival
+            elif self.activities == "delivery in transit" and self.currentNode == self.orders[-1].dest.building:
+                print("+ Delivering order #", self.orders[-1].oid)
+                self.activities = "delivery done"
+                self.orders[-1].dest.buyGroceries()
+                self.orders.pop()
+            # at clients, departure
+            elif self.activities == "delivery done":
+                # next order
+                if len(self.orders) > 0:
+                    print("+ Going out to deliver next order")
+                    self.activities = "delivery in transit"
+                    self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[-1].dest.building)
+                # back to the store
+                else:
+                    print("+ Going back to the shop")
+                    self.activities = "go to work"
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
+        ## end delivery routines ##
         
         self.hair += 0.44/(24*(3600/steps))
         self.hunger -= self.hungerReduction/(24*(3600/steps))
