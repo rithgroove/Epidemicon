@@ -1,28 +1,8 @@
 import tkinter as tk
-
-def get_window_resolution(root, windowWidth, windowHeight):
-    width = 1024
-    height = 768
-
-    # If a width contains a "%", the window size is relative to the screen size
-    # if it contains only a int, its an absolute value
-
-    if isinstance(windowWidth, str) and windowWidth[-1] == "%":
-        scale = int(windowWidth[:-1])/100
-        width = root.winfo_screenwidth() * scale
-    elif isinstance(windowWidth, int):
-        width = windowWidth
-    
-    if isinstance(windowHeight, str) and windowHeight[-1] == "%":
-        scale = int(windowHeight[:-1])/100
-        height = root.winfo_screenheight() * scale
-    elif isinstance(windowHeight, int):
-        height = windowHeight
-
-    return (width, height)
+from tkinter import ttk
 
 class View():
-    def __init__(self, mymap, simulation=None, path=None, windowSize=(1024, 768)):
+    def __init__(self, mymap, simulation=None, path=None, window_size=(1024, 768)):
         #todo: there are part of functions that should go to controller
         self.animating = False
         
@@ -36,6 +16,9 @@ class View():
         self.canvasMax    = self.osmMap.end.getLonLat()
         self.canvasSize   = self.osmMap.end.getVectorDistance(self.osmMap.origin).getLonLat()
 
+        ## window size
+        self.window_size   = self.get_window_resolution(window_size[0], window_size[1])
+
         self.scale        = 100000
         self.viewPort     = (0,0)
         self.prevPosition = None
@@ -43,14 +26,34 @@ class View():
         ## root
         self.root = tk.Tk()
         self.root.title("Epidemicon")
+        self.root.geometry(self.make_geometry_string(self.window_size))
         self.root.resizable(False, False)
-
-        ## window size
-        self.windowSize   = get_window_resolution(self.root, windowSize[0], windowSize[1])
+        
+        self.button = {}
+        
+        ## notebook and tabs ##
+        self.nb = ttk.Notebook(self.root)
+        
+        self.tab1 = ttk.Frame(self.nb)
+        self.tab2 = ttk.Frame(self.nb)
+        self.tab3 = ttk.Frame(self.nb)
+        self.tab4 = ttk.Frame(self.nb)
+        
+        self.nb.add(self.tab1, text ='Simulator')
+        self.nb.add(self.tab2, text ='Stats')
+        self.nb.add(self.tab3, text ='Settings')
+        self.nb.add(self.tab4, text ='About')
+        
+        self.nb.pack(expand=True, fill="both")
+        
+        ######### TAB 1 = SIM #########
+        
+        self.tab1.rowconfigure(0, weight=1) # button bar
+        self.tab1.rowconfigure(1, weight=9) # canvas
         
         ## frames
-        self.frame_btn    = tk.Frame(self.root)
-        self.frame_canvas = tk.Frame(self.root)
+        self.frame_btn    = tk.Frame(self.tab1)
+        self.frame_canvas = tk.Frame(self.tab1)
         
         for i in range(11):
             self.frame_btn.columnconfigure(i, weight=10)
@@ -65,45 +68,71 @@ class View():
         
         #play pause step
         self.root.btn_start   = tk.Button(self.frame_btn, text="Play")
-        self.root.btn_step  = tk.Button(self.frame_btn, text="Forward")
-        self.root.btn_step["state"] = tk.DISABLED #disabled until we click on INIT
+        self.root.btn_step    = tk.Button(self.frame_btn, text="Forward")
         
         #number of steps
         self.root.label_step = tk.Label(self.frame_btn, text="Step: 0")
-        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size (In Seconds)", from_=1, to=100, orient=tk.HORIZONTAL)
+        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size (In Minutes)", from_=1, to=60, orient=tk.HORIZONTAL)
         
         #add to grid
-        self.root.btn_start.grid(row=0,    column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.label_step.grid(row=0,   column=1, sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.step_scale.grid(row=0,   column=2, sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.btn_step.grid(row=0,     column=3, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.btn_start.grid   (row=0, column=0,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.label_step.grid  (row=0, column=1,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.step_scale.grid  (row=0, column=2,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.btn_step.grid    (row=0, column=3,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.btn_zoom_out.grid(row=0, column=9,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.root.btn_zoom_in.grid (row=0, column=10, sticky=(tk.N, tk.S, tk.E, tk.W))
         
-        self.root.btn_zoom_out.grid(row=0, column=9, sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.btn_zoom_in.grid(row=0,  column=10, sticky=(tk.N, tk.S, tk.E, tk.W))
+        # !!! todo: refactor use dict of buttons
+        self.button["zoom_in"]      = self.root.btn_zoom_in
+        self.button["zoom_out"]     = self.root.btn_zoom_out
+        self.button["auto_run"]     = self.root.btn_start
+        self.button["step_forward"] = self.root.btn_step
+        
+        # ## canvas pack and size
+        self.canvas.pack(expand=True)
+        self.canvas.config(width=self.window_size[0], height=self.window_size[1])
+        
+        # ## frames pack
+        self.frame_btn.pack(side="top", fill=tk.X)#, expand=True)
+        self.frame_canvas.pack(side="bottom")
+        
+        ######### TAB 2 = STATS #########
+        for i in range(10):
+            self.tab2.rowconfigure(i, weight=1)
+            self.tab2.columnconfigure(i, weight=1)
+        
+        self.button["stats"] = tk.Button(self.tab2, text="Show Stats")
+        self.button["stats"].grid(row=0, column=0,  sticky=(tk.N, tk.S, tk.E, tk.W))
+                
+        ######### TAB 3 = SETTINGS #########
+        
+        ######### TAB 3 = ABOUT #########
         
         
         ## canvas pack and size
         self.canvas.pack()
-        self.canvas.config(width=self.windowSize[0], height=self.windowSize[1])
+        self.canvas.config(width=self.window_size[0], height=self.window_size[1])
         
         ## frames pack
         self.frame_btn.pack(side="top", fill=tk.X, expand=True)   
         self.frame_canvas.pack(side="bottom")
     
     def set_events(self, controller): #todo: need more thoughts on decoupling
+        self.root.protocol("WM_DELETE_WINDOW", controller.on_closing)
+    
+        self.button["stats"]["command"] = controller._on_show_stats
+        
         ## bindings
         # buttons
         self.root.btn_zoom_in["command"]  = controller.on_zoom_in
         self.root.btn_zoom_out["command"] = controller.on_zoom_out
         self.root.btn_step["command"]     = controller.cmd_step
-        self.root.btn_start["command"]    = controller.cmd_play
+        self.root.btn_start["command"]    = controller.cmd_start
         
         # canvas
         self.canvas.bind("<MouseWheel>"     , controller.on_mouse_scroll)
         self.canvas.bind("<B1-Motion>"      , controller.on_mouse_hold)
         self.canvas.bind("<ButtonRelease-1>", controller.on_mouse_release)
-        
-        self.root.protocol("WM_DELETE_WINDOW", controller.on_closing)
     
     def initial_draw(self):
         self.draw()
@@ -127,14 +156,14 @@ class View():
             #print(translation)
             if(self.viewPort[0] > 0):
                 self.viewPort = (0, self.viewPort[1])
-            elif(self.viewPort[0] < -1* self.scale *self.canvasSize[0] + self.windowSize[0]):
+            elif(self.viewPort[0] < -1* self.scale *self.canvasSize[0] + self.window_size[0]):
                 #print("too far x")
-                self.viewPort = (int( -1* self.scale *self.canvasSize[0] + self.windowSize[0]), self.viewPort[1])
+                self.viewPort = (int( -1* self.scale *self.canvasSize[0] + self.window_size[0]), self.viewPort[1])
             if(self.viewPort[1] > 0):
                 self.viewPort = (self.viewPort[0], 0)
-            elif(self.viewPort[1] < -1* self.scale *self.canvasSize[1] + self.windowSize[1]):
+            elif(self.viewPort[1] < -1* self.scale *self.canvasSize[1] + self.window_size[1]):
                 #print("too far y")
-                self.viewPort = (self.viewPort[0], int( -1* self.scale *self.canvasSize[1] + self.windowSize[1]))
+                self.viewPort = (self.viewPort[0], int( -1* self.scale *self.canvasSize[1] + self.window_size[1]))
             
         self.prevPosition = (x, y)
         self.canvas.scan_dragto(self.viewPort[0], self.viewPort[1], gain=1)
@@ -159,7 +188,7 @@ class View():
     ## setters and getters ##
     @property
     def steps_to_advance(self):
-        return self.root.step_scale.get()
+        return self.root.step_scale.get()*60 #minutes
 
 
     ##refactoring
@@ -373,4 +402,41 @@ class View():
         else:
             self.canvas.itemconfig(agent.oval,fill="#33CC33")        
         self.canvas.move(agent.oval,x,y)
+        
+    ## positioning methods ##
+    def get_center_screen(self, window_size):
+        # get the screen dimension
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        # find the center point
+        center_x = int(screen_width/2 - window_size[0]/2)
+        center_y = int(screen_height/2 - window_size[1]/2)
+        
+        return center_x, center_y
+        
+    def make_geometry_string(self, window_size):
+        self.center_x, self.center_y = self.get_center_screen(window_size)
+        return f"{window_size[0]}x{window_size[1]}+{self.center_x}+{self.center_y}"
+    
+    def get_window_resolution(self, window_width, window_height):
+        width = 1024
+        height = 768
+
+        # If a width contains a "%", the window size is relative to the screen size
+        # if it contains only a int, its an absolute value
+
+        if isinstance(window_width, str) and window_width[-1] == "%":
+            scale = int(window_width[:-1])/100
+            width = self.root.winfo_screenwidth() * scale
+        elif isinstance(window_width, int):
+            width = window_width
+        
+        if isinstance(window_height, str) and window_height[-1] == "%":
+            scale = int(window_height[:-1])/100
+            height = self.root.winfo_screenheight() * scale
+        elif isinstance(window_height, int):
+            height = window_height
+
+        return (width, height)
     
