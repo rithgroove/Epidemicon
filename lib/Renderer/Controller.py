@@ -32,8 +32,19 @@ class Controller():
         self.thread_ask_stop = False
         
         # todo merge changes 
+        self.view.root.after(1000, self.disable_buttons)
         self.view.initial_draw()
     
+    def disable_buttons(self):
+        if self.model.calculating:
+            self.view.root.btn_step["state"]  = "disabled"
+            self.view.root.btn_start["state"] = "disabled"
+        else:
+            self.view.root.btn_step["state"]  = "normal"
+            self.view.root.btn_start["state"] = "normal"
+        self.view.root.after(1000, self.disable_buttons)
+
+
     ## MAIN METHODS ##
     def main_loop(self):
         try:

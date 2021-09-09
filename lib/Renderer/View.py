@@ -128,7 +128,7 @@ class View():
         self.root.btn_zoom_out["command"] = controller.on_zoom_out
         self.root.btn_step["command"]     = controller.cmd_step
         self.root.btn_start["command"]    = controller.cmd_start
-        
+
         # canvas
         self.canvas.bind("<MouseWheel>"     , controller.on_mouse_scroll)
         self.canvas.bind("<B1-Motion>"      , controller.on_mouse_hold)

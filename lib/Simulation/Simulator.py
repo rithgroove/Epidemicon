@@ -145,6 +145,7 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
+        self.calculating = False
         if infectionModel is None:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
@@ -285,12 +286,10 @@ class Simulator:
         Parameter: 
             - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
         """
-        #day = self.timeStamp.getDayofWeek)
-        #day, hour, minutes = self.currentHour()
-        #week = int(self.stepCount/ (7*24*3600))
-        #print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
         print(self.timeStamp)
         hour = self.timeStamp.getHour()
+        self.calculating = True
+
         if (self.lastHour != hour):
             self.lastHour = hour
             if self.threadNumber>1:
@@ -364,6 +363,7 @@ class Simulator:
             x.finalize(self.timeStamp,stepSize)
         print("Finished finalizing the infection")
         self.timeStamp.step(stepSize)
+        self.calculating = False
         self.summarize()
         self.printInfectionLocation()
 
