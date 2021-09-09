@@ -1,5 +1,6 @@
 #import threading
-import multiprocessing 
+import multiprocessing
+import atpbar
 
 #class StepThread(threading.Thread):
 class StepThread(multiprocessing.Process):
@@ -23,7 +24,7 @@ class StepThread(multiprocessing.Process):
         
     TO DO: remove unused pipeline
     """
-    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict):
+    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict):
         """
         [Constructor] 
         Constructor for StepThread class
@@ -34,6 +35,7 @@ class StepThread(multiprocessing.Process):
             - stepCount = [int] current step count
             - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
             - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
+            - businessesDict = [dict] dictionary that maps the an array of business by their type. key = business's id
         """
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
@@ -45,6 +47,7 @@ class StepThread(multiprocessing.Process):
         self.activitiesDict = activitiesDict
         self.returnDict = returnDict
         self.finished = False
+        self.businessDict = businessesDict
         
     def setStateToStep(self,stepValue):
         """
@@ -96,9 +99,12 @@ class StepThread(multiprocessing.Process):
         
         TO DO: merge with run
         """
-        #day, hour = self.currentHour()
+        day = self.timeStamp.getDayOfWeek()
+        hour = self.timeStamp.getHour()
+        availableRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
+        availableHospitals = [x for x in self.businessDict["hospital"] if x.isOpen(day, hour)]
         for i in range(0,len(self.agents)):
-            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue)
+            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue,availableRestaurants,availableHospitals)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:
                 self.returnDict[f"{self.agents[i].agentId}"] = result

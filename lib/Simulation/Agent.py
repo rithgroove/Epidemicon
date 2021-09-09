@@ -12,7 +12,7 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,agentId, osmMap,age,job,gender = None):
+    def __init__(self,agentId, osmMap,age,job, businessesDict, gender = None):
         self.home = None
         
         if (gender is None):
@@ -42,8 +42,8 @@ class Agent:
         self.eatingOutPref = float(random.randint(0,70))/10.0
         self.idle = 0
         self.energy = 100.0
-        self.faveRetailer = self.osmMap.getRandomBuilding("retail")
-        self.faveBarber = self.osmMap.getRandomBuilding("barbershop")
+        self.faveRetailer = random.choice(businessesDict["retail"])
+        self.faveBarber = random.choice(businessesDict["barbershop"])
         self.risk = random.randint(1,3)
         self.status = "Normal"
         self.activities = "idle"
@@ -107,7 +107,7 @@ class Agent:
         else:
             self.anxious = False
     
-    def checkSchedule(self,timeStamp,steps=1):    
+    def checkSchedule(self,timeStamp,steps=1,openRestaurants=[],openHospitals=[]):    
         """
         [Method] checkSchedule
         Check what kind of activity the agent will do at current point. If there's an activity, we will generate a movement sequence, if not return None. This also set the type of activity the agents will do. 
@@ -116,6 +116,8 @@ class Agent:
             - day = [int] current simulated day (0-7) 0 = Monday, 7 = Sunday
             - hour = [int] current simulated hour
             - steps = [int] step length in seconds
+            - openRestaurants = [Business] array of restaurants that are open at this day and hour
+            - openHospitals = [Business] array of hospitals that are open at this day and hour
 
         return:
             - [MovementSequence] the movement sequence for the activity the agent will do
@@ -132,13 +134,15 @@ class Agent:
                     self.activities = "going home"
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at home"
-                elif self.home.groceries < len(self.home.occupants) * 2:
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
+                elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building)
                     self.activities = "do groceries"
             elif self.status == "Severe":
-                if not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital":
+                if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.osmMap.getRandomBuilding("hospital"))
+                    #print("I'm sick, I need to go to hospital")
+                    hospital = random.choice(openHospitals)
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building)
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at hospital"
             elif self.mainJob.isWorking(day, hour):
@@ -148,18 +152,22 @@ class Agent:
             elif self.idle <= 0:
                 if self.hunger <= self.hungerCap:
                     whereToEatProbability = random.randint(0,100)/100.0
-                    if (whereToEatProbability <= self.eatingOutPref):
+                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
+                        #print(f"agent id {self.agentId} is eating outside") 
                         self.activities = "go to restaurant"            
-                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.osmMap.getRandomBuilding("restaurant"))
+                        restaurant = random.choice(openRestaurants)
+                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building)
+                        #self.idle = 4800
+                        #hunger = 1.0
                     else:
                         self.activities = "eat at home"
-                elif self.hair > self.hairCap:
+                elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
                     self.activities = "go to barbershop"            
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building)
 
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber)
-                elif self.home.groceries < len(self.home.occupants) * 2:
+                elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
                     self.activities = "do groceries"          
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer)
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer.building)
                 elif self.currentNode != self.home.node():       
                     self.activities = "going home"  
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building)

@@ -18,7 +18,6 @@ class Job:
         self.jobClass =jobClass
         self.workhour =  random.randint(jobClass.minWorkhour,jobClass.maxWorkhour)
         self.building = random.choice(jobClass.buildings)
-        self.workhour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
         self.activityPerWeek =  random.randint(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
         self.startHour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
         indexes = np.where(jobClass.workDays)[0]

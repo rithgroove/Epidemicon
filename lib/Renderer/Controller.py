@@ -45,7 +45,6 @@ class Controller():
         self.view.step(self.model.agents, self.model.timeStamp.stepCount)
     
     def on_closing(self):
-        print("does it work?")
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.thread_ask_stop = True
             self.model.killStepThreads()
@@ -125,5 +124,25 @@ class Controller():
         print("Done!", flush=True)
         self.thread_finished = True
     
-    ## DRAWING ##
+    
+    def _on_show_stats(self):
+        def __count_jobs(agentlist, jobclasses):
+            d = {}
+            for job in jobclasses:
+                d[job.name] = 0
+                
+            for agent in agentlist:
+                d[agent.mainJob.jobClass.name] +=1
+                
+            out = "\n".join([f"- {k}: {v}" for k, v in d.items()])
+            return out
+    
+        output = [""]*10
+        output[0] = f"====Stats===="
+        output[1] = f"Step Count: {self.model.stepCount}"
+        output[2] = f"# Agents: {len(self.model.agents)}"
+        output[3] = f"Jobs: \n{__count_jobs(agentlist=self.model.agents, jobclasses=self.model.jobClasses)}"
+        #output[4] = f"Orders Placed: {self.model.online_shopping.n_orders}"
+        
+        print("\n".join(output))
     
