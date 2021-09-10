@@ -183,7 +183,6 @@ class Simulator:
         """
         nodeHashIdDict = {}
         for n in self.osmMap.roadNodes:
-            print(n.hashId)
             nodeHashIdDict[n.hashId] = n
 
         pathfindDict={}
@@ -209,7 +208,7 @@ class Simulator:
         # write the calculated point to the file
         startNode = sequence.origin
         finishNode = sequence.destination
-
+        cont = 0
         if startNode.hashId not in self.pathfindDict:
             self.pathfindDict[startNode.hashId] = {}
         if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
@@ -223,6 +222,9 @@ class Simulator:
                     seqToSave.append((start,finish))
                 line = f"{startNode.hashId};{finishNode.hashId};{sequence.totalDistance};{seqToSave}\n"
                 self.pathfindFile.write(line)
+                cont += 1
+        if cont > 0:
+            print("Saved ", cont, "new paths")
 
 
     def generateBusinesses(self, businessCVSPath, osmMap) :

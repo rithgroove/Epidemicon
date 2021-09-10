@@ -318,6 +318,7 @@ class Map(osmium.SimpleHandler):
         finishNode = building.node
         try:
             if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
+                print("Saved time!!")
                 sequence = pathfindDict[startNode.hashId][finishNode.hashId]
                 distance = sequence.distance
             else:
