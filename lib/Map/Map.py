@@ -305,7 +305,7 @@ class Map(osmium.SimpleHandler):
                 continue
         return wayIdDict
         
-    def findPath(self, agent, building, pathfindFile=None, pathfindDict=None):
+    def findPath(self, agent, building, pathfindDict=None):
         """
         [Method] findPath
         A-star function to find the path from the agent location to the building 
@@ -318,7 +318,6 @@ class Map(osmium.SimpleHandler):
         finishNode = building.node
         try:
             if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
-                print("Saved time!!")
                 sequence = pathfindDict[startNode.hashId][finishNode.hashId]
                 distance = sequence.distance
             else:

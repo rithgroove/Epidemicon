@@ -223,8 +223,6 @@ class Simulator:
                 line = f"{startNode.hashId};{finishNode.hashId};{sequence.totalDistance};{seqToSave}\n"
                 self.pathfindFile.write(line)
                 cont += 1
-        if cont > 0:
-            print("Saved ", cont, "new paths")
 
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
