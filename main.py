@@ -16,6 +16,7 @@ requiredConfigs = [
     "OSMfile",
     "buildConnFile",
     "jobsFile",
+    "businessFile",
     "numberOfAgents",
     "buildingConfigPath",
     "threadNumber",
@@ -52,7 +53,8 @@ def main():
     # Start Simulator
     sim = Simulator(
         osmMap, 
-        c["jobsFile"], 
+        c["jobsFile"],
+        c["businessFile"],
         c["numberOfAgents"], 
         c["threadNumber"], 
         c["infectedAgent"], 
@@ -62,10 +64,11 @@ def main():
 
     # Draw    
     windowSize = (c["windowWidth"], c["windowHeight"])
-    view = View(mymap=osmMap, simulation=sim, windowSize=windowSize)
+    view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
     app = Controller(model=sim, view=view)
     app.main_loop()
     sim.extract()
+    sim.extractVisitLog() #extract all visit log
 
 if __name__ == "__main__":
     main()
