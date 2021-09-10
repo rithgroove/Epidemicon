@@ -50,6 +50,26 @@ def main():
     # Load the data
     gridSize = (c["gridHeight"], c["gridWidth"])
     osmMap = mmap.readFile(c["OSMfile"], c["buildConnFile"], gridSize, c["buildingConfigPath"])
+
+    # nodeDict = {}
+    # for n in osmMap.nodes:
+    #     if n.hashId not in nodeDict:
+    #         nodeDict[n.hashId] = []
+    #     nodeDict[n.hashId].append(n)
+
+    # for i in nodeDict:
+    #     aux = nodeDict[i]       
+    #     if len(aux) > 1:
+    #         lat = aux[0].coordinate.lat
+    #         for node in aux:
+    #             if node.coordinate.lat != lat:
+    #                 print("AAAA")
+    #         lon = aux[0].coordinate.lon
+    #         for node in aux:
+    #             if node.coordinate.lon != lon:
+    #                 print("BBBB")
+    #         print(aux[0].hashId)
+
     # Start Simulator
     sim = Simulator(
         osmMap, 

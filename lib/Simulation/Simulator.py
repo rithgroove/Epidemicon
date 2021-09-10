@@ -13,7 +13,7 @@ from .TimeStamp import TimeStamp
 from .Business import Business
 import os
 from os.path import join
-from lib.Map.MovementSequence import reconstruct
+from lib.Map.MovementSequence import reconstruct, reconstructByHashId
 import datetime
 import csv
 from pathlib import Path
@@ -98,7 +98,18 @@ class Simulator:
         - threads = [array] (DO NOT USE) array of StepThreads that was returned by the thread 
         
     """
-    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
+    def __init__(self,
+                osmMap,
+                jobCSVPath,
+                businessCVSPath,
+                agentNum = 1000,
+                threadNumber = 4,
+                infectedAgent = 5,
+                vaccinationPercentage = 0.0,
+                reportPath="report",
+                reportInterval=10,
+                infectionModel = None,
+                pathfindFileName="pathfind.csv"):
         """
         [Constructor]
         The constructor for Simulator class
@@ -150,6 +161,69 @@ class Simulator:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
             self.infectionModel = infectionModel
+
+        # pathFindFile
+        self.pathfindFile = None
+        self.pathfindDict = {}
+        if pathfindFileName != "":
+            Path(pathfindFileName).touch()
+            self.pathfindFile = open(pathfindFileName, "r+")
+            self.pathfindDict = self.buildPathfindDict()
+
+    def buildPathfindDict(self):
+        """
+        [Method] buildPathfindDict
+        Method that creates an dictionary in the format: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        that maps the wayIDof the building to an entry coordinate and a minimum distance
+
+        Parameter:
+            - file = [FileIO] a file to cache the connections between the roads and buildings 
+
+        Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        """
+        nodeHashIdDict = {}
+        for n in self.osmMap.roadNodes:
+            print(n.hashId)
+            nodeHashIdDict[n.hashId] = n
+
+        pathfindDict={}
+        for line in self.pathfindFile.readlines():
+            if line[-1:] == "\n": # remove \n at the end of line if necessary
+                line = line[:-1]
+            try:
+                startNodeId, finishNodeId, distance, sequenceString = line.split(";")
+                              
+                sequence = reconstructByHashId(nodeHashIdDict, eval(sequenceString), float(distance))
+
+                if startNodeId not in pathfindDict:
+                    pathfindDict[startNodeId] = {}
+                pathfindDict[startNodeId][finishNodeId] = sequence
+
+            except ValueError:
+                # This exception occurs if the split does not return the correct number of arguments
+                # This means that or the csv is invalid or the line is wrong, in any case the process continues
+                continue
+        return pathfindDict
+
+    def addPathfindToFile(self, sequence):
+        # write the calculated point to the file
+        startNode = sequence.origin
+        finishNode = sequence.destination
+
+        if startNode.hashId not in self.pathfindDict:
+            self.pathfindDict[startNode.hashId] = {}
+        if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
+            self.pathfindDict[startNode.hashId][finishNode.hashId] = sequence
+
+            if self.pathfindFile != None:
+                seqToSave=[]
+                for mvVector in sequence.sequence:
+                    start = mvVector.startingNode.hashId
+                    finish = mvVector.destinationNode.hashId
+                    seqToSave.append((start,finish))
+                line = f"{startNode.hashId};{finishNode.hashId};{sequence.totalDistance};{seqToSave}\n"
+                self.pathfindFile.write(line)
+
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
         businessTypeInfoArr = {}
@@ -308,7 +382,7 @@ class Simulator:
                     activitiesDict = manager.dict()
                     returnDicts.append(returnDict)
                     activitiesDicts.append(activitiesDict)
-                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict)
                     threads.append(thread)
                     i += 1  
                 ###############################################################################################
@@ -335,14 +409,16 @@ class Simulator:
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
             
-                nothread = StepThread(f"Nothread",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict)
                 nothread.setStateToStep(stepSize)
                 nothread.run()
 
                     
             for returnDict in returnDicts:
                 for key in returnDict.keys():
-                    self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+                    sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+                    self.unshuffledAgents[int(key)].activeSequence = sequence
+                    self.addPathfindToFile(sequence)
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]

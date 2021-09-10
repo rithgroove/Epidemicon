@@ -138,3 +138,11 @@ def reconstruct(nodesDictionary, sequences, totalDistance):
     for x in sequences:
         sequence.append(MovementVector(nodesDictionary[x[0]],nodesDictionary[x[1]]))
     return MovementSequence(sequence,totalDistance)
+
+def reconstructByHashId(nodeHashIdDict, movements, distance):
+    sequence = []
+    for mv in movements:
+        startNode = nodeHashIdDict[mv[0]]
+        finishNode = nodeHashIdDict[mv[1]]
+        sequence.append(MovementVector(startNode, finishNode))
+    return MovementSequence(sequence,distance)

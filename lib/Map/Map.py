@@ -305,7 +305,7 @@ class Map(osmium.SimpleHandler):
                 continue
         return wayIdDict
         
-    def findPath(self,agent,building):
+    def findPath(self, agent, building, pathfindFile=None, pathfindDict=None):
         """
         [Method] findPath
         A-star function to find the path from the agent location to the building 
@@ -314,16 +314,22 @@ class Map(osmium.SimpleHandler):
             - agent : [Agent] agent (will be changed to node later to make sure the division between map and simulator)
             - building : [Building] the building 
         """
+        startNode = agent.currentNode
+        finishNode = building.node
         try:
-            distance = 0
-            sequence = agent.currentNode.getMovementSequence(building.node)            
-            if (sequence is None):
-                #print("No previously calculated sequence is found")
-                distance, sequence = searchPath(self,agent.currentNode,building.node)
-                agent.currentNode.addMovementSequence(sequence.clone())           
+            if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
+                sequence = pathfindDict[startNode.hashId][finishNode.hashId]
+                distance = sequence.distance
             else:
-                #print("found sequence")
-                distance = sequence.totalDistance
+                distance = 0
+                sequence = startNode.getMovementSequence(finishNode)     
+                if sequence is None:
+                    distance, sequence = searchPath(self,startNode,finishNode)
+                    startNode.addMovementSequence(sequence.clone())
+                else:
+                    #print("found sequence")
+                    distance = sequence.totalDistance
+            
             return distance, sequence
         except:
             return None, None
