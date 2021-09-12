@@ -17,6 +17,7 @@ class StepThread(multiprocessing.Process):
         - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
         - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
         - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
+        - pathfindDict = [dict] dictionary to check for already calculated paths
         
     Deprecated Properties:
         - state = [string] current state (Deprecated, will be removed soon)
@@ -36,6 +37,7 @@ class StepThread(multiprocessing.Process):
             - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
             - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
             - businessesDict = [dict] dictionary that maps the an array of business by their type. key = business's id
+            - pathfindDict = [dict] dictionary to check for already calculated paths
         """
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)

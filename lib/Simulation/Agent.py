@@ -118,6 +118,7 @@ class Agent:
             - steps = [int] step length in seconds
             - openRestaurants = [Business] array of restaurants that are open at this day and hour
             - openHospitals = [Business] array of hospitals that are open at this day and hour
+            - pathfindDict = [dict] dictionary to check for already calculated paths
 
         return:
             - [MovementSequence] the movement sequence for the activity the agent will do

@@ -90,6 +90,8 @@ class Simulator:
         - reportInterval = [int] how many step do we want to wait before we extract the data
         - reportCooldown = [int] the current value of report interval
         - infectionModel = [InfectionModel] the infection model
+        - pathfindFile = [file] file to read/write the paths from node to node
+        - pathfindDict = [dict] dictionary to check for already calculated paths
         
     Don't Access Properties:
         - returnDict = [array] (DO NOT USE) array of dictionary that was returned by the thread 
@@ -102,14 +104,14 @@ class Simulator:
                 osmMap,
                 jobCSVPath,
                 businessCVSPath,
+                pathfindFileName,
                 agentNum = 1000,
                 threadNumber = 4,
                 infectedAgent = 5,
                 vaccinationPercentage = 0.0,
                 reportPath="report",
                 reportInterval=10,
-                infectionModel = None,
-                pathfindFileName="pathfind.csv"):
+                infectionModel = None):
         """
         [Constructor]
         The constructor for Simulator class
@@ -125,6 +127,7 @@ class Simulator:
             - reportPath = [string] path for the records
             - reportInterval = [int] how many step do we want to wait before we extract the data
             - infectionModel = [InfectionModel] the infection model
+            - pathfindFileName = [string] file to save/load the paths found in the execution
         """
         self.jobClasses = []
         self.osmMap = osmMap
@@ -173,11 +176,8 @@ class Simulator:
     def buildPathfindDict(self):
         """
         [Method] buildPathfindDict
-        Method that creates an dictionary in the format: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
-        that maps the wayIDof the building to an entry coordinate and a minimum distance
-
-        Parameter:
-            - file = [FileIO] a file to cache the connections between the roads and buildings 
+        Method that creates an dictionary in the format: [Dict[startNodeHashId: int, [Dict[finishNodeHasId: int, MovementSequence]]]]
+        that is used to avoid recalculating paths that were already calculated
 
         Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
         """
@@ -204,11 +204,18 @@ class Simulator:
                 continue
         return pathfindDict
 
-    def addPathfindToFile(self, sequence):
-        # write the calculated point to the file
+    def addSequenceToFile(self, sequence):
+        """
+        [Method] addSequenceToFile
+        Adds a MovementSequence to the self.pathfindDict and to the self.pathfindFile.
+        It assumes the dictionary is on par with the pathfindFile
+
+        Parameters: 
+            - sequence = MovementSequence, sequence to be added to the file and to the dictionary
+
+        """
         startNode = sequence.origin
         finishNode = sequence.destination
-        cont = 0
         if startNode.hashId not in self.pathfindDict:
             self.pathfindDict[startNode.hashId] = {}
         if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
@@ -222,7 +229,6 @@ class Simulator:
                     seqToSave.append((start,finish))
                 line = f"{startNode.hashId};{finishNode.hashId};{sequence.totalDistance};{seqToSave}\n"
                 self.pathfindFile.write(line)
-                cont += 1
 
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
@@ -418,7 +424,7 @@ class Simulator:
                 for key in returnDict.keys():
                     sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
                     self.unshuffledAgents[int(key)].activeSequence = sequence
-                    self.addPathfindToFile(sequence)
+                    self.addSequenceToFile(sequence)
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]

@@ -313,6 +313,7 @@ class Map(osmium.SimpleHandler):
         parameter:
             - agent : [Agent] agent (will be changed to node later to make sure the division between map and simulator)
             - building : [Building] the building 
+            - pathfindDict = [dict] dictionary to check for already calculated paths
         """
         startNode = agent.currentNode
         finishNode = building.node
