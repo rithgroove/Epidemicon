@@ -318,6 +318,7 @@ class Map(osmium.SimpleHandler):
         startNode = agent.currentNode
         finishNode = building.node
         try:
+            # Checking if the path has aready been calculated in the pathfindDict
             if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
                 sequence = pathfindDict[startNode.hashId][finishNode.hashId]
                 distance = sequence.distance

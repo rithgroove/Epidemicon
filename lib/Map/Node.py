@@ -73,7 +73,13 @@ class Node():
         self.isRoad = True
         self.generateHashId()
 
-    def generateHashId(self):
+    def generateHashId(self):        
+        """
+        [Method] generateHashId        
+        Generates a hash Id based on the coordinates of the node.
+        The values are multiplied by 1000 to avoid loss of precision quen dealing with numbers
+        with many decimals
+        """
         x, y = self.coordinate.getLatLon()
         x *= 1000
         y *= 1000
