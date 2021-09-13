@@ -75,8 +75,9 @@ class Building:
         if (self.type in houseType):
             self.color = "#99CC99"
             
-    def addVisitHistory(self,agent,timestamp):
-        day = timestamp.getDay()
+    def addVisitHistory(self, log):
+        day = log.timeStamp.getDay()
         if self.visitHistory.get(day) is None:
             self.visitHistory[day] = []
-        self.visitHistory[day].append((agent,timestamp))
+        self.visitHistory[day].append(log)
+                

@@ -68,6 +68,7 @@ def main():
     app = Controller(model=sim, view=view)
     app.main_loop()
     sim.extract()
+    sim.extractVisitLog() #extract all visit log
 
 if __name__ == "__main__":
     main()

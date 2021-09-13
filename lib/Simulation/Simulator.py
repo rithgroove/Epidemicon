@@ -16,13 +16,14 @@ from os.path import join
 from lib.Map.MovementSequence import reconstruct
 import datetime
 import csv
+from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
 
 summaryFieldnames = [
     'Day',
     'Hour',
-    'Minutes',
+    'Minute',
     'CurrentStep',
     'Susceptible',
     'Exposed',
@@ -42,25 +43,25 @@ detailsFieldnames = [
     'exposedTimeStamp',
     'exposedDay',
     'exposedHour',
-    'exposedMinutes',
+    'exposedMinute',
     'incubationDuration',
     'infectiousTimeStamp',
     'infectiousDay',
     'infectiousHour',
-    'infectiousMinutes',
+    'infectiousMinute',
     'recoveryDuration',
     'recoveredTimeStamp',
     'recoveredDay',
     'recoveredHour',
-    'recoveredMinutes',
+    'recoveredMinute',
     'symptomaticTimeStamp',
     'symptomaticDay',
     'symptomaticHour',
-    'symptomaticMinutes',
+    'symptomaticMinute',
     'severeTimeStamp',
     'severeDay',
     'severeHour',
-    'severeMinutes',
+    'severeMinute',
 ]
 
 def readCVS (cvsPath):
@@ -145,6 +146,7 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
+        self.visitHistory = []
         self.calculating = False
         if infectionModel is None:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
@@ -354,6 +356,9 @@ class Simulator:
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
             x.step(self.timeStamp,stepSize)
+            if (x.newVisitLog is not None):
+                self.visitHistory.append(x.newVisitLog)
+                x.newVisitLog = None
         #print("Finished moving agents, proceeding to check for infection")
         for agent in self.agents:
             self.infectionModel.infect(agent,stepSize,self.timeStamp)
@@ -401,7 +406,7 @@ class Simulator:
         result["CurrentStep"] = self.timeStamp.stepCount
         result["Day"] = self.timeStamp.getDay()
         result["Hour"] = self.timeStamp.getHour()
-        result["Minutes"] = self.timeStamp.getMinutes()
+        result["Minute"] = self.timeStamp.getMinute()
         result["Susceptible"] = 0
         result["Infectious"] = 0
         result["Exposed"] = 0
@@ -461,7 +466,15 @@ class Simulator:
             for x in self.agents:
                 writer.writerow(x.extract())
             agentsFile.close()
-         
-                
+        
        
-            
+    def extractVisitLog(self):
+        
+        visitFilePath = join(self.reportPath,'visit_log.csv')
+        with open(visitFilePath, 'w', newline='') as detailsFile:
+            writer = csv.DictWriter(detailsFile, fieldnames=getVisitKey())
+            writer.writeheader()
+            for i in self.visitHistory:
+                summary = i.summarize()
+                writer.writerow(summary)
+            detailsFile.close()
