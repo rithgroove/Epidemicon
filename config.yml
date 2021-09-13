@@ -10,8 +10,8 @@ vaccinationPercentage: 0.0
 verbose: false
 gridHeight: 10
 gridWidth: 10
-windowWidth: 1024
-windowHeight: 768
+windowWidth: 800
+windowHeight: 600
 reportDir: report
 reportInterval: 6
 nr_step_size : 300
