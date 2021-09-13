@@ -16,3 +16,4 @@ reportDir: report
 reportInterval: 6
 nr_step_size : 300
 nr_day_to_simulate : 90
+pathfindFileName: pathfind.csv

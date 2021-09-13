@@ -17,6 +17,7 @@ class StepThread(multiprocessing.Process):
         - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
         - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
         - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
+        - pathfindDict = [dict] dictionary to check for already calculated paths
         
     Deprecated Properties:
         - state = [string] current state (Deprecated, will be removed soon)
@@ -24,7 +25,7 @@ class StepThread(multiprocessing.Process):
         
     TO DO: remove unused pipeline
     """
-    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict):
+    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict,pathfindDict,nodeHashIdDict):
         """
         [Constructor] 
         Constructor for StepThread class
@@ -36,6 +37,7 @@ class StepThread(multiprocessing.Process):
             - returnDict = [dict] dictionary to store the extracted movement sequence of the agent. key = agent's id
             - activitiesDict = [dict] dictionary to store the activity type of the agent during this hour. key = agent's id
             - businessesDict = [dict] dictionary that maps the an array of business by their type. key = business's id
+            - pathfindDict = [dict] dictionary to check for already calculated paths
         """
         #threading.Thread.__init__(self)
         multiprocessing.Process.__init__(self)
@@ -48,6 +50,8 @@ class StepThread(multiprocessing.Process):
         self.returnDict = returnDict
         self.finished = False
         self.businessDict = businessesDict
+        self.pathfindDict = pathfindDict
+        self.nodeHashIdDict = nodeHashIdDict
         
     def setStateToStep(self,stepValue):
         """
@@ -104,7 +108,7 @@ class StepThread(multiprocessing.Process):
         availableRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
         availableHospitals = [x for x in self.businessDict["hospital"] if x.isOpen(day, hour)]
         for i in range(0,len(self.agents)):
-            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue,availableRestaurants,availableHospitals)
+            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue,availableRestaurants,availableHospitals,self.pathfindDict,self.nodeHashIdDict)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:
                 self.returnDict[f"{self.agents[i].agentId}"] = result
