@@ -25,7 +25,7 @@ class StepThread(multiprocessing.Process):
         
     TO DO: remove unused pipeline
     """
-    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict,pathfindDict):
+    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict,pathfindDict,nodeHashIdDict):
         """
         [Constructor] 
         Constructor for StepThread class
@@ -51,6 +51,7 @@ class StepThread(multiprocessing.Process):
         self.finished = False
         self.businessDict = businessesDict
         self.pathfindDict = pathfindDict
+        self.nodeHashIdDict = nodeHashIdDict
         
     def setStateToStep(self,stepValue):
         """
@@ -107,7 +108,7 @@ class StepThread(multiprocessing.Process):
         availableRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
         availableHospitals = [x for x in self.businessDict["hospital"] if x.isOpen(day, hour)]
         for i in range(0,len(self.agents)):
-            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue,availableRestaurants,availableHospitals,self.pathfindDict)
+            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue,availableRestaurants,availableHospitals,self.pathfindDict,self.nodeHashIdDict)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:
                 self.returnDict[f"{self.agents[i].agentId}"] = result

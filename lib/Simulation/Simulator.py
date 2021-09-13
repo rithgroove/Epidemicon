@@ -2,7 +2,7 @@ import csv
 from lib.Map.Map import Map
 import random
 import multiprocessing
-#from atpbar import flush
+import atexit
 from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
@@ -172,6 +172,19 @@ class Simulator:
             Path(pathfindFileName).touch()
             self.pathfindFile = open(pathfindFileName, "r+")
             self.pathfindDict = self.buildPathfindDict()
+        self.nodeHashIdDict = {}
+        for n in self.osmMap.roadNodes:
+            self.nodeHashIdDict[n.hashId] = n
+
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        """
+        [Method] cleanup
+        Closes the open files in the object
+        """
+        if self.pathfindFile is not None:
+            self.pathfindFile.close()
 
     def buildPathfindDict(self):
         """
@@ -181,9 +194,6 @@ class Simulator:
 
         Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
         """
-        nodeHashIdDict = {}
-        for n in self.osmMap.roadNodes:
-            nodeHashIdDict[n.hashId] = n
 
         pathfindDict={}
         for line in self.pathfindFile.readlines():
@@ -191,13 +201,14 @@ class Simulator:
                 line = line[:-1]
             try:
                 startNodeId, finishNodeId, distance, sequenceString = line.split(";")
-                              
-                sequence = reconstructByHashId(nodeHashIdDict, eval(sequenceString), float(distance))
+                startNodeId = int(startNodeId)
+                finishNodeId = int(finishNodeId)
+
+                sequence = (eval(sequenceString), float(distance))
 
                 if startNodeId not in pathfindDict:
                     pathfindDict[startNodeId] = {}
                 pathfindDict[startNodeId][finishNodeId] = sequence
-
             except ValueError:
                 # This exception occurs if the split does not return the correct number of arguments
                 # This means that or the csv is invalid or the line is wrong, in any case the process continues
@@ -388,7 +399,7 @@ class Simulator:
                     activitiesDict = manager.dict()
                     returnDicts.append(returnDict)
                     activitiesDicts.append(activitiesDict)
-                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
                     threads.append(thread)
                     i += 1  
                 ###############################################################################################
@@ -415,7 +426,7 @@ class Simulator:
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
             
-                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict)
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
                 nothread.setStateToStep(stepSize)
                 nothread.run()
 

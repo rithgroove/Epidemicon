@@ -9,6 +9,7 @@ import lib.Map.Map as mmap
 from lib.Renderer.Controller import Controller
 from lib.Renderer.Controller import View
 from lib.Simulation.Simulator import Simulator
+import random
 
 configFileName = "config.yml"
 
@@ -47,7 +48,6 @@ def read_validate_config(file_path):
 def main():
     c = read_validate_config(configFileName)
 
-    
     # Load the data
     gridSize = (c["gridHeight"], c["gridWidth"])
     osmMap = mmap.readFile(c["OSMfile"], c["buildConnFile"], gridSize, c["buildingConfigPath"])
@@ -70,8 +70,7 @@ def main():
     view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
     app = Controller(model=sim, view=view)
     app.main_loop()
-    if sim.pathfindFile != None:
-        sim.pathfindFile.close()
+
     sim.extract()
 
 if __name__ == "__main__":

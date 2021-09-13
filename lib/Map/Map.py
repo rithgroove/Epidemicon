@@ -1,3 +1,4 @@
+from lib.Map.MovementSequence import MovementSequence, reconstructByHashId
 import xml.etree.ElementTree as ET
 import osmium
 import numpy as np
@@ -305,7 +306,7 @@ class Map(osmium.SimpleHandler):
                 continue
         return wayIdDict
         
-    def findPath(self, agent, building, pathfindDict=None):
+    def findPath(self, agent, building, pathfindDict=None, nodeHashIdDict=None):
         """
         [Method] findPath
         A-star function to find the path from the agent location to the building 
@@ -321,6 +322,9 @@ class Map(osmium.SimpleHandler):
             # Checking if the path has aready been calculated in the pathfindDict
             if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
                 sequence = pathfindDict[startNode.hashId][finishNode.hashId]
+                if type(sequence) != MovementSequence: # This means the sequence is in the format (sequenceIds: List[Tuple(nodeId, nodeId)], distance:float)
+                    sequence = reconstructByHashId(nodeHashIdDict, sequence[0], sequence[1])
+                    pathfindDict[startNode.hashId][finishNode.hashId] = sequence
                 distance = sequence.distance
             else:
                 distance = 0
