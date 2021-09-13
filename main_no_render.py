@@ -58,6 +58,7 @@ def main():
         osmMap, 
         c["jobsFile"],
         c["businessFile"],
+        c["pathfindFileName"],
         c["numberOfAgents"], 
         c["threadNumber"], 
         c["infectedAgent"], 
