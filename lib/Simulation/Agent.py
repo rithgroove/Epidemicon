@@ -1,4 +1,5 @@
-import random
+
+import numpy as np
 from .Infection import Infection 
 from .VisitLog import VisitLog
 class Agent:
@@ -13,17 +14,17 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,agentId, osmMap,age,job, businessesDict, gender = None):
+    def __init__(self,agentId, osmMap,age,job, businessesDict,rng, gender = None):
         self.home = None
         
         if (gender is None):
-            self.gender = random.choice(["M","F"])
+            self.gender = rng.choice(["M","F"])
         else:
             self.gender = gender
         self.currentLocation = None
         self.agentId = agentId
         self.age = age
-        self.mainJob = job.generateJob()
+        self.mainJob = job.generateJob(rng)
         self.mainJob.setAgent(self)
         self.infectionStatus = "Susceptible"
         self.currentNode = None
@@ -35,17 +36,17 @@ class Agent:
         self.transition = (0,0)
         self.distanceToDestination = 0
         self.infection = None
-        self.hairCap = float(random.randint(12,30))
-        self.hair = float(random.randint(4,self.hairCap))
-        self.hunger = float(random.randint(2,10))/10.0
+        self.hairCap = float(rng.integers(12,30))
+        self.hair = float(rng.integers(4,self.hairCap))
+        self.hunger = float(rng.integers(2,10))/10.0
         self.hungerReduction = 1.0
-        self.hungerCap = float(random.randint(40,65))/100.0
-        self.eatingOutPref = float(random.randint(0,70))/10.0
+        self.hungerCap = float(rng.integers(40,65))/100.0
+        self.eatingOutPref = float(rng.integers(0,70))/10.0
         self.idle = 0
         self.energy = 100.0
-        self.faveRetailer = random.choice(businessesDict["retail"])
-        self.faveBarber = random.choice(businessesDict["barbershop"])
-        self.risk = random.randint(1,3)
+        self.faveRetailer = rng.choice(businessesDict["retail"])
+        self.faveBarber = rng.choice(businessesDict["barbershop"])
+        self.risk = rng.integers(1,3)
         self.status = "Normal"
         self.activities = "idle"
         self.vaccinated = False
@@ -108,7 +109,7 @@ class Agent:
         else:
             self.anxious = False
     
-    def checkSchedule(self,timeStamp,steps=1,openRestaurants=[],openHospitals=[]):    
+    def checkSchedule(self,timeStamp,rng,steps=1,openRestaurants=[],openHospitals=[]):    
         """
         [Method] checkSchedule
         Check what kind of activity the agent will do at current point. If there's an activity, we will generate a movement sequence, if not return None. This also set the type of activity the agents will do. 
@@ -142,7 +143,7 @@ class Agent:
                 if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
                     #print("I'm sick, I need to go to hospital")
-                    hospital = random.choice(openHospitals)
+                    hospital = rng.choice(openHospitals)
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building)
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at hospital"
@@ -152,11 +153,11 @@ class Agent:
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
             elif self.idle <= 0:
                 if self.hunger <= self.hungerCap:
-                    whereToEatProbability = random.randint(0,100)/100.0
+                    whereToEatProbability = rng.integers(0,100)/100.0
                     if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
                         #print(f"agent id {self.agentId} is eating outside") 
                         self.activities = "go to restaurant"            
-                        restaurant = random.choice(openRestaurants)
+                        restaurant = rng.choice(openRestaurants)
                         self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building)
                         #self.idle = 4800
                         #hunger = 1.0
@@ -177,7 +178,7 @@ class Agent:
         return None
                 #gohome    
                 
-    def step(self,timeStamp,steps=1):
+    def step(self,timeStamp,rng,steps=1):
         """
         [Method] step
         The actual step function used to trigger the movement sequence and move the agent position in the map.
@@ -202,11 +203,11 @@ class Agent:
             self.idle = 2400
             self.activities = "idle"
         elif (self.activities == "go to barbershop" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "barbershop"):
-            self.hair = float(random.randint(0,int(self.hairCap/2)))
+            self.hair = float(rng.integers(0,int(self.hairCap/2)))
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
             self.activities = "idle"
         elif (self.activities == "do groceries" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "retail"):
-            self.hair = float(random.randint(0,int(self.hairCap/2)))
+            self.hair = float(rng.integers(0,int(self.hairCap/2)))
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
             self.activities = "idle"        
             self.home.buyGroceries()
@@ -235,7 +236,7 @@ class Agent:
             self.newVisitLog = log
             self.activeSequence = None
       
-    def finalize(self,currentStepNumber,stepLength):
+    def finalize(self,currentStepNumber,stepLength,rng):
         """
         [Method] finalize
         Method to update the agent SEIR and health status
@@ -245,7 +246,7 @@ class Agent:
             - stepLength = [int] step length in seconds
         """    
         if self.infection != None:
-            self.infection.finalize(currentStepNumber,stepLength)
+            self.infection.finalize(currentStepNumber,stepLength,rng)
     
     def addVisitHistory(self, log):
         day = log.timeStamp.getDay()

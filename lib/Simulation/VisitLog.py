@@ -30,9 +30,9 @@ class VisitLog:
         temp["agentProfession"] = self.agent.getProfession()
         temp["infectionStatus"] = self.infectionStatus
         temp["homeId"] = self.agent.home.building.buildingId
-        temp["homeBuildingType"] = self.building.type
+        temp["homeBuildingType"] = self.agent.home.building.type
         temp["workId"] = self.agent.mainJob.building.buildingId
-        temp["workBuildingType"] = self.building.type
+        temp["workBuildingType"] = self.agent.mainJob.building.type
         temp["buildingId"] = self.building.buildingId
         temp["buildingType"] = self.building.type
         return temp

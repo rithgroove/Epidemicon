@@ -1,5 +1,4 @@
 from .Job import Job
-import random
 import numpy as np
 class JobClass:
     """
@@ -62,7 +61,6 @@ class JobClass:
         self.maxActivityPerWeek = int(csvDict["max_activity_per_week"])
         self.outsideCity = csvDict["outside_city"] == "yes"
         self.generatedJobs = []
-        #self.randomInfectionRate = float(csvDict["random_infection_rate"])
         
     def addBuilding(self,building):
         """
@@ -90,15 +88,14 @@ class JobClass:
             tempstring = tempstring + f"location : outside city\n"
             
         tempstring = tempstring + f"workdays : {self.day}\n"
-        #tempstring = tempstring + f"random infection rate : {self.randomInfectionRate}\n"
         return tempstring
     
-    def generateJob(self):
+    def generateJob(self,rng):
         """
         [Method] generateJob        
         generate a job instance based on this class
         """
-        temp = Job(self)
+        temp = Job(self,rng)
         self.generatedJobs.append(temp)
         return temp
 
