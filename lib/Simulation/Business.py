@@ -17,7 +17,7 @@ class Business:
         else:
             self.startHour =  rng.integers(min_start_hour, max_start_hour)
             
-        workHours =  rng.integers(min_workhour)            
+        workHours = min_workhour
         if (min_workhour != max_workhour):
             workHours =  rng.integers(min_workhour, max_workhour)
         self.finishHour = (self.startHour + workHours)%24
