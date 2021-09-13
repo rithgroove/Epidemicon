@@ -1,3 +1,4 @@
+from lib.Map.MovementSequence import MovementSequence, reconstructByHashId
 import xml.etree.ElementTree as ET
 import osmium
 import numpy as np
@@ -305,7 +306,7 @@ class Map(osmium.SimpleHandler):
                 continue
         return wayIdDict
         
-    def findPath(self,agent,building):
+    def findPath(self, agent, building, pathfindDict=None, nodeHashIdDict=None):
         """
         [Method] findPath
         A-star function to find the path from the agent location to the building 
@@ -313,17 +314,28 @@ class Map(osmium.SimpleHandler):
         parameter:
             - agent : [Agent] agent (will be changed to node later to make sure the division between map and simulator)
             - building : [Building] the building 
+            - pathfindDict = [dict] dictionary to check for already calculated paths
         """
+        startNode = agent.currentNode
+        finishNode = building.node
         try:
-            distance = 0
-            sequence = agent.currentNode.getMovementSequence(building.node)            
-            if (sequence is None):
-                #print("No previously calculated sequence is found")
-                distance, sequence = searchPath(self,agent.currentNode,building.node)
-                agent.currentNode.addMovementSequence(sequence.clone())           
+            # Checking if the path has aready been calculated in the pathfindDict
+            if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
+                sequence = pathfindDict[startNode.hashId][finishNode.hashId]
+                if type(sequence) != MovementSequence: # This means the sequence is in the format (sequenceIds: List[Tuple(nodeId, nodeId)], distance:float)
+                    sequence = reconstructByHashId(nodeHashIdDict, sequence[0], sequence[1])
+                    pathfindDict[startNode.hashId][finishNode.hashId] = sequence
+                distance = sequence.distance
             else:
-                #print("found sequence")
-                distance = sequence.totalDistance
+                distance = 0
+                sequence = startNode.getMovementSequence(finishNode)     
+                if sequence is None:
+                    distance, sequence = searchPath(self,startNode,finishNode)
+                    startNode.addMovementSequence(sequence.clone())
+                else:
+                    #print("found sequence")
+                    distance = sequence.totalDistance
+            
             return distance, sequence
         except:
             return None, None

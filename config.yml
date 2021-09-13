@@ -14,3 +14,4 @@ windowWidth: 800
 windowHeight: 600
 reportDir: report
 reportInterval: 5
+pathfindFileName: pathfind.csv
