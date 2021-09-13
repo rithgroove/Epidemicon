@@ -325,7 +325,7 @@ class Map(osmium.SimpleHandler):
                 if type(sequence) != MovementSequence: # This means the sequence is in the format (sequenceIds: List[Tuple(nodeId, nodeId)], distance:float)
                     sequence = reconstructByHashId(nodeHashIdDict, sequence[0], sequence[1])
                     pathfindDict[startNode.hashId][finishNode.hashId] = sequence
-                distance = sequence.distance
+                distance = sequence.totalDistance
             else:
                 distance = 0
                 sequence = startNode.getMovementSequence(finishNode)     
