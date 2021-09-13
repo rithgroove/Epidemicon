@@ -132,6 +132,8 @@ dmypy.json
 
 # csv of the closest road from the center of each building
 buildingConnection.csv
+# csv used for pathfinding
+pathfind.csv
 
 # reports
 report/
