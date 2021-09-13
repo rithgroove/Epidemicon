@@ -2,7 +2,7 @@ import csv
 from lib.Map.Map import Map
 import random
 import multiprocessing
-#from atpbar import flush
+import atexit
 from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
@@ -13,7 +13,7 @@ from .TimeStamp import TimeStamp
 from .Business import Business
 import os
 from os.path import join
-from lib.Map.MovementSequence import reconstruct
+from lib.Map.MovementSequence import reconstruct, reconstructByHashId
 import datetime
 import csv
 from .VisitLog import VisitLog, getVisitKey
@@ -91,6 +91,8 @@ class Simulator:
         - reportInterval = [int] how many step do we want to wait before we extract the data
         - reportCooldown = [int] the current value of report interval
         - infectionModel = [InfectionModel] the infection model
+        - pathfindFile = [file] file to read/write the paths from node to node
+        - pathfindDict = [dict] dictionary to check for already calculated paths
         
     Don't Access Properties:
         - returnDict = [array] (DO NOT USE) array of dictionary that was returned by the thread 
@@ -99,7 +101,18 @@ class Simulator:
         - threads = [array] (DO NOT USE) array of StepThreads that was returned by the thread 
         
     """
-    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
+    def __init__(self,
+                osmMap,
+                jobCSVPath,
+                businessCVSPath,
+                pathfindFileName,
+                agentNum = 1000,
+                threadNumber = 4,
+                infectedAgent = 5,
+                vaccinationPercentage = 0.0,
+                reportPath="report",
+                reportInterval=10,
+                infectionModel = None):
         """
         [Constructor]
         The constructor for Simulator class
@@ -115,6 +128,7 @@ class Simulator:
             - reportPath = [string] path for the records
             - reportInterval = [int] how many step do we want to wait before we extract the data
             - infectionModel = [InfectionModel] the infection model
+            - pathfindFileName = [string] file to save/load the paths found in the execution
         """
         self.jobClasses = []
         self.osmMap = osmMap
@@ -152,6 +166,83 @@ class Simulator:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
             self.infectionModel = infectionModel
+
+        # pathFindFile
+        self.pathfindFile = None
+        self.pathfindDict = {}
+        if pathfindFileName != "":
+            Path(pathfindFileName).touch()
+            self.pathfindFile = open(pathfindFileName, "r+")
+            self.pathfindDict = self.buildPathfindDict()
+        self.nodeHashIdDict = {}
+        for n in self.osmMap.roadNodes:
+            self.nodeHashIdDict[n.hashId] = n
+
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        """
+        [Method] cleanup
+        Closes the open files in the object
+        """
+        if self.pathfindFile is not None:
+            self.pathfindFile.close()
+
+    def buildPathfindDict(self):
+        """
+        [Method] buildPathfindDict
+        Method that creates an dictionary in the format: [Dict[startNodeHashId: int, [Dict[finishNodeHasId: int, MovementSequence]]]]
+        that is used to avoid recalculating paths that were already calculated
+
+        Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        """
+
+        pathfindDict={}
+        for line in self.pathfindFile.readlines():
+            if line[-1:] == "\n": # remove \n at the end of line if necessary
+                line = line[:-1]
+            try:
+                startNodeId, finishNodeId, distance, sequenceString = line.split(";")
+                startNodeId = int(startNodeId)
+                finishNodeId = int(finishNodeId)
+
+                sequence = (eval(sequenceString), float(distance))
+
+                if startNodeId not in pathfindDict:
+                    pathfindDict[startNodeId] = {}
+                pathfindDict[startNodeId][finishNodeId] = sequence
+            except ValueError:
+                # This exception occurs if the split does not return the correct number of arguments
+                # This means that or the csv is invalid or the line is wrong, in any case the process continues
+                continue
+        return pathfindDict
+
+    def addSequenceToFile(self, sequence):
+        """
+        [Method] addSequenceToFile
+        Adds a MovementSequence to the self.pathfindDict and to the self.pathfindFile.
+        It assumes the dictionary is on par with the pathfindFile
+
+        Parameters: 
+            - sequence = MovementSequence, sequence to be added to the file and to the dictionary
+
+        """
+        startNode = sequence.origin
+        finishNode = sequence.destination
+        if startNode.hashId not in self.pathfindDict:
+            self.pathfindDict[startNode.hashId] = {}
+        if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
+            self.pathfindDict[startNode.hashId][finishNode.hashId] = sequence
+
+            if self.pathfindFile != None:
+                seqToSave=[]
+                for mvVector in sequence.sequence:
+                    start = mvVector.startingNode.hashId
+                    finish = mvVector.destinationNode.hashId
+                    seqToSave.append((start,finish))
+                line = f"{startNode.hashId};{finishNode.hashId};{sequence.totalDistance};{seqToSave}\n"
+                self.pathfindFile.write(line)
+
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
         businessTypeInfoArr = {}
@@ -310,7 +401,7 @@ class Simulator:
                     activitiesDict = manager.dict()
                     returnDicts.append(returnDict)
                     activitiesDicts.append(activitiesDict)
-                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
                     threads.append(thread)
                     i += 1  
                 ###############################################################################################
@@ -337,14 +428,16 @@ class Simulator:
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
             
-                nothread = StepThread(f"Nothread",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
                 nothread.setStateToStep(stepSize)
                 nothread.run()
 
                     
             for returnDict in returnDicts:
                 for key in returnDict.keys():
-                    self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+                    sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+                    self.unshuffledAgents[int(key)].activeSequence = sequence
+                    self.addSequenceToFile(sequence)
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
