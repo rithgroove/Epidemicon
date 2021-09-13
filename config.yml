@@ -5,7 +5,7 @@ jobsFile: config/jobs.csv
 businessFile: config/business.csv
 numberOfAgents: 1000
 threadNumber: 4
-infectedAgent: 20
+infectedAgent: 200
 vaccinationPercentage: 0.0
 verbose: false
 gridHeight: 10
@@ -14,3 +14,4 @@ windowWidth: 800
 windowHeight: 600
 reportDir: report
 reportInterval: 5
+pathfindFileName: pathfind.csv

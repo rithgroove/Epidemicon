@@ -23,6 +23,7 @@ class Node():
         Initialize an empty node.
         """
         self.osmId = ""
+        self.hashId = 0
         self.coordinate = Coordinate(0.0,0.0)
         self.isRoad = False
         self.connections = []
@@ -52,6 +53,7 @@ class Node():
             self.tags[tag.k] = tag.v
         if 'highway' in self.tags.keys():
             self.isRoad = True
+        self.generateHashId()
             
     def setAsBuildingConnector(self, coordinate, generatedId =""):
         """
@@ -69,6 +71,19 @@ class Node():
         self.osmId = f"{generatedId}"
         self.coordinate = coordinate
         self.isRoad = True
+        self.generateHashId()
+
+    def generateHashId(self):        
+        """
+        [Method] generateHashId        
+        Generates a hash Id based on the coordinates of the node.
+        The values are multiplied by 1000 to avoid loss of precision quen dealing with numbers
+        with many decimals
+        """
+        x, y = self.coordinate.getLatLon()
+        x *= 1000
+        y *= 1000
+        self.hashId = hash((x,y))
         
     def addWay(self,way):
         """

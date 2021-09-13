@@ -36,6 +36,7 @@ class Building:
             self.setType(self.tags.get("amenity"))
         self.node = None
         self.content = {}
+        self.visitHistory = {}
         
     def __str__(self):
         """
@@ -73,3 +74,10 @@ class Building:
         houseType = ["residential","apartments","house"]
         if (self.type in houseType):
             self.color = "#99CC99"
+            
+    def addVisitHistory(self, log):
+        day = log.timeStamp.getDay()
+        if self.visitHistory.get(day) is None:
+            self.visitHistory[day] = []
+        self.visitHistory[day].append(log)
+                

@@ -2,26 +2,28 @@ import csv
 from lib.Map.Map import Map
 import random
 import multiprocessing
-#from atpbar import flush
+import atexit
 from .JobClass import JobClass
 from .Agent import Agent, getAgentKeys
 from .Home import Home
 from .Infection import Infection
 from .BasicInfectionModel import BasicInfectionModel
 from .StepThread import StepThread
+from .TimeStamp import TimeStamp
 from .Business import Business
 import os
 from os.path import join
-from lib.Map.MovementSequence import reconstruct
+from lib.Map.MovementSequence import reconstruct, reconstructByHashId
 import datetime
 import csv
+from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
 
 summaryFieldnames = [
     'Day',
     'Hour',
-    'Minutes',
+    'Minute',
     'CurrentStep',
     'Susceptible',
     'Exposed',
@@ -41,25 +43,25 @@ detailsFieldnames = [
     'exposedTimeStamp',
     'exposedDay',
     'exposedHour',
-    'exposedMinutes',
+    'exposedMinute',
     'incubationDuration',
     'infectiousTimeStamp',
     'infectiousDay',
     'infectiousHour',
-    'infectiousMinutes',
+    'infectiousMinute',
     'recoveryDuration',
     'recoveredTimeStamp',
     'recoveredDay',
     'recoveredHour',
-    'recoveredMinutes',
+    'recoveredMinute',
     'symptomaticTimeStamp',
     'symptomaticDay',
     'symptomaticHour',
-    'symptomaticMinutes',
+    'symptomaticMinute',
     'severeTimeStamp',
     'severeDay',
     'severeHour',
-    'severeMinutes',
+    'severeMinute',
 ]
 
 def readCVS (cvsPath):
@@ -80,7 +82,7 @@ class Simulator:
         - unshuffledAgents = [array] array of agents the agent is sorted based on their id 
         - stepCount = [int] current step count which represent how many simulated seconds from the beggining of the simulation
         - history = [Dictionary] of SEIR status that was staged after each step was finished
-        - timeStamp = [array]  the timestamp of the history proporties
+        - historyTimeStamp = [array]  the timestamp of the history properties (used for drawing graph)
         - threadNumber = [int] how many thread this simulator allowed to create when doing pathfinding
         - lastHour = [int] last calculated hour, used to trigger pathfinding.
         - vaccinationPercentage = [float] percentage of people that got the vaccine in the simulation.
@@ -89,6 +91,8 @@ class Simulator:
         - reportInterval = [int] how many step do we want to wait before we extract the data
         - reportCooldown = [int] the current value of report interval
         - infectionModel = [InfectionModel] the infection model
+        - pathfindFile = [file] file to read/write the paths from node to node
+        - pathfindDict = [dict] dictionary to check for already calculated paths
         
     Don't Access Properties:
         - returnDict = [array] (DO NOT USE) array of dictionary that was returned by the thread 
@@ -97,7 +101,18 @@ class Simulator:
         - threads = [array] (DO NOT USE) array of StepThreads that was returned by the thread 
         
     """
-    def __init__(self, osmMap, jobCSVPath, businessCVSPath, agentNum = 1000, threadNumber = 4, infectedAgent = 5, vaccinationPercentage = 0.0, reportPath="report", reportInterval=10, infectionModel = None):
+    def __init__(self,
+                osmMap,
+                jobCSVPath,
+                businessCVSPath,
+                pathfindFileName,
+                agentNum = 1000,
+                threadNumber = 4,
+                infectedAgent = 5,
+                vaccinationPercentage = 0.0,
+                reportPath="report",
+                reportInterval=10,
+                infectionModel = None):
         """
         [Constructor]
         The constructor for Simulator class
@@ -113,6 +128,7 @@ class Simulator:
             - reportPath = [string] path for the records
             - reportInterval = [int] how many step do we want to wait before we extract the data
             - infectionModel = [InfectionModel] the infection model
+            - pathfindFileName = [string] file to save/load the paths found in the execution
         """
         self.jobClasses = []
         self.osmMap = osmMap
@@ -123,15 +139,14 @@ class Simulator:
             self.jobClasses.append(temp)
         self.agents = []
         self.unshuffledAgents = []
+        self.timeStamp = TimeStamp()
         self.businessDict = self.generateBusinesses(businessCVSPath, osmMap)
-        #self.stepCount = 3600*8
-        self.stepCount = 0
         self.history = {}
         self.history ["Susceptible"] = []
         self.history ["Exposed"] = []
         self.history ["Infectious"] = []
         self.history ["Recovered"] = []
-        self.timeStamp = []
+        self.historyTimeStamp = []
         self.threadNumber = threadNumber
         self.returnDict = None
         self.activitiesDict = None
@@ -145,10 +160,89 @@ class Simulator:
         self.reportPath = self.createReportDir(reportPath)
         self.reportInterval = reportInterval
         self.reportCooldown = reportInterval
+        self.visitHistory = []
+        self.calculating = False
         if infectionModel is None:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
             self.infectionModel = infectionModel
+
+        # pathFindFile
+        self.pathfindFile = None
+        self.pathfindDict = {}
+        if pathfindFileName != "":
+            Path(pathfindFileName).touch()
+            self.pathfindFile = open(pathfindFileName, "r+")
+            self.pathfindDict = self.buildPathfindDict()
+        self.nodeHashIdDict = {}
+        for n in self.osmMap.roadNodes:
+            self.nodeHashIdDict[n.hashId] = n
+
+        atexit.register(self.cleanup)
+
+    def cleanup(self):
+        """
+        [Method] cleanup
+        Closes the open files in the object
+        """
+        if self.pathfindFile is not None:
+            self.pathfindFile.close()
+
+    def buildPathfindDict(self):
+        """
+        [Method] buildPathfindDict
+        Method that creates an dictionary in the format: [Dict[startNodeHashId: int, [Dict[finishNodeHasId: int, MovementSequence]]]]
+        that is used to avoid recalculating paths that were already calculated
+
+        Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
+        """
+
+        pathfindDict={}
+        for line in self.pathfindFile.readlines():
+            if line[-1:] == "\n": # remove \n at the end of line if necessary
+                line = line[:-1]
+            try:
+                startNodeId, finishNodeId, distance, sequenceString = line.split(";")
+                startNodeId = int(startNodeId)
+                finishNodeId = int(finishNodeId)
+
+                sequence = (eval(sequenceString), float(distance))
+
+                if startNodeId not in pathfindDict:
+                    pathfindDict[startNodeId] = {}
+                pathfindDict[startNodeId][finishNodeId] = sequence
+            except ValueError:
+                # This exception occurs if the split does not return the correct number of arguments
+                # This means that or the csv is invalid or the line is wrong, in any case the process continues
+                continue
+        return pathfindDict
+
+    def addSequenceToFile(self, sequence):
+        """
+        [Method] addSequenceToFile
+        Adds a MovementSequence to the self.pathfindDict and to the self.pathfindFile.
+        It assumes the dictionary is on par with the pathfindFile
+
+        Parameters: 
+            - sequence = MovementSequence, sequence to be added to the file and to the dictionary
+
+        """
+        startNode = sequence.origin
+        finishNode = sequence.destination
+        if startNode.hashId not in self.pathfindDict:
+            self.pathfindDict[startNode.hashId] = {}
+        if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
+            self.pathfindDict[startNode.hashId][finishNode.hashId] = sequence
+
+            if self.pathfindFile != None:
+                seqToSave=[]
+                for mvVector in sequence.sequence:
+                    start = mvVector.startingNode.hashId
+                    finish = mvVector.destinationNode.hashId
+                    seqToSave.append((start,finish))
+                line = f"{startNode.hashId};{finishNode.hashId};{sequence.totalDistance};{seqToSave}\n"
+                self.pathfindFile.write(line)
+
 
     def generateBusinesses(self, businessCVSPath, osmMap) :
         businessTypeInfoArr = {}
@@ -259,7 +353,7 @@ class Simulator:
             
         random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0, infectedAgent):
-            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.stepCount,dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
+            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.timeStamp.clone(),dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
             
         
     def splitAgentsForThreading(self):
@@ -290,46 +384,65 @@ class Simulator:
         Parameter: 
             - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
         """
-        day, hour, minutes = self.currentHour()
-        week = int(self.stepCount/ (7*24*3600))
-        print("Week = {} Day = {} Current Time = {:02d}:{:02d}".format(week,day,hour,minutes))
+        print(self.timeStamp)
+        hour = self.timeStamp.getHour()
+        self.calculating = True
+
         if (self.lastHour != hour):
             self.lastHour = hour
-            ###############################################################################################
-            # Generate Threads
-            # Do not refactor into other function
-            # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
-            ###############################################################################################
-            threads = []
-            i = 1
-            manager = multiprocessing.Manager()
-            returnDicts = [] #if not working, probably this must be allocated locally
-            activitiesDicts = [] #if not working, probably this must be allocated locally
-            for chunkOfAgent in self.agentChunks:
+            if self.threadNumber>1:
+                ###############################################################################################
+                # Generate Threads
+                # Do not refactor into other function
+                # ref : https://stackoverflow.com/questions/49391569/python3-process-object-never-joins
+                ###############################################################################################
+                threads = []
+                i = 1
+                manager = multiprocessing.Manager()
+                returnDicts = [] #if not working, probably this must be allocated locally
+                activitiesDicts = [] #if not working, probably this must be allocated locally
+                for chunkOfAgent in self.agentChunks:
+                    returnDict = manager.dict()
+                    activitiesDict = manager.dict()
+                    returnDicts.append(returnDict)
+                    activitiesDicts.append(activitiesDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
+                    threads.append(thread)
+                    i += 1  
+                ###############################################################################################
+                # Generate Threads end
+                ###############################################################################################
+
+                for thread in threads:
+                    thread.daemon = True
+                    thread.setStateToStep(stepSize)
+                    thread.start()
+                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                # wait for all thread to finish running
+                for i in range(0,len(threads)):
+                    threads[i].join()
+            else:
+                chunkOfAgent = self.agentChunks[0]
+            
+                manager = multiprocessing.Manager()
+                returnDicts = [] 
+                activitiesDicts = [] 
+                
                 returnDict = manager.dict()
                 activitiesDict = manager.dict()
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
-                thread = StepThread(f"Thread {i}",chunkOfAgent,self.stepCount,returnDict,activitiesDict,self.businessDict)
-                threads.append(thread)
-                i += 1  
-            ###############################################################################################
-            # Generate Threads end
-            ###############################################################################################
-
             
-            for thread in threads:
-                thread.daemon = True
-                thread.setStateToStep(stepSize)
-                thread.start()
-            time.sleep(30) # sleep for 20 second to help the threads starts their work
-            # wait for all thread to finish running
-            for i in range(0,len(threads)):
-                threads[i].join()
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
+                nothread.setStateToStep(stepSize)
+                nothread.run()
+
                     
             for returnDict in returnDicts:
                 for key in returnDict.keys():
-                    self.unshuffledAgents[int(key)].activeSequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+                    sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
+                    self.unshuffledAgents[int(key)].activeSequence = sequence
+                    self.addSequenceToFile(sequence)
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
@@ -340,16 +453,20 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(day,hour,stepSize)
+            x.step(self.timeStamp,stepSize)
+            if (x.newVisitLog is not None):
+                self.visitHistory.append(x.newVisitLog)
+                x.newVisitLog = None
         #print("Finished moving agents, proceeding to check for infection")
         for agent in self.agents:
-            self.infectionModel.infect(agent,stepSize,self.stepCount)
+            self.infectionModel.infect(agent,stepSize,self.timeStamp)
             #x.checkInfection(self.stepCount,stepSize)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
-            x.finalize(self.stepCount,stepSize)
+            x.finalize(self.timeStamp,stepSize)
         print("Finished finalizing the infection")
-        self.stepCount += stepSize
+        self.timeStamp.step(stepSize)
+        self.calculating = False
         self.summarize()
         self.printInfectionLocation()
 
@@ -358,21 +475,6 @@ class Simulator:
             self.extract()
             self.reportCooldown = self.reportInterval
         self.reportCooldown -= 1
-        
-    def currentHour(self):
-        """
-        [Method] currentHour
-        method to return the current tiem
-        
-        return: 
-            - day = [int] current simulated day (0-6) 0 = Monday, 6 = Sunday
-            - hour = [int] current simulated hour
-            - minutes = [int] current simulated minutes
-        """
-        hour = int(self.stepCount / 3600)% 24
-        day = int(self.stepCount /(24*3600)) % 7
-        minutes = int(self.stepCount/60)%60
-        return day,hour, minutes
     
     def printInfectionLocation(self):
         """
@@ -399,11 +501,10 @@ class Simulator:
         method to do staged data collection for current simulated time
         """
         result = {}
-        day, hour,minutes = self.currentHour()
-        result["CurrentStep"] = self.stepCount
-        result["Day"] = day
-        result["Hour"] = hour
-        result["Minutes"] = minutes
+        result["CurrentStep"] = self.timeStamp.stepCount
+        result["Day"] = self.timeStamp.getDay()
+        result["Hour"] = self.timeStamp.getHour()
+        result["Minute"] = self.timeStamp.getMinute()
         result["Susceptible"] = 0
         result["Infectious"] = 0
         result["Exposed"] = 0
@@ -413,7 +514,7 @@ class Simulator:
         for x in result.keys():
             if x in self.history.keys():
                 self.history[x].append(result[x])
-        self.timeStamp.append(self.stepCount/3600)
+        self.historyTimeStamp.append(self.timeStamp.stepCount/3600)
         self.infectionHistory.append(result)
         
         return result
@@ -463,7 +564,15 @@ class Simulator:
             for x in self.agents:
                 writer.writerow(x.extract())
             agentsFile.close()
-         
-                
+        
        
-            
+    def extractVisitLog(self):
+        
+        visitFilePath = join(self.reportPath,'visit_log.csv')
+        with open(visitFilePath, 'w', newline='') as detailsFile:
+            writer = csv.DictWriter(detailsFile, fieldnames=getVisitKey())
+            writer.writeheader()
+            for i in self.visitHistory:
+                summary = i.summarize()
+                writer.writerow(summary)
+            detailsFile.close()

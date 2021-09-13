@@ -130,8 +130,11 @@ dmypy.json
 # vscode
 .vscode/
 
+# TODO: atore these "work" files in a temporary directory.
 # csv of the closest road from the center of each building
 buildingConnection.csv
+# csv used for pathfinding
+pathfind.csv
 
 # reports
 report/

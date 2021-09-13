@@ -50,7 +50,7 @@ class BasicInfectionModel:
         self.sim = sim
         self.osmMap = osmMap
         
-    def infect(self, agent, stepSize,currentStepNumber):
+    def infect(self, agent, stepSize, timeStamp):
         """
         [Method] infect 
 
@@ -59,28 +59,28 @@ class BasicInfectionModel:
         Parameter:
             - agent = [Agent] susceptible agent that is going to be checked for infection
             - stepSize = [int] the step length
-            - currentStepNumber = [int] current step number
+            - timeStamp = [TimeStamp] current timestamp
         """
         if agent.infectionStatus == "Susceptible":
             if (agent.currentNode == agent.home.node()):
                 #infect at home
                 infectiousAgents = self._collectInfectiousAgent(agent, InfectionType.AtHome)
-                self._buildingBasedInfection(agent, infectiousAgents, stepSize, currentStepNumber)
+                self._buildingBasedInfection(agent, infectiousAgents, stepSize, timeStamp)
             elif agent.currentNode.isBuildingCentroid:
                 if agent.currentNode.building == agent.mainJob.building and agent.mainJob.isOutsideCity():
                     #infect off map
-                    self._infectOffMap(agent,stepSize,currentStepNumber)
+                    self._infectOffMap(agent,stepSize,timeStamp)
                 else:
                     #infect at a building
                     infectiousAgents = self._collectInfectiousAgent(agent, InfectionType.AtBuilding)
-                    self._buildingBasedInfection(agent, infectiousAgents, stepSize, currentStepNumber)
+                    self._buildingBasedInfection(agent, infectiousAgents, stepSize, timeStamp)
             else:
                 #infect on the road
                 infectiousAgents = self._collectInfectiousAgent(agent, InfectionType.OnTheRoad)
-                self._distanceBasedInfection(agent, infectiousAgents, stepSize, currentStepNumber)
+                self._distanceBasedInfection(agent, infectiousAgents, stepSize, timeStamp)
         
                     
-    def _buildingBasedInfection(self,agent, infectiousAgents, stepSize, currentStepNumber):
+    def _buildingBasedInfection(self,agent, infectiousAgents, stepSize, timeStamp):
         """
         [Method] _buildingBasedInfection 
 
@@ -90,20 +90,20 @@ class BasicInfectionModel:
             - agent = [Agent] susceptible agent that is going to be checked for infection
             - infectiousAgents = [array] array of infected Agents that is within proximity of the agent
             - stepSize = [int] the step length
-            - currentStepNumber = [int] current step number
+            - timeStamp = [TimeStamp] current timestamp
         """
         for stranger in infectiousAgents:
             infectionProbability = self.flatInfectionRate/ (24 * 3600/ stepSize)
             if infectionProbability > 0 and random.uniform(0.0,1.0) < infectionProbability: # infect
                 agent.infection = Infection(stranger, 
                                            agent,
-                                           currentStepNumber, 
+                                           timeStamp, 
                                            dormant = random.randint(24,72) *3600, #maybe put it in config?
                                            recovery = random.randint(72,14*24) *3600, #maybe put it in config?
                                            location = agent.currentNode.building.type) 
                 break 
         
-    def _distanceBasedInfection(self,agent, infectiousAgents, stepSize, currentStepNumber):
+    def _distanceBasedInfection(self,agent, infectiousAgents, stepSize, timeStamp):
         """
         [Method] _distanceBasedInfection 
 
@@ -113,7 +113,7 @@ class BasicInfectionModel:
             - agent = [Agent] susceptible agent that is going to be checked for infection
             - infectiousAgents = [array] array of infected Agents that is within proximity of the agent
             - stepSize = [int] the step length
-            - currentStepNumber = [int] current step number
+            - timeStamp = [TimeStamp] current timestamp
         """
         gradient = 0.05 - self.roadInfectionRate / 2.0
         for stranger in infectiousAgents:
@@ -122,14 +122,14 @@ class BasicInfectionModel:
             if infectionProbability > 0 and random.uniform(0.0,1.0) < infectionProbability: # infect
                 agent.infection = Infection(stranger, 
                                            agent,
-                                           currentStepNumber, 
+                                           timeStamp, 
                                            dormant = random.randint(24,72) *3600, #maybe put it in config?
                                            recovery = random.randint(72,14*24) *3600, #maybe put it in config?
                                            location = "On the Road") 
                 break 
         
         
-    def _infectOffMap(self,agent, stepSize, currentStepNumber):
+    def _infectOffMap(self,agent, stepSize, timeStamp):
         """
         [Method] _infectOffMap 
 
@@ -138,14 +138,14 @@ class BasicInfectionModel:
         Parameter:
             - agent = [Agent] susceptible agent that is going to be checked for infection
             - stepSize = [int] the step length
-            - currentStepNumber = [int] current step number
+            - timeStamp = [TimeStamp] current timestamp
         """
         infectionProbability = self.offMapInfectionRate/ (24 * 3600/ stepSize)
         if infectionProbability > 0 and random.uniform(0.0,1.0) < infectionProbability: # infect
             # off map infection
             self.infection = Infection(agent, 
                                        agent,
-                                       currentStepNumber, 
+                                       timeStamp, 
                                        dormant = random.randint(24,72) *3600, #maybe put it in config?
                                        recovery = random.randint(72,14*24) *3600, #maybe put it in config?
                                        location = "Going out of simulated area")          

@@ -9,6 +9,7 @@ import lib.Map.Map as mmap
 from lib.Renderer.Controller import Controller
 from lib.Renderer.Controller import View
 from lib.Simulation.Simulator import Simulator
+import random
 
 configFileName = "config.yml"
 
@@ -26,6 +27,7 @@ requiredConfigs = [
     "windowHeight",
     "reportDir",
     "reportInterval",
+    "pathfindFileName",
 ]
 
 def read_validate_config(file_path):
@@ -46,15 +48,16 @@ def read_validate_config(file_path):
 def main():
     c = read_validate_config(configFileName)
 
-    
     # Load the data
     gridSize = (c["gridHeight"], c["gridWidth"])
     osmMap = mmap.readFile(c["OSMfile"], c["buildConnFile"], gridSize, c["buildingConfigPath"])
+
     # Start Simulator
     sim = Simulator(
         osmMap, 
         c["jobsFile"],
         c["businessFile"],
+        c["pathfindFileName"],
         c["numberOfAgents"], 
         c["threadNumber"], 
         c["infectedAgent"], 
@@ -64,10 +67,12 @@ def main():
 
     # Draw    
     windowSize = (c["windowWidth"], c["windowHeight"])
-    view = View(mymap=osmMap, simulation=sim, windowSize=windowSize)
+    view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
     app = Controller(model=sim, view=view)
     app.main_loop()
+
     sim.extract()
+    sim.extractVisitLog() #extract all visit log
 
 if __name__ == "__main__":
     main()
