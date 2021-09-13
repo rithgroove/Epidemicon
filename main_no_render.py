@@ -67,13 +67,7 @@ def main():
 
     for x in range(0, dayToSimulate*24*3600, stepSize):
         sim.step(stepSize = stepSize)
-    # Draw    
-#     windowSize = (c["windowWidth"], c["windowHeight"])
-#     view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
-#     app = Controller(model=sim, view=view)
-#     app.main_loop()
-#     if sim.pathfindFile != None:
-#         sim.pathfindFile.close()
+
     sim.extract()
     sim.extractVisitLog()
 
