@@ -18,9 +18,9 @@ nr_step_size : 300
 nr_day_to_simulate : 30
 pathfindFileName: pathfind.csv 
 lockdownMethod:
-  name: reduceWorkHours
-  activeCasesThreshold: 100
-  businessWorkHours:
+  name: reduceWorkhours
+  activeCasesThreshold: 0
+  businessWorkhours:
     restaurant:
       start: 11
       finish: 20

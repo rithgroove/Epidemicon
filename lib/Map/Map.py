@@ -317,26 +317,6 @@ class Map(osmium.SimpleHandler):
         """
         startNode = agent.currentNode
         finishNode = building.node
-<<<<<<< HEAD
-        # Checking if the path has aready been calculated in the pathfindDict
-        if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
-            sequence = pathfindDict[startNode.hashId][finishNode.hashId]
-            if type(sequence) != MovementSequence: # This means the sequence is in the format (sequenceIds: List[Tuple(nodeId, nodeId)], distance:float)
-                sequence = reconstructByHashId(nodeHashIdDict, sequence[0], sequence[1])
-                pathfindDict[startNode.hashId][finishNode.hashId] = sequence
-            distance = sequence.totalDistance
-        else:
-            distance = 0
-            sequence = startNode.getMovementSequence(finishNode)     
-            if sequence is None:
-                distance, sequence = searchPath(self,startNode,finishNode)
-                if sequence is not None:
-                    startNode.addMovementSequence(sequence.clone())
-            else:
-                distance = sequence.totalDistance
-        
-        return distance, sequence
-=======
         try:
             # Checking if the path has aready been calculated in the pathfindDict
             if pathfindDict is not None and startNode.hashId in pathfindDict and finishNode.hashId in pathfindDict[startNode.hashId]:
@@ -360,7 +340,6 @@ class Map(osmium.SimpleHandler):
         except:
             print("Something went wrong")
             return None, None
->>>>>>> 62b62c0af21d0cc8baef01d30750915b7a3f46ea
         
     def summarizeRoad(self):
         """

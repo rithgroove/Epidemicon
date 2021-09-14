@@ -54,6 +54,7 @@ def main():
     osmMap = mmap.readFile(c["OSMfile"], c["buildConnFile"], gridSize, c["buildingConfigPath"])
 
     # Start Simulator
+    aux = c["lockdownMethod"]
     sim = Simulator(
         osmMap, 
         c["jobsFile"],
@@ -64,7 +65,8 @@ def main():
         c["infectedAgent"], 
         c["vaccinationPercentage"],
         c["reportDir"],
-        c["reportInterval"])
+        c["reportInterval"],
+        c["lockdownMethod"])
 
     for x in range(0, dayToSimulate*24*3600, stepSize):
         sim.step(stepSize = stepSize)

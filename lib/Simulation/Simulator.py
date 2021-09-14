@@ -113,9 +113,9 @@ class Simulator:
                 vaccinationPercentage = 0.0,
                 reportPath="report",
                 reportInterval=10,
+                lockdownMethod = None,
                 infectionModel = None,
-                seed = 1000,
-                lockdownThreshold = 100):
+                seed = 1000):
         """
         [Constructor]
         The constructor for Simulator class
@@ -160,7 +160,7 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
-        self.lockdownThreshold = lockdownThreshold
+        self.lockdownMethod = lockdownMethod
         self.inLockdown = False
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
@@ -494,24 +494,15 @@ class Simulator:
         for x in self.agents:
             x.finalize(self.timeStamp,stepSize,self.rng)
         print("Finished finalizing the infection")
+
+        print(self.timeStamp.getHour(), self.timeStamp.getMinute())
+        if self.lockdownMethod is not None and self.timeStamp.getHour() == 0 and self.timeStamp.getMinute() == 0:
+            self.checkLockdownConditions()
+
         self.timeStamp.step(stepSize)
         self.calculating = False
         self.summarize()
         self.printInfectionLocation()
-
-        ######### Checking conditions for lockdown ###############
-        if self.lastHour == 0 and self.timeStamp.getMinute() == 0:
-            activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
-            if len(activeCases) > self.lockdownThreshold and not self.inLockdown:
-                for businessType, businessArray in self.businessDict.items():
-                    if businessType in self.lockdownMeasures:
-                        for business in businessArray:
-                            business.startLockdown()
-            elif len(activeCases) < self.lockdownThreshold and self.inLockdown:
-                for businessType, businessArray in self.businessDict.items():
-                    if businessType in self.lockdownMeasures:
-                        for business in businessArray:
-                            business.finishLockdown()
 
         if self.reportCooldown < 1:
             print("Extracting data")
@@ -519,6 +510,22 @@ class Simulator:
             self.reportCooldown = self.reportInterval
         self.reportCooldown -= 1
     
+    def checkLockdownConditions(self):
+        lockdown = self.lockdownMethod
+        if lockdown["name"] == "reduceWorkhours":
+            activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
+            if len(activeCases) >= lockdown["activeCasesThreshold"] and not self.inLockdown:
+                for businessType, businessArray in self.businessDict.items():
+                    if businessType in lockdown["businessWorkhours"]:
+                        lockTime = lockdown["businessWorkhours"][businessType]
+                        for business in businessArray:
+                            business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
+            elif len(activeCases) < self.lockdownThreshold and self.inLockdown:
+                for businessType, businessArray in self.businessDict.items():
+                    if businessType in self.lockdownMeasures:
+                        for business in businessArray:
+                            business.finishLockdown()
+
     def printInfectionLocation(self):
         """
         [Method] printInfectionLocation
