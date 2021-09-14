@@ -144,7 +144,6 @@ class Agent:
             elif self.status == "Severe":
                 if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
-                    #print("I'm sick, I need to go to hospital")
                     hospital = rng.choice(openHospitals)
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building,pathfindDict,nodeHashIdDict)
                 elif self.hunger <= self.hungerCap:
@@ -154,31 +153,26 @@ class Agent:
                     self.activities = "go to work"            
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
             elif self.idle <= 0:
-                if self.hunger <= self.hungerCap:
+                if self.currentNode != self.home.node():       
+                    self.activities = "going home"  
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
+                elif self.hunger <= self.hungerCap:
                     whereToEatProbability = rng.integers(0,100)/100.0
                     if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
-                        #print(f"agent id {self.agentId} is eating outside") 
                         self.activities = "go to restaurant"            
                         restaurant = rng.choice(openRestaurants)
                         self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building,pathfindDict,nodeHashIdDict)
-                        #self.idle = 4800
-                        #hunger = 1.0
                     else:
                         self.activities = "eat at home"
                 elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
                     self.activities = "go to barbershop"            
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building,pathfindDict,nodeHashIdDict)
-
                 elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
                     self.activities = "do groceries"          
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer.building,pathfindDict,nodeHashIdDict)
-                elif self.currentNode != self.home.node():       
-                    self.activities = "going home"  
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
         if (self.activeSequence is not None and self.activeSequence.new):
             return self.activeSequence.extract()
         return None
-                #gohome    
                 
     def step(self,timeStamp,rng,steps=1):
         """
