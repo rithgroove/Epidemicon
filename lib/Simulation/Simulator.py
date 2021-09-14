@@ -114,7 +114,8 @@ class Simulator:
                 reportPath="report",
                 reportInterval=10,
                 infectionModel = None,
-                seed = 1000):
+                seed = 1000,
+                lockdownThreshold = 100):
         """
         [Constructor]
         The constructor for Simulator class
@@ -155,6 +156,8 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
+        self.lockdownThreshold = lockdownThreshold
+        self.inLockdown = False
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
@@ -447,11 +450,14 @@ class Simulator:
                 nothread.run()
             print("Finish pathfinding %.2fs" % (time.time() - startTime))
                     
+            cont = 0
             for returnDict in returnDicts:
                 for key in returnDict.keys():
                     sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
                     self.unshuffledAgents[int(key)].activeSequence = sequence
                     self.addSequenceToFile(sequence)
+                    cont += 1
+            print("Added %d new entries to the file"%cont)
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
@@ -480,12 +486,18 @@ class Simulator:
         self.printInfectionLocation()
 
         ######### Checking conditions for lockdown ###############
-        # if self.lastHour == 0 and self.timeStamp.getMinute == 0:
-        #     activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
-        #     if len(activeCases) > lockdownThreshold and not self.inLockdown:
-        #         startLockdown
-        #     elif len(activeCases) < lockdownThreshold and self.inLockdown:
-        #         finishLockdown
+        if self.lastHour == 0 and self.timeStamp.getMinute() == 0:
+            activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
+            if len(activeCases) > self.lockdownThreshold and not self.inLockdown:
+                for businessType, businessArray in self.businessDict.items():
+                    if businessType in self.lockdownMeasures:
+                        for business in businessArray:
+                            business.startLockdown()
+            elif len(activeCases) < self.lockdownThreshold and self.inLockdown:
+                for businessType, businessArray in self.businessDict.items():
+                    if businessType in self.lockdownMeasures:
+                        for business in businessArray:
+                            business.finishLockdown()
 
         if self.reportCooldown < 1:
             print("Extracting data")
