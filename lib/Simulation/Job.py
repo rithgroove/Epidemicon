@@ -1,4 +1,4 @@
-import random 
+#import random 
 import numpy as np
 class Job:
     """
@@ -14,18 +14,34 @@ class Job:
         - workdays: [int] 8 bit integer that uses bit 1 as monday, 2 (b10) as tuesday, 4 (b100) as wednesday, etc
         - agent : [Agent] the agent this job belongs to
     """
-    def __init__(self,jobClass):
+    def __init__(self,jobClass,rng):
         self.jobClass =jobClass
-        self.workhour =  random.randint(jobClass.minWorkhour,jobClass.maxWorkhour)
-        self.building = random.choice(jobClass.buildings)
-        self.activityPerWeek =  random.randint(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
-        self.startHour =  random.randint(jobClass.minStartHour,jobClass.maxStartHour)
+        self.workhour =  jobClass.minWorkhour        
+        if (jobClass.minWorkhour != jobClass.maxWorkhour):
+            self.workhour =  rng.integers(jobClass.minWorkhour, jobClass.maxWorkhour)
+        
+        self.building = rng.choice(jobClass.buildings)
+
+        self.startHour =  jobClass.minStartHour     
+        if (jobClass.minStartHour != jobClass.maxStartHour):
+            self.startHour =  rng.integers(jobClass.minStartHour,jobClass.maxStartHour)        
+        
+        
+        
+        self.activityPerWeek = jobClass.minActivityPerWeek
+        if (jobClass.minActivityPerWeek != jobClass.maxActivityPerWeek):
+            self.activityPerWeek =  rng.integers(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
+        
+        
+        
+       
+        
+        
+        
         indexes = np.where(jobClass.workDays)[0]
         if len(indexes) < self.activityPerWeek+1:
-            # TODO: Add an issue to move "prints" to a logging framework.
-            # print("warning, activities per week is lower than the optional workdays")
             self.activityPerWeek = len(indexes)
-        np.random.shuffle(indexes)
+        rng.shuffle(indexes)
         self.workdays = 0
         for i in indexes[:(self.activityPerWeek-1)]:
             self.workdays  += (2**(6-i))
