@@ -1,5 +1,6 @@
 #import threading
 import multiprocessing
+import numpy as np
 #import atpbar
 
 #class StepThread(threading.Thread):
@@ -25,7 +26,7 @@ class StepThread(multiprocessing.Process):
         
     TO DO: remove unused pipeline
     """
-    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict,pathfindDict,nodeHashIdDict):
+    def __init__(self, name, agents,timeStamp,returnDict,activitiesDict,businessesDict,pathfindDict,nodeHashIdDict,seed):
         """
         [Constructor] 
         Constructor for StepThread class
@@ -50,6 +51,7 @@ class StepThread(multiprocessing.Process):
         self.returnDict = returnDict
         self.finished = False
         self.businessDict = businessesDict
+        self.rng = np.random.default_rng(seed)
         self.pathfindDict = pathfindDict
         self.nodeHashIdDict = nodeHashIdDict
         
@@ -64,22 +66,6 @@ class StepThread(multiprocessing.Process):
         self.state = "step"
         self.stepValue = stepValue
         
-    def setStateToInfect(self,stepValue):
-        """
-        [Method] setStateToInfect 
-        DEPRECATED
-        """
-        self.state = "infect"
-        self.stepValue = stepValue
-        
-    def setStateToFinalize(self,stepValue):
-        """
-        [Method] setStateToFinalize 
-        DEPRECATED
-        """
-        self.state = "finalize"
-        self.stepValue = stepValue
-        
     def run(self):
         """
         [Method] run 
@@ -89,10 +75,6 @@ class StepThread(multiprocessing.Process):
         """
         if self.state == "step":
             self.step()
-        elif self.state == "infect":
-            self.infect()
-        else:
-            self.finalize()
         self.finished = True
         print(f'{self.name} finished')
 
@@ -108,36 +90,9 @@ class StepThread(multiprocessing.Process):
         availableRestaurants = [x for x in self.businessDict["restaurant"] if x.isOpen(day, hour)]
         availableHospitals = [x for x in self.businessDict["hospital"] if x.isOpen(day, hour)]
         for i in range(0,len(self.agents)):
-            result = self.agents[i].checkSchedule(self.timeStamp,self.stepValue,availableRestaurants,availableHospitals,self.pathfindDict,self.nodeHashIdDict)
+            result = self.agents[i].checkSchedule(self.timeStamp,self.rng,self.stepValue,availableRestaurants,availableHospitals,self.pathfindDict,self.nodeHashIdDict)
             self.activitiesDict[f"{self.agents[i].agentId}"] = self.agents[i].activities
             if result is not None:
                 self.returnDict[f"{self.agents[i].agentId}"] = result
         
-#     def infect(self):
-#         """
-#         [Method] infect 
-#         DEPRECATED
-#         """
-#         for i in atpbar(range(len(self.agents)), name= f"{self.name} Infect Function"):
-#             self.agents[i].checkInfection(self.stepValue)
 
-#     def finalize(self):
-#         """
-#         [Method] finalize 
-#         DEPRECATED
-#         """
-#         for i in atpbar(range(len(self.agents)), name= f"{self.name} Finalize Function"):
-#             self.agents[i].finalize(self.stepValue)
-                     
-#     def currentHour(self):
-#         """
-#         [Method] currentHour
-#         method to return the current tiem
-        
-#         return: 
-#             - day = [int] current simulated day (0-6) 0 = Monday, 6 = Sunday
-#             - hour = [int] current simulated hour
-#         """
-#         hour = int(self.stepCount / 3600)% 24
-#         day = int(self.stepCount / (24*3600)) % 7
-#         return day,hour

@@ -1,4 +1,4 @@
-import random
+#import random
 from .TimeStamp import TimeStamp
 class Infection:
     """
@@ -45,7 +45,7 @@ class Infection:
         self.symptomaticsTimeStamp = TimeStamp()
         self.severeTimeStamp = TimeStamp()
         
-    def finalize(self,currentTimeStamp,stepLength):
+    def finalize(self,currentTimeStamp,stepLength,rng):
         """
         [Method] finalize
         Method to change the status of the agent
@@ -57,10 +57,10 @@ class Infection:
             self.target.infectionStatus = "Exposed" 
         elif (currentTimeStamp.stepCount - self.timeStamp.stepCount < self.dormant+ self.recovery):
             self.target.infectionStatus = "Infectious"
-            if self.target.status == "Normal" and random.randint(0,1000000)< ((200000 * self.target.risk)/ (24*3600/stepLength)):
+            if self.target.status == "Normal" and rng.integers(0,1000000)< ((200000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Symptomatics"
                 self.symptomaticsTimeStamp = currentTimeStamp.clone()
-            elif self.target.status == "Symptomatics" and random.randint(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
+            elif self.target.status == "Symptomatics" and rng.integers(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Severe"
                 self.severeTimeStamp = currentTimeStamp.clone()
         elif (currentTimeStamp.stepCount - self.timeStamp.stepCount >= self.dormant+ self.recovery):

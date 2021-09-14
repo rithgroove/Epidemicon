@@ -5,7 +5,7 @@ import numpy as np
 import geopy.distance as distance
 from pathlib import Path
 import csv
-import random
+
 from .Node import  Node
 from .Way import Way
 from .Road import Road

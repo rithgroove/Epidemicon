@@ -1,6 +1,6 @@
 import csv
 from lib.Map.Map import Map
-import random
+#import random
 import multiprocessing
 import atexit
 from .JobClass import JobClass
@@ -19,6 +19,7 @@ import csv
 from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
+import numpy as np
 
 summaryFieldnames = [
     'Day',
@@ -112,7 +113,8 @@ class Simulator:
                 vaccinationPercentage = 0.0,
                 reportPath="report",
                 reportInterval=10,
-                infectionModel = None):
+                infectionModel = None,
+                seed = 1000):
         """
         [Constructor]
         The constructor for Simulator class
@@ -130,6 +132,7 @@ class Simulator:
             - infectionModel = [InfectionModel] the infection model
             - pathfindFileName = [string] file to save/load the paths found in the execution
         """
+        self.rng = np.random.default_rng(seed)
         self.jobClasses = []
         self.osmMap = osmMap
         jobClassData = readCVS(jobCSVPath)
@@ -166,6 +169,7 @@ class Simulator:
             self.infectionModel = BasicInfectionModel(self,self.osmMap)
         else:
             self.infectionModel = infectionModel
+        self.infectionModel.setRNG(self.rng)
 
         # pathFindFile
         self.pathfindFile = None
@@ -255,7 +259,7 @@ class Simulator:
             if building.type not in businessTypeInfoArr:
                 continue
             businessTypeInfo = businessTypeInfoArr[building.type]
-            b = Business(building, businessTypeInfo)
+            b = Business(building, businessTypeInfo,self.rng)
             businessDictByType[building.type].append(b)
         return businessDictByType
 
@@ -300,7 +304,7 @@ class Simulator:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
             for i in range(0,temp):             
-                agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessDict)
+                agent = Agent(agentId, self.osmMap, x.minAge+self.rng.integers(0, ageRange), x, self.businessDict,self.rng)
                 agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
@@ -308,18 +312,18 @@ class Simulator:
             x = self.jobClasses[0]
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            agent = Agent(agentId, self.osmMap, x.minAge+random.randint(0, ageRange), x, self.businessDict)
+            agent = Agent(agentId, self.osmMap, x.minAge+self.rng.integers(0, ageRange), x, self.businessDict,self.rng)
             agentId +=1         
             self.agents.append(agent)
             self.unshuffledAgents.append(agent)
             
-        random.shuffle(self.agents) #shuffle so that we can randomly assign vaccine 
+        self.rng.shuffle(self.agents) #shuffle so that we can randomly assign vaccine 
         
         
         for i in range(0,int(self.vaccinationPercentage*len(self.agents))):
             self.agents[i].setVaccinated()
 
-        random.shuffle(self.agents) #shuffle so that we can randomly assign a household 
+        self.rng.shuffle(self.agents) #shuffle so that we can randomly assign a household 
         
         housePop = 0
         building = None
@@ -328,11 +332,11 @@ class Simulator:
         for agent in self.agents:
             #generate Home
             if housePop ==0:
-                housePop = random.randint(1,3)
-                building = random.choice(houses)
+                housePop = self.rng.integers(1,3)
+                building = self.rng.choice(houses)
                 if (building.type == "house"):
                     houses.remove(building)
-                home = Home(building,houseId)
+                home = Home(building,houseId,self.rng)
                 houseId += 1
                 if "home" not in building.content.keys():                 
                     building.content["home"] = []   
@@ -346,9 +350,9 @@ class Simulator:
             building.node.addAgent(agent)
             
             
-        random.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
+        self.rng.shuffle(self.agents) #shuffle so that we can randomly assign people who got initial infection 
         for i in range (0, infectedAgent):
-            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.timeStamp.clone(),dormant = 0,recovery = random.randint(72,14*24) *3600,location ="Initial")
+            self.agents[i].infection = Infection(self.agents[i],self.agents[i],self.timeStamp.clone(),dormant = 0,recovery = self.rng.integers(72,14*24) *3600,location ="Initial")
             
         
     def splitAgentsForThreading(self):
@@ -401,7 +405,7 @@ class Simulator:
                     activitiesDict = manager.dict()
                     returnDicts.append(returnDict)
                     activitiesDicts.append(activitiesDict)
-                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
+                    thread = StepThread(f"Thread {i}",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict,self.rng.integers(0,100000))
                     threads.append(thread)
                     i += 1  
                 ###############################################################################################
@@ -428,7 +432,7 @@ class Simulator:
                 returnDicts.append(returnDict)
                 activitiesDicts.append(activitiesDict)
             
-                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict)
+                nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict, self.rng.integers(0,100000))
                 nothread.setStateToStep(stepSize)
                 nothread.run()
 
@@ -448,7 +452,7 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(self.timeStamp,stepSize)
+            x.step(self.timeStamp,self.rng,stepSize)
             if (x.newVisitLog is not None):
                 self.visitHistory.append(x.newVisitLog)
                 x.newVisitLog = None
@@ -458,7 +462,7 @@ class Simulator:
             #x.checkInfection(self.stepCount,stepSize)
         #print("Finished infection checking, proceeding to finalize the infection")
         for x in self.agents:
-            x.finalize(self.timeStamp,stepSize)
+            x.finalize(self.timeStamp,stepSize,self.rng)
         print("Finished finalizing the infection")
         self.timeStamp.step(stepSize)
         self.calculating = False
