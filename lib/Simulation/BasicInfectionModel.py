@@ -146,7 +146,7 @@ class BasicInfectionModel:
         infectionProbability = self.offMapInfectionRate/ (24 * 3600/ stepSize)
         if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
             # off map infection
-            self.infection = Infection(agent, 
+            agent.infection = Infection(agent, 
                                        agent,
                                        timeStamp, 
                                        dormant = self.rng.integers(24,72) *3600, #maybe put it in config?

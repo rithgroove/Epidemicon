@@ -15,5 +15,18 @@ windowHeight: 600
 reportDir: report
 reportInterval: 6
 nr_step_size : 300
-nr_day_to_simulate : 56
-pathfindFileName: pathfind.csv
+nr_day_to_simulate : 30
+pathfindFileName: pathfind.csv 
+lockdownMethod:
+  name: reduceWorkHours
+  activeCasesThreshold: 100
+  businessWorkHours:
+    restaurant:
+      start: 11
+      finish: 20
+      workdays: [0,1,2,3,4,5,6]
+    barbershop:
+      start: 11
+      finish: 20
+      workdays: [0,1,2,3,4,5,6]
+    

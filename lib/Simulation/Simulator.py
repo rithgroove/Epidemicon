@@ -224,7 +224,7 @@ class Simulator:
                 # This exception occurs if the split does not return the correct number of arguments
                 # This means that or the csv is invalid or the line is wrong, in any case the process continues
                 continue
-        print("Building dictionary took %.2fs" % (time.time() - startTime))
+        print("Building pathfind dict took %.2fs"%(time.time() - startTime))
         return pathfindDict
 
     def addSequenceToFile(self, sequence):
@@ -478,6 +478,7 @@ class Simulator:
             self.lastHour = hour
             
             self.threads = []
+            print("Pathfinding finished in: %.2fs" % (time.time() - startTime))
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
