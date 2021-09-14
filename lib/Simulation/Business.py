@@ -59,7 +59,7 @@ class Business:
     def startLockdown(self, startHour, finishHour, workdays):
         self.startHour = startHour
         self.finishHour = finishHour
-        self.workdays = workdays
+        # self.workdays = workdays
         self.isLockdown = True
 
     def finishLockdown(self):

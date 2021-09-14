@@ -54,7 +54,6 @@ def main():
     osmMap = mmap.readFile(c["OSMfile"], c["buildConnFile"], gridSize, c["buildingConfigPath"])
 
     # Start Simulator
-    aux = c["lockdownMethod"]
     sim = Simulator(
         osmMap, 
         c["jobsFile"],
