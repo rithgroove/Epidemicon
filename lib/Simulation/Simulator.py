@@ -374,12 +374,13 @@ class Simulator:
     def step(self,stepSize = 3600):
         """
         [Method] step
-        The step function. there are 5 main step:
+        The step function. there are 6 main steps:
             - pathfinding (triggered when the hour changes)
             - move the agents
             - check infection of the agents
             - finalize the infection 
-            - summarize
+            - apply/disable lockdown depending on the conditions
+            - extract data
         
         Parameter: 
             - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
@@ -469,6 +470,14 @@ class Simulator:
         self.calculating = False
         self.summarize()
         self.printInfectionLocation()
+
+        ######### Checking conditions for lockdown ###############
+        # if self.lastHour == 0 and self.timeStamp.getMinute == 0:
+        #     activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
+        #     if len(activeCases) > lockdownThreshold and not self.inLockdown:
+        #         startLockdown
+        #     elif len(activeCases) < lockdownThreshold and self.inLockdown:
+        #         finishLockdown
 
         if self.reportCooldown < 1:
             print("Extracting data")
