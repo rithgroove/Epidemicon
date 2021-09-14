@@ -148,7 +148,7 @@ def searchPath(osmMap, originNode, destinationNode, limit = None):
                     if(not inserted):
                         workingList.append(temp)
         if (found):
-            break   
+            break
     return distance, sequence
 
    

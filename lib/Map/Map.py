@@ -5,7 +5,6 @@ import numpy as np
 import geopy.distance as distance
 from pathlib import Path
 import csv
-
 from .Node import  Node
 from .Way import Way
 from .Road import Road
@@ -331,13 +330,15 @@ class Map(osmium.SimpleHandler):
                 sequence = startNode.getMovementSequence(finishNode)     
                 if sequence is None:
                     distance, sequence = searchPath(self,startNode,finishNode)
-                    startNode.addMovementSequence(sequence.clone())
+                    if sequence is not None:
+                        startNode.addMovementSequence(sequence.clone())
                 else:
                     #print("found sequence")
                     distance = sequence.totalDistance
             
             return distance, sequence
         except:
+            print("Something went wrong")
             return None, None
         
     def summarizeRoad(self):
@@ -402,7 +403,7 @@ class Map(osmium.SimpleHandler):
                 self.buildingsDict[building.type] = []
             self.buildingsDict[building.type].append(building)
             
-    def getRandomBuilding(self,buildingType):
+    def getRandomBuilding(self,buildingType,rng):
         """
         [Method] getRandomBuilding
         Get a random building based on the type
@@ -413,7 +414,7 @@ class Map(osmium.SimpleHandler):
         Return:
             [Building] the building
         """
-        return random.choice(self.buildingsDict[buildingType])
+        return rng.choice(self.buildingsDict[buildingType])
                     
 def readFile(OSMfilePath, buildConnFile="",grid = (10,10),buildingCSV = None):
     """
