@@ -133,6 +133,9 @@ class Simulator:
             - infectionModel = [InfectionModel] the infection model
             - pathfindFileName = [string] file to save/load the paths found in the execution
         """
+        self.reportPath = self.createReportDir(reportPath)
+        self.reportInterval = reportInterval
+        self.reportCooldown = reportInterval
         self.rng = np.random.default_rng(seed)
         self.jobClasses = []
         self.osmMap = osmMap
@@ -145,6 +148,7 @@ class Simulator:
         self.unshuffledAgents = []
         self.timeStamp = TimeStamp()
         self.businessDict = self.generateBusinesses(businessCVSPath, osmMap)
+        self.createBusinessSummary()
         self.history = {}
         self.history ["Susceptible"] = []
         self.history ["Exposed"] = []
@@ -163,9 +167,6 @@ class Simulator:
         self.infectionHistory = []
         self.queue = []
         self.threads = []
-        self.reportPath = self.createReportDir(reportPath)
-        self.reportInterval = reportInterval
-        self.reportCooldown = reportInterval
         self.visitHistory = []
         self.calculating = False
         if infectionModel is None:
@@ -267,11 +268,26 @@ class Simulator:
             b = Business(building, businessTypeInfo, self.rng)
             businessDictByType[building.type].append(b)
 
-        # for bType in businessDictByType:
-        #     print(bType)
-        #     for b in businessDictByType[bType]:
-        #         print(b.building.buildingId,  b.startHour, b.finishHour, b.workdays)
         return businessDictByType
+
+    def createBusinessSummary(self):
+        businessFilePath = join(self.reportPath, 'businessData.csv')
+        with open(businessFilePath, 'w', newline='') as business:
+            writer = csv.DictWriter(business, fieldnames=["type", "id", "startHour", "finishHour", "workDays"])
+            writer.writeheader()
+            
+            for bType in self.businessDict:
+                for b in self.businessDict[bType]:
+                    row = {
+                        "type": bType, 
+                        "id": b.building.buildingId, 
+                        "startHour": b.startHour, 
+                        "finishHour": b.finishHour,
+                        "workDays": b.workdays
+                    }
+                    writer.writerow(row)
+            business.close()
+
 
     def createReportDir(self, reportPath):
         """
@@ -450,14 +466,11 @@ class Simulator:
                 nothread.run()
             print("Finish pathfinding %.2fs" % (time.time() - startTime))
                     
-            cont = 0
             for returnDict in returnDicts:
                 for key in returnDict.keys():
                     sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
                     self.unshuffledAgents[int(key)].activeSequence = sequence
                     self.addSequenceToFile(sequence)
-                    cont += 1
-            print("Added %d new entries to the file"%cont)
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
