@@ -143,11 +143,9 @@ class BasicInfectionModel:
             - stepSize = [int] the step length
             - timeStamp = [TimeStamp] current timestamp
         """
-        print("infect off map")
         infectionProbability = self.offMapInfectionRate/ (24 * 3600/ stepSize)
         if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
             # off map infection
-            print("successfully infect off map")
             agent.infection = Infection(agent, 
                                        agent,
                                        timeStamp, 
