@@ -1,8 +1,7 @@
-import random
 import numpy as np
 
 class Business:
-    def __init__(self, building, businessData) -> None:
+    def __init__(self, building, businessData, rng) -> None:
         self.building = building
 
         min_workhour = int(businessData["min_workhour"])
@@ -13,10 +12,17 @@ class Business:
         max_activity_per_week = int(businessData["max_activity_per_week"])
         open24hoursChance = float(businessData["open_24_hours_chance"])
 
-        self.startHour =  random.randint (min_start_hour, max_start_hour)
-        workHours =  random.randint (min_workhour, max_workhour)
+        # TODO: change randint to a random that takes the result from a normal curve
+        self.startHour = min_start_hour
+        if (min_start_hour != max_start_hour):
+            self.startHour =  rng.integers(min_start_hour, max_start_hour)
+            
+        workHours = min_workhour
+        if (min_workhour != max_workhour):
+            workHours =  rng.integers(min_workhour, max_workhour)
         self.finishHour = (self.startHour + workHours)%24
-        if  random.random() < open24hoursChance:
+
+        if  rng.random() < open24hoursChance:
             self.startHour = 0
             self.finishHour = 0
 
@@ -25,9 +31,12 @@ class Business:
             workdays = [0, 1, 2, 3, 4]
         elif businessData["day"] == "weekend":
             workdays = [5, 6]
-        activityPerWeek =  random.randint (min_activity_per_week, max_activity_per_week)
+            
+        activityPerWeek = min_activity_per_week
+        if (min_activity_per_week < max_activity_per_week):
+            activityPerWeek =  rng.integers(min_activity_per_week, max_activity_per_week)            
         activityPerWeek = np.min([activityPerWeek, len(workdays)])
-        self.workdays = random.sample(workdays, activityPerWeek)
+        self.workdays = rng.choice(workdays, activityPerWeek)
 
         # These vars are used to set the lockdown and reset it to the original value when it ends
         self.isLockdown = False

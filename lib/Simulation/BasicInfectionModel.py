@@ -1,4 +1,4 @@
-import random
+#import random
 import geopy
 from enum import Enum
 from .Infection import Infection
@@ -50,6 +50,9 @@ class BasicInfectionModel:
         self.sim = sim
         self.osmMap = osmMap
         
+    def setRNG(self,rng):
+        self.rng = rng
+
     def infect(self, agent, stepSize, timeStamp):
         """
         [Method] infect 
@@ -94,12 +97,12 @@ class BasicInfectionModel:
         """
         for stranger in infectiousAgents:
             infectionProbability = self.flatInfectionRate/ (24 * 3600/ stepSize)
-            if infectionProbability > 0 and random.uniform(0.0,1.0) < infectionProbability: # infect
+            if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
                 agent.infection = Infection(stranger, 
                                            agent,
                                            timeStamp, 
-                                           dormant = random.randint(24,72) *3600, #maybe put it in config?
-                                           recovery = random.randint(72,14*24) *3600, #maybe put it in config?
+                                           dormant = self.rng.integers(24,72) *3600, #maybe put it in config?
+                                           recovery = self.rng.integers(72,14*24) *3600, #maybe put it in config?
                                            location = agent.currentNode.building.type) 
                 break 
         
@@ -119,12 +122,12 @@ class BasicInfectionModel:
         for stranger in infectiousAgents:
             distance = stranger.currentLocation.calculateDistance(agent.currentLocation)                
             infectionProbability = ((gradient* distance) + self.roadInfectionRate)/(24 * 3600/ stepSize)
-            if infectionProbability > 0 and random.uniform(0.0,1.0) < infectionProbability: # infect
+            if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
                 agent.infection = Infection(stranger, 
                                            agent,
                                            timeStamp, 
-                                           dormant = random.randint(24,72) *3600, #maybe put it in config?
-                                           recovery = random.randint(72,14*24) *3600, #maybe put it in config?
+                                           dormant = self.rng.integers(24,72) *3600, #maybe put it in config?
+                                           recovery = self.rng.integers(72,14*24) *3600, #maybe put it in config?
                                            location = "On the Road") 
                 break 
         
@@ -141,13 +144,13 @@ class BasicInfectionModel:
             - timeStamp = [TimeStamp] current timestamp
         """
         infectionProbability = self.offMapInfectionRate/ (24 * 3600/ stepSize)
-        if infectionProbability > 0 and random.uniform(0.0,1.0) < infectionProbability: # infect
+        if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
             # off map infection
             self.infection = Infection(agent, 
                                        agent,
                                        timeStamp, 
-                                       dormant = random.randint(24,72) *3600, #maybe put it in config?
-                                       recovery = random.randint(72,14*24) *3600, #maybe put it in config?
+                                       dormant = self.rng.integers(24,72) *3600, #maybe put it in config?
+                                       recovery = self.rng.integers(72,14*24) *3600, #maybe put it in config?
                                        location = "Going out of simulated area")          
                 
     def _collectInfectiousAgent(self, agent, infectionType):

@@ -1,4 +1,4 @@
-import random
+#import random
 class Home:
     """
     [Class] Home
@@ -9,7 +9,7 @@ class Home:
         - occupants :[List of Agent] the agents that live inside this home
         - agents : [List of Agent] the agents that is currently inside this home
     """
-    def __init__(self,building,homeId):
+    def __init__(self,building,homeId,rng):
         """
         [Constructor]
         Initialize an empty home
@@ -21,7 +21,7 @@ class Home:
         self.building = building
         self.occupants = []
         self.agents = []
-        self.groceries = random.randint(6,15)
+        self.groceries = rng.integers(6,15)
     
     def addOccupant(self,occupant):
         """
