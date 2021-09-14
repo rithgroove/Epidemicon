@@ -385,6 +385,7 @@ class Simulator:
 
         if (self.lastHour != hour):
             self.lastHour = hour
+            start = time.time()
             if self.threadNumber>1:
                 ###############################################################################################
                 # Generate Threads
@@ -445,6 +446,7 @@ class Simulator:
             self.lastHour = hour
             
             self.threads = []
+            print("Pathfinding finished in: %.2fs" % (time.time() - start))
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:

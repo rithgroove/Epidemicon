@@ -331,13 +331,15 @@ class Map(osmium.SimpleHandler):
                 sequence = startNode.getMovementSequence(finishNode)     
                 if sequence is None:
                     distance, sequence = searchPath(self,startNode,finishNode)
-                    startNode.addMovementSequence(sequence.clone())
+                    if sequence is not None:
+                        startNode.addMovementSequence(sequence.clone())
                 else:
                     #print("found sequence")
                     distance = sequence.totalDistance
             
             return distance, sequence
         except:
+            print("Something went wrong")
             return None, None
         
     def summarizeRoad(self):
