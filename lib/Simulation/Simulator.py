@@ -200,7 +200,8 @@ class Simulator:
 
         Return: [Dict[wayID: str, ("min_dist": int, "entryCoordinate": Coordinate)]]
         """
-
+        print("Start building pathfind dict")
+        startTime = time.time()
         pathfindDict={}
         for line in self.pathfindFile.readlines():
             if line[-1:] == "\n": # remove \n at the end of line if necessary
@@ -219,6 +220,7 @@ class Simulator:
                 # This exception occurs if the split does not return the correct number of arguments
                 # This means that or the csv is invalid or the line is wrong, in any case the process continues
                 continue
+        print("Building pathfind dict took %.2fs"%(time.time() - startTime))
         return pathfindDict
 
     def addSequenceToFile(self, sequence):

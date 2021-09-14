@@ -37,7 +37,7 @@ class TimeStamp:
         return int(int(self.stepCount/60) % 60)
 
     def getWeek(self):
-        return int(self.stepCount/(24*3600))
+        return int(self.stepCount/(7*24*3600))
         
     def clone(self):
         return TimeStamp(self.stepCount)
