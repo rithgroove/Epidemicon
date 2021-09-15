@@ -1,6 +1,7 @@
 import sys
 import os
 import yaml
+import argparse
 # adds the root of the git dir to the import path
 # FIXME: Directory shenanigans
 root_dir = os.getcwd()
@@ -15,7 +16,6 @@ configFileName = "config.yml"
 
 requiredConfigs = [
     "OSMfile",
-    "buildConnFile",
     "jobsFile",
     "businessFile",
     "numberOfAgents",
@@ -27,6 +27,10 @@ requiredConfigs = [
     "windowHeight",
     "reportDir",
     "reportInterval",
+]
+
+optionalConfig = [
+    "buildConnFile",
     "pathfindFileName",
 ]
 
@@ -42,34 +46,73 @@ def read_validate_config(file_path):
             errMessage += c + " "
     if err:
         raise NameError(errMessage)
+    for c in optionalConfig:
+        if c not in config:
+            config[c] = None
 
     return config
 
+def parseArgs():
+    global configFileName
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config_file", help="sets the config file")
+    parser.add_argument("--no_susceptible_stop", action="store_true", help="Interromps the execution if there are no more susceptible agents")
+    parser.add_argument("-nr", "no_render",  action="store_true", help="Execute the program without render" )
+    args = parser.parse_args()
+    
+    if args.config_file:
+        configFileName = args.config_file
+    no_susceptible_stop = False
+    
+    if args.no_susceptible_stop:
+        no_susceptible_stop = True
+    render = True
+    
+    if args.no_render:
+        render = False
+
+    return configFileName, no_susceptible_stop, render
+    
 def main():
+
+    configFileName, no_susceptible_stop, render = parseArgs()
     c = read_validate_config(configFileName)
 
     # Load the data
     gridSize = (c["gridHeight"], c["gridWidth"])
-    osmMap = mmap.readFile(c["OSMfile"], c["buildConnFile"], gridSize, c["buildingConfigPath"])
+    osmMap = mmap.readFile(
+        OSMfilePath = c["OSMfile"], 
+        buildConnFile = c["buildConnFile"],
+        grid = gridSize,
+        buildingCSV = c["buildingConfigPath"])
 
     # Start Simulator
     sim = Simulator(
-        osmMap, 
-        c["jobsFile"],
-        c["businessFile"],
-        c["pathfindFileName"],
-        c["numberOfAgents"], 
-        c["threadNumber"], 
-        c["infectedAgent"], 
-        c["vaccinationPercentage"],
-        c["reportDir"],
-        c["reportInterval"])
+        osmMap = osmMap,
+        jobCSVPath = c["jobsFile"],
+        businessCVSPath = c["businessFile"],
+        pathfindFileName = c["pathfindFileName"],
+        agentNum = c["numberOfAgents"],
+        threadNumber = c["threadNumber"],
+        infectedAgent = c["infectedAgent"],
+        vaccinationPercentage = c["vaccinationPercentage"],
+        reportPath = c["reportDir"],
+        reportInterval = c["reportInterval"])
 
-    # Draw    
-    windowSize = (c["windowWidth"], c["windowHeight"])
-    view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
-    app = Controller(model=sim, view=view)
-    app.main_loop()
+    if render:
+        # Draw    
+        windowSize = (c["windowWidth"], c["windowHeight"])
+        view = View(mymap=osmMap, simulation=sim, window_size=windowSize)
+        app = Controller(model=sim, view=view)
+        app.main_loop()
+    else:
+        stepSize = c["nr_step_size"] #5 minutes
+        dayToSimulate = c["nr_day_to_simulate"]
+        for x in range(0, dayToSimulate*24*3600, stepSize):
+            sim.step(stepSize = stepSize)   
+            _, seirStatus = sim.getAgentStatus()
+            if no_susceptible_stop and seirStatus["Susceptible"] == 0: 
+                break
 
     sim.extract()
     sim.extractVisitLog() #extract all visit log

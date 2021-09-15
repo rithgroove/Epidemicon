@@ -260,7 +260,7 @@ class Map(osmium.SimpleHandler):
         """
         file = None
         connectionDict = {}
-        if buildConnFileName != "":
+        if buildConnFileName != None:
             Path(buildConnFileName).touch()
             file = open(buildConnFileName, "r+")
             connectionDict = self.buildConnectionDict(file)
@@ -416,7 +416,7 @@ class Map(osmium.SimpleHandler):
         """
         return rng.choice(self.buildingsDict[buildingType])
                     
-def readFile(OSMfilePath, buildConnFile="",grid = (10,10),buildingCSV = None):
+def readFile(OSMfilePath, buildConnFile=None,grid = (10,10),buildingCSV = None):
     """
     [Function] readFile
     Function to generate map fom osm File
