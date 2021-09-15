@@ -260,7 +260,7 @@ class Map(osmium.SimpleHandler):
         """
         file = None
         connectionDict = {}
-        if buildConnFileName != None:
+        if buildConnFileName is not None:
             Path(buildConnFileName).touch()
             file = open(buildConnFileName, "r+")
             connectionDict = self.buildConnectionDict(file)
@@ -276,7 +276,7 @@ class Map(osmium.SimpleHandler):
                 self.roadNodesDict[newNodes.osmId] = newNodes
             self.roadNodes.extend(generatedNodes)
 
-        if file != None:
+        if file is not None:
             file.close()
 
     def buildConnectionDict(self, file):
