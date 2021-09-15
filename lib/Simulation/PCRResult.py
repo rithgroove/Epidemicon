@@ -20,20 +20,20 @@ class PCRResult:
 	def finalize(self,timeStamp):
 		if (self.finishedTimeStamp.isAfter(timeStamp)):
 			self.agent.PCRResult = None
-			self.agent.testedPositive = result
+			self.agent.testedPositive = self.result
 			minDay = timeStamp.getDay() -2 
 			if minDay < 0:
 				minDay = 0 
 			buildingVisited = []
-			for day in in range(minDay,timeStamp.getDay()+1):
-				if (day is in self.agent.visitHistory.keys()):
+			for day in range(minDay,timeStamp.getDay()+1):
+				if (day in self.agent.visitHistory.keys()):
 					history = self.agent.visitHistory[day]
 					for visit in history:
 						if visit.building not in buildingVisited:
 							buildingVisited.append(visit.building)
 			for building in buildingVisited:
-				for day in in range(minDay,timeStamp.getDay()+1):
-					if (day is in building.visitHistory.keys()):
+				for day in range(minDay,timeStamp.getDay()+1):
+					if (day in building.visitHistory.keys()):
 						history = building.visitHistory[day]
 						for visit in history:
 							print("people start to get anxious")
