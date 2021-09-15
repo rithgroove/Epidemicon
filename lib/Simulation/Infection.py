@@ -44,6 +44,7 @@ class Infection:
         self.recoveredTimeStamp.step(recovery)
         self.symptomaticsTimeStamp = TimeStamp()
         self.severeTimeStamp = TimeStamp()
+        self.deadTimeStamp = TimeStamp()
         
     def finalize(self,currentTimeStamp,stepLength,rng):
         """
@@ -63,6 +64,9 @@ class Infection:
             elif self.target.status == "Symptomatics" and rng.integers(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Severe"
                 self.severeTimeStamp = currentTimeStamp.clone()
+            elif self.target.status == "severe"  and rng.integers(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
+                self.target.infectionStatus = "Dead"                
+                self.deadTimeStamp = currentTimeStamp.clone()
         elif (currentTimeStamp.stepCount - self.timeStamp.stepCount >= self.dormant+ self.recovery):
             self.target.infectionStatus = "Recovered"
             self.target.status = "Normal"
@@ -121,6 +125,12 @@ class Infection:
         result["severeDay"] = self.severeTimeStamp.getDay()
         result["severeHour"] = self.severeTimeStamp.getHour()
         result["severeMinute"] = self.severeTimeStamp.getMinute()
+        
+        
+        result["deadTimeStamp"] = self.deadTimeStamp.stepCount
+        result["deadDay"] = self.deadTimeStamp.getDay()
+        result["deadHour"] = self.deadTimeStamp.getHour()
+        result["deadMinute"] = self.deadTimeStamp.getMinute()
         
         return result
         

@@ -20,6 +20,8 @@ from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
 import numpy as np
+from .MedicalTesting import MedicalTesting
+from .PCRResult import getPCRResultKey
 
 summaryFieldnames = [
     'Day',
@@ -29,7 +31,8 @@ summaryFieldnames = [
     'Susceptible',
     'Exposed',
     'Infectious',
-    'Recovered'
+    'Recovered',
+    'Dead'
 ]
 
 detailsFieldnames = [
@@ -63,6 +66,10 @@ detailsFieldnames = [
     'severeDay',
     'severeHour',
     'severeMinute',
+    'deadTimeStamp',
+    'deadDay',
+    'deadHour',
+    'deadMinute',
 ]
 
 def readCVS (cvsPath):
@@ -155,6 +162,8 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
+        self.tester = MedicalTesting(self.rng,0.99) #set PCR to 99% accuracy
+        self.testResults = []
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
@@ -306,7 +315,7 @@ class Simulator:
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
             for i in range(0,temp):             
-                agent = Agent(agentId, self.osmMap, x.minAge+self.rng.integers(0, ageRange), x, self.businessDict,self.rng)
+                agent = Agent(agentId, self.osmMap, x.minAge+self.rng.integers(0, ageRange), x, self.businessDict,self.rng, self.tester)
                 agentId +=1         
                 self.agents.append(agent)
                 self.unshuffledAgents.append(agent)
@@ -314,7 +323,7 @@ class Simulator:
             x = self.jobClasses[0]
             temp = int(x.populationProportion*count/float(total))
             ageRange = x.maxAge - x.minAge
-            agent = Agent(agentId, self.osmMap, x.minAge+self.rng.integers(0, ageRange), x, self.businessDict,self.rng)
+            agent = Agent(agentId, self.osmMap, x.minAge+self.rng.integers(0, ageRange), x, self.businessDict,self.rng, self.tester)
             agentId +=1         
             self.agents.append(agent)
             self.unshuffledAgents.append(agent)
@@ -460,6 +469,9 @@ class Simulator:
             if (x.newVisitLog is not None):
                 self.visitHistory.append(x.newVisitLog)
                 x.newVisitLog = None
+            if (x.newTestResult is not None):
+                self.testResults.append(x.newTestResult)
+                x.newTestResult = None
         #print("Finished moving agents, proceeding to check for infection")
         for agent in self.agents:
             self.infectionModel.infect(agent,stepSize,self.timeStamp)
@@ -512,6 +524,7 @@ class Simulator:
         result["Infectious"] = 0
         result["Exposed"] = 0
         result["Recovered"] = 0
+        result["Dead"] = 0
         for x in self.agents:
             result[x.infectionStatus] += 1
         for x in result.keys():
@@ -568,9 +581,6 @@ class Simulator:
                 writer.writerow(x.extract())
             agentsFile.close()
         
-       
-    def extractVisitLog(self):
-        
         visitFilePath = join(self.reportPath,'visit_log.csv')
         with open(visitFilePath, 'w', newline='') as detailsFile:
             writer = csv.DictWriter(detailsFile, fieldnames=getVisitKey())
@@ -579,3 +589,16 @@ class Simulator:
                 summary = i.summarize()
                 writer.writerow(summary)
             detailsFile.close()
+
+        
+        visitFilePath = join(self.reportPath,'PCR_results.csv')
+        with open(visitFilePath, 'w', newline='') as detailsFile:
+            writer = csv.DictWriter(detailsFile, fieldnames=getPCRResultKey())
+            writer.writeheader()
+            for i in self.testResults:
+                summary = i.extract()
+                writer.writerow(summary)
+            detailsFile.close()
+
+    def extractVisitLog(self):
+        print("Not Used Anymore")

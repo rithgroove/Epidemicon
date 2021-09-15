@@ -288,6 +288,8 @@ def moveAgent(agent):
         canvas.itemconfig(agent.oval,fill="#CC3333")
     elif (agent.infectionStatus == "Susceptible"):
         canvas.itemconfig(agent.oval,fill="#3333CC")
+    elif (agent.infectionStatus == "Dead"):
+        canvas.itemconfig(agent.oval,fill="#333333")
     else:
         canvas.itemconfig(agent.oval,fill="#33CC33")    
     canvas.move(agent.oval,x,y)

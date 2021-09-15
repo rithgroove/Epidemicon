@@ -14,7 +14,7 @@ class Agent:
         - age :[int] Age
         - mainJob : [Job] job
     """
-    def __init__(self,agentId, osmMap,age,job, businessesDict,rng, gender = None):
+    def __init__(self,agentId, osmMap,age,job, businessesDict,rng, tester, gender = None):
         self.home = None
         
         if (gender is None):
@@ -54,6 +54,10 @@ class Agent:
         self.testedPositive = None
         self.visitHistory = {}        
         self.newVisitLog = None
+        self.waitingResult = False
+        self.tester = tester
+        self.testResult = None
+        self.newTestResult = None
         
     def setVaccinated(self, vaccinated = True):
         """
@@ -131,49 +135,122 @@ class Agent:
         hour = timeStamp.getHour()
         # TODO: simplify these elifs
         if (self.activeSequence is None or self.activeSequence.finished):
-
             if self.status == "Symptomatics":
-                if self.currentNode != self.home.node():       
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
-                    self.activities = "going home"
-                elif self.hunger <= self.hungerCap:
-                    self.activities = "eat at home"
-                elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
-                    self.activities = "do groceries"
+                #symptomatics behavior
+                if self.testedPositive is None and not self.waitingResult:
+                    self.goTakePCR(rng,openHospitals,pathfindDict,nodeHashIdDict)
+                elif self.testedPositive == False:
+                    #false negative
+                    self.asymptomaticsBehaviour(timeStamp,rng,openRestaurants,pathfindDict,nodeHashIdDict)
+                else:
+                    self.symptomaticsBehaviour(timeStamp,pathfindDict,nodeHashIdDict)
             elif self.status == "Severe":
-                if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
-                    self.activities = "go to hospital"
-                    hospital = rng.choice(openHospitals)
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building,pathfindDict,nodeHashIdDict)
-                elif self.hunger <= self.hungerCap:
-                    self.activities = "eat at hospital"
-            elif self.mainJob.isWorking(day, hour):
-                if self.currentNode != self.mainJob.building.node:     
-                    self.activities = "go to work"            
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
-            elif self.idle <= 0:
-                if self.currentNode != self.home.node():       
-                    self.activities = "going home"  
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
-                elif self.hunger <= self.hungerCap:
-                    whereToEatProbability = rng.integers(0,100)/100.0
-                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
-                        self.activities = "go to restaurant"            
-                        restaurant = rng.choice(openRestaurants)
-                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building,pathfindDict,nodeHashIdDict)
-                    else:
-                        self.activities = "eat at home"
-                elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
-                    self.activities = "go to barbershop"            
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building,pathfindDict,nodeHashIdDict)
-                elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    self.activities = "do groceries"          
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+                #severe behavior
+                self.severeBehavior(rng,openHospitals,pathfindDict,nodeHashIdDict)
+            else:
+                #asymptomaticsBehavior
+                if self.testedPositive:
+                    self.symptomaticsBehaviour(timeStamp,pathfindDict,nodeHashIdDict)
+                elif self.anxious and not self.waitingResult:
+                    #if anxious and waiting for result, stay at home to be safe
+                    self.goTakePCR(rng,openHospitals,pathfindDict,nodeHashIdDict)
+                elif self.anxious and self.waitingResult:
+                    #if anxious and waiting for result, stay at home to be safe
+                    self.symptomaticsBehaviour(timeStamp,pathfindDict,nodeHashIdDict)
+                else:
+                    self.asymptomaticsBehaviour(timeStamp,rng,openRestaurants,pathfindDict,nodeHashIdDict)
         if (self.activeSequence is not None and self.activeSequence.new):
             return self.activeSequence.extract()
         return None
-                
+
+    def severeBehavior(self,rng,openHospitals=[],pathfindDict=None,nodeHashIdDict=None):    
+        if (not self.currentNode.isBuildingCentroid and self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
+            self.goToHospital(rng,openHospitals,pathfindDict,nodeHashIdDict)
+        elif self.hunger <= self.hungerCap:
+            self.eatAtHospital(rng,openHospitals,pathfindDict,nodeHashIdDict)
+
+    def asymptomaticsBehaviour(self,timeStamp,rng,openRestaurants=[],pathfindDict=None,nodeHashIdDict=None):
+        day = timeStamp.getDayOfWeek()
+        hour = timeStamp.getHour()
+        if self.mainJob.isWorking(day, hour):
+            #go to work
+            self.goToWork(pathfindDict,nodeHashIdDict)
+        elif self.idle <= 0:
+            if self.currentNode != self.home.node(): 
+                #go Home
+                self.goHome(pathfindDict,nodeHashIdDict)
+            elif self.hunger <= self.hungerCap:
+                whereToEatProbability = rng.integers(0,100)/100.0
+                if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
+                    #eat outside
+                    self.goToRestaurant(rng,openRestaurants,pathfindDict,nodeHashIdDict)
+                else:
+                    #eat at home
+                    self.eatAtHome(pathfindDict,nodeHashIdDict)
+            elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
+                #cut hair
+                self.goToBarber(pathfindDict,nodeHashIdDicts)
+            elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
+                #do groceries
+                self.doGroceries(pathfindDict,nodeHashIdDict)
+
+    def symptomaticsBehaviour(self,timeStamp,pathfindDict=None,nodeHashIdDict=None):
+        day = timeStamp.getDayOfWeek()
+        hour = timeStamp.getHour()
+        if self.currentNode != self.home.node():       
+            #if sick go Home
+            self.goHome(pathfindDict,nodeHashIdDict)
+        elif self.hunger <= self.hungerCap:
+            #if hungry eat at home (because feeling sick)
+            self.eatAtHome
+        elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
+            #do groceries
+            self.doGroceries(pathfindDict,nodeHashIdDict)
+
+    
+    def goToWork(self,pathfindDict=None,nodeHashIdDict=None):
+        if self.currentNode != self.mainJob.building.node:     
+            self.activities = "go to work"            
+            self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
+
+    def goHome(self,pathfindDict=None,nodeHashIdDict=None):
+        if self.currentNode != self.home.node():   
+            self.activities = "going home"  
+            self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
+
+    def goToBarber(self,pathfindDict=None,nodeHashIdDict=None):
+        self.activities = "go to barbershop"            
+        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building,pathfindDict,nodeHashIdDict)
+
+    def doGroceries(self,pathfindDict=None,nodeHashIdDict=None):
+        self.activities = "do groceries"          
+        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+
+    def goToHospital(self,rng,openHospitals=[],pathfindDict=None,nodeHashIdDict=None):
+        if self.currentNode.building.type != "hospital":
+            self.activities = "go to hospital"
+            hospital = rng.choice(openHospitals)
+            self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, hospital.building,pathfindDict,nodeHashIdDict)        
+
+    def goToRestaurant(self,rng,openRestaurants=[],pathfindDict=None,nodeHashIdDict=None):
+        self.activities = "go to restaurant"            
+        restaurant = rng.choice(openRestaurants)
+        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building,pathfindDict,nodeHashIdDict)
+
+    def eatAtHospital(self,rng,openHospitals=[],pathfindDict=None,nodeHashIdDict=None):
+        self.goToHospital(rng,openHospitals,pathfindDict,nodeHashIdDict)
+        self.activities = "eat at hospital"
+
+    def goTakePCR(self,rng,openHospitals=[],pathfindDict=None,nodeHashIdDict=None):
+        self.goToHospital(rng,openHospitals,pathfindDict,nodeHashIdDict)
+        self.activities = "take PCR"
+
+    def eatAtHome(self,pathfindDict=None,nodeHashIdDict=None):
+        self.goHome(pathfindDict,nodeHashIdDict)
+        self.activities = "eat at home"   
+
+
+
     def step(self,timeStamp,rng,steps=1):
         """
         [Method] step
@@ -207,6 +284,11 @@ class Agent:
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
             self.activities = "idle"        
             self.home.buyGroceries()
+        elif (self.activities == "take PCR" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "hospital"): 
+            print("Somebody taking PCR")           
+            self.tester.test(self,timeStamp)
+            self.idle = 7200 # wait 2 hour for testing
+            self.activities = "idle"        
         
         self.hair += 0.44/(24*(3600/steps))
         self.hunger -= self.hungerReduction/(24*(3600/steps))
@@ -232,7 +314,7 @@ class Agent:
             self.newVisitLog = log
             self.activeSequence = None
       
-    def finalize(self,currentStepNumber,stepLength,rng):
+    def finalize(self,timestamp,stepLength,rng):
         """
         [Method] finalize
         Method to update the agent SEIR and health status
@@ -241,8 +323,10 @@ class Agent:
             - currentStepNumber = [int] current step number in seconds
             - stepLength = [int] step length in seconds
         """    
-        if self.infection != None:
-            self.infection.finalize(currentStepNumber,stepLength,rng)
+        if self.infection is not None:
+            self.infection.finalize(timestamp,stepLength,rng)
+        if self.testResult is not None:
+            self.testResult.finalize(timestamp)
     
     def addVisitHistory(self, log):
         day = log.timeStamp.getDay()
@@ -296,6 +380,11 @@ class Agent:
         else:
             temp["vaccinated"] = "False"
         
+        temp["lastPCRTestStatus"] = "Untested"
+        if self.testedPositive is not None:
+            temp["lastPCRTestStatus"] = temp.testedPositive 
+
+
         return temp
     
 def getAgentKeys():
@@ -330,4 +419,5 @@ def getAgentKeys():
     temp.append("last_activities")
     temp.append("eating_out_preference")
     temp.append("vaccinated")
+    temp.append("lastPCRTestStatus")
     return temp

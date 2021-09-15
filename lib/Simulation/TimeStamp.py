@@ -50,3 +50,6 @@ class TimeStamp:
         tempString = "{}, Week = {} Day = {}\n".format(self.getDayOfWeekStr(), self.getWeek(), self.getDay())
         tempString += "Current Time = {:02d}:{:02d}:{:02d}".format(self.getHour(),self.getMinute(),self.getSecond())
         return tempString
+
+    def isAfter(self,targetTimeStamp):
+        return targetTimeStamp.stepCount > self.stepCount
