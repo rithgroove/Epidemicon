@@ -56,20 +56,20 @@ def parseArgs():
     global configFileName
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_file", help="sets the config file")
-    parser.add_argument("--no_susceptible_stop", action="store_true", help="Interromps the execution if there are no more susceptible agents")
+    parser.add_argument("--no_infectious_stop", action="store_true", help="Interromps the execution if there are no more susceptible agents")
     args = parser.parse_args()
     
     if args.config_file:
         configFileName = args.config_file
     
-    no_susceptible_stop = False
-    if args.no_susceptible_stop:
-        no_susceptible_stop = True
+    no_infectious_stop = False
+    if args.no_infectious_stop:
+        no_infectious_stop = True
 
-    return configFileName, no_susceptible_stop
+    return configFileName, no_infectious_stop
 
 def main():
-    configFileName, no_susceptible_stop = parseArgs()
+    configFileName, no_infectious_stop = parseArgs()
 
     c = read_validate_config(configFileName)
 
@@ -99,10 +99,10 @@ def main():
         lockdownMethod=c["lockdownMethod"])
         
     for x in range(0, dayToSimulate*24*3600, stepSize):
-        _, seirStatus = sim.getAgentStatus()
-        if no_susceptible_stop and seirStatus["Susceptible"] == 0: 
-            break
         sim.step(stepSize = stepSize)
+        _, seirStatus = sim.getAgentStatus()
+        if no_infectious_stop and seirStatus["Infectious"] + seirStatus["Exposed"] == 0: 
+            break
 
     sim.extract()
     sim.extractVisitLog()

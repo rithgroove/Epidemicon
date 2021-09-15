@@ -178,7 +178,7 @@ class Simulator:
         # pathFindFile
         self.pathfindFile = None
         self.pathfindDict = {}
-        if pathfindFileName != None:
+        if pathfindFileName is not None:
             Path(pathfindFileName).touch()
             self.pathfindFile = open(pathfindFileName, "r+")
             self.pathfindDict = self.buildPathfindDict()
@@ -245,7 +245,7 @@ class Simulator:
         if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
             self.pathfindDict[startNode.hashId][finishNode.hashId] = sequence
 
-            if self.pathfindFile != None:
+            if self.pathfindFile is not None:
                 seqToSave=[]
                 for mvVector in sequence.sequence:
                     start = mvVector.startingNode.hashId
