@@ -445,7 +445,7 @@ class Simulator:
                     thread.daemon = True
                     thread.setStateToStep(stepSize)
                     thread.start()
-                time.sleep(15) # sleep for 20 second to help the threads starts their work
+                time.sleep(20) # sleep for 20 second to help the threads starts their work
                 # wait for all thread to finish running
                 for i in range(0,len(threads)):
                     threads[i].join()
@@ -517,6 +517,7 @@ class Simulator:
             print("Traceable cases: ", len(activeCases))
             if len(activeCases) >= lockdown["activeCasesThreshold"] and not self.inLockdown:
                 print("Starting lockdown")
+                self.inLockdown = True
                 for businessType, businessArray in self.businessDict.items():
                     if businessType in lockdown["businessWorkhours"]:
                         lockTime = lockdown["businessWorkhours"][businessType]
@@ -524,8 +525,9 @@ class Simulator:
                             business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
             elif len(activeCases) < lockdown["activeCasesThreshold"] and self.inLockdown:
                 print("Finishing lockdown")
+                self.inLockdown = False
                 for businessType, businessArray in self.businessDict.items():
-                    if businessType in self.lockdownMeasures:
+                    if businessType in lockdown["businessWorkhours"]:
                         for business in businessArray:
                             business.finishLockdown()
 
