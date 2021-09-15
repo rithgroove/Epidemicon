@@ -57,8 +57,10 @@ def parseArgs():
     parser.add_argument("-c", "--config_file", help="sets the config file")
     parser.add_argument("--no_susceptible_stop", action="store_true", help="Interromps the execution if there are no more susceptible agents")
     args = parser.parse_args()
+    
     if args.config_file:
         configFileName = args.config_file
+    
     no_susceptible_stop = False
     if args.no_susceptible_stop:
         no_susceptible_stop = True
@@ -67,7 +69,7 @@ def parseArgs():
 
 def main():
     configFileName, no_susceptible_stop = parseArgs()
-    print(configFileName, no_susceptible_stop)
+
     c = read_validate_config(configFileName)
 
     stepSize = c["nr_step_size"] #5 minutes
