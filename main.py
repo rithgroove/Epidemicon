@@ -32,6 +32,7 @@ requiredConfigs = [
 optionalConfig = [
     "buildConnFile",
     "pathfindFileName",
+    "lockdownMethod",
 ]
 
 def read_validate_config(file_path):
@@ -97,7 +98,8 @@ def main():
         infectedAgent = c["infectedAgent"],
         vaccinationPercentage = c["vaccinationPercentage"],
         reportPath = c["reportDir"],
-        reportInterval = c["reportInterval"])
+        reportInterval = c["reportInterval"],
+        lockdownMethod=c["lockdownMethod"])
 
     if render:
         # Draw    
