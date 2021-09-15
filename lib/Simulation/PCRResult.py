@@ -19,7 +19,7 @@ class PCRResult:
 
 	def finalize(self,timeStamp):
 		if (self.finishedTimeStamp.isAfter(timeStamp)):
-			self.agent.PCRResult = None
+			self.agent.testResult = None
 			self.agent.testedPositive = self.result
 			minDay = timeStamp.getDay() -2 
 			if minDay < 0:
