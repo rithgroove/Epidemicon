@@ -56,6 +56,7 @@ def parseArgs():
     global configFileName
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_file", help="sets the config file")
+    parser.add_argument("-s", "--seed", type=int, help="sets the seed")
     parser.add_argument("--no_infectious_stop", action="store_true", help="Interromps the execution if infection is no longer possible")
     parser.add_argument("-nr", "no_render",  action="store_true", help="Execute the program without render" )
     args = parser.parse_args()
@@ -71,11 +72,15 @@ def parseArgs():
     if args.no_render:
         render = False
 
-    return configFileName, no_infectious_stop, render
+    seed = 1000
+    if args.seed:
+        seed = args.seed
+
+    return configFileName, no_infectious_stop, render, seed
     
 def main():
 
-    configFileName, no_infectious_stop, render = parseArgs()
+    configFileName, no_infectious_stop, render, seed = parseArgs()
     c = read_validate_config(configFileName)
 
     # Load the data
@@ -97,7 +102,8 @@ def main():
         infectedAgent = c["infectedAgent"],
         vaccinationPercentage = c["vaccinationPercentage"],
         reportPath = c["reportDir"],
-        reportInterval = c["reportInterval"])
+        reportInterval = c["reportInterval"],
+        seed=seed)
 
     if render:
         # Draw    

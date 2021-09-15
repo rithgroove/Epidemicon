@@ -55,6 +55,7 @@ def parseArgs():
     global configFileName
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_file", help="sets the config file")
+    parser.add_argument("-s", "--seed", type=int, help="sets the seed")
     parser.add_argument("--no_infectious_stop", action="store_true", help="Interromps the execution if there are no more susceptible agents")
     args = parser.parse_args()
     
@@ -65,10 +66,14 @@ def parseArgs():
     if args.no_infectious_stop:
         no_infectious_stop = True
 
-    return configFileName, no_infectious_stop
+    seed = 1000
+    if args.seed:
+        seed = args.seed
+
+    return configFileName, no_infectious_stop, seed
 
 def main():
-    configFileName, no_infectious_stop = parseArgs()
+    configFileName, no_infectious_stop, seed = parseArgs()
 
     c = read_validate_config(configFileName)
 
@@ -94,7 +99,8 @@ def main():
         infectedAgent = c["infectedAgent"],
         vaccinationPercentage = c["vaccinationPercentage"],
         reportPath = c["reportDir"],
-        reportInterval = c["reportInterval"])
+        reportInterval = c["reportInterval"],
+        seed=seed)
         
     for x in range(0, dayToSimulate*24*3600, stepSize):
         sim.step(stepSize = stepSize)
