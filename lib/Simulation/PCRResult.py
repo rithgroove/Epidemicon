@@ -13,6 +13,7 @@ class PCRResult:
 			self.status = "False Positive"
 		else:
 			self.status = "False Negative"
+		self.healthStatus = agent.status
 		self.timeStamp = timeStamp.clone()
 		self.finishedTimeStamp = timeStamp.clone()
 		self.finishedTimeStamp.step(waitDuration)
@@ -46,6 +47,7 @@ class PCRResult:
 		result["realCondition"] = self.realCondition
 		result["testResult"] = self.result
 		result["status"] = self.status
+		result["healthStatus"] = self.healthStatus
 		result["testedTimestamp"] = self.timeStamp.stepCount
 		result["testedDay"] = self.timeStamp.getDay()
 		result["testedHour"] = self.timeStamp.getHour()
@@ -63,6 +65,7 @@ def getPCRResultKey():
 	temp.append("realCondition")
 	temp.append("testResult")
 	temp.append("status")
+	temp.append("healthStatus")
 	temp.append("testedTimestamp")
 	temp.append("testedDay")
 	temp.append("testedHour")
