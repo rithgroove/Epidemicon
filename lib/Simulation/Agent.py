@@ -41,7 +41,7 @@ class Agent:
         self.hunger = float(rng.integers(2,10))/10.0
         self.hungerReduction = 1.0
         self.hungerCap = float(rng.integers(40,65))/100.0
-        self.eatingOutPref = float(rng.integers(0,70))/10.0
+        self.eatingOutPref = float(rng.integers(0,70))/100.0
         self.idle = 0
         self.energy = 100.0
         self.faveRetailer = rng.choice(businessesDict["retail"])
