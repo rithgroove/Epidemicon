@@ -183,7 +183,7 @@ class Simulator:
         # pathFindFile
         self.pathfindFile = None
         self.pathfindDict = {}
-        if pathfindFileName != "":
+        if pathfindFileName is not None:
             Path(pathfindFileName).touch()
             self.pathfindFile = open(pathfindFileName, "r+")
             self.pathfindDict = self.buildPathfindDict()
@@ -212,23 +212,24 @@ class Simulator:
         print("Start building pathfind dict")
         startTime = time.time()
         pathfindDict={}
-        for line in self.pathfindFile.readlines():
-            if line[-1:] == "\n": # remove \n at the end of line if necessary
-                line = line[:-1]
-            try:
-                startNodeId, finishNodeId, distance, sequenceString = line.split(";")
-                startNodeId = int(startNodeId)
-                finishNodeId = int(finishNodeId)
+        if self.pathfindFile is not None:
+            for line in self.pathfindFile.readlines():
+                if line[-1:] == "\n": # remove \n at the end of line if necessary
+                    line = line[:-1]
+                try:
+                    startNodeId, finishNodeId, distance, sequenceString = line.split(";")
+                    startNodeId = int(startNodeId)
+                    finishNodeId = int(finishNodeId)
 
-                sequence = (eval(sequenceString), float(distance))
+                    sequence = (eval(sequenceString), float(distance))
 
-                if startNodeId not in pathfindDict:
-                    pathfindDict[startNodeId] = {}
-                pathfindDict[startNodeId][finishNodeId] = sequence
-            except ValueError:
-                # This exception occurs if the split does not return the correct number of arguments
-                # This means that or the csv is invalid or the line is wrong, in any case the process continues
-                continue
+                    if startNodeId not in pathfindDict:
+                        pathfindDict[startNodeId] = {}
+                    pathfindDict[startNodeId][finishNodeId] = sequence
+                except ValueError:
+                    # This exception occurs if the split does not return the correct number of arguments
+                    # This means that or the csv is invalid or the line is wrong, in any case the process continues
+                    continue
         print("Building pathfind dict took %.2fs"%(time.time() - startTime))
         return pathfindDict
 
@@ -249,7 +250,7 @@ class Simulator:
         if finishNode.hashId not in self.pathfindDict[startNode.hashId]:
             self.pathfindDict[startNode.hashId][finishNode.hashId] = sequence
 
-            if self.pathfindFile != None:
+            if self.pathfindFile is not None:
                 seqToSave=[]
                 for mvVector in sequence.sequence:
                     start = mvVector.startingNode.hashId
@@ -589,7 +590,6 @@ class Simulator:
                 summary = i.summarize()
                 writer.writerow(summary)
             detailsFile.close()
-
         
         visitFilePath = join(self.reportPath,'PCR_results.csv')
         with open(visitFilePath, 'w', newline='') as detailsFile:
@@ -600,5 +600,13 @@ class Simulator:
                 writer.writerow(summary)
             detailsFile.close()
 
-    def extractVisitLog(self):
-        print("Not Used Anymore")
+    def getAgentStatus(self):
+        # Possible status: Normal, Symptomatics, Severe
+        # Possible infectiousStatus: Susceptible, Exposed, Infectious, Recovered
+        status = {"Normal":0, "Symptomatics": 0, "Severe": 0}
+        seirStatus = {"Susceptible": 0, "Exposed": 0, "Infectious": 0, "Recovered": 0}
+
+        for ag in self.agents:
+            status[ag.status] += 1
+            seirStatus[ag.infectionStatus] += 1
+        return status, seirStatus

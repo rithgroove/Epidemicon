@@ -32,7 +32,7 @@ class BasicInfectionModel:
         - roadInfectionRate = [float] maximum infection rate if the agent is standing next to infected agent on the road
         - offMapInfectionRate = [float] infection rate if the agent leaves the simulation area
     """
-    def __init__(self, sim, osmMap, flatInfectionRate = 0.2, roadInfectionRate = 0.68, offMapInfectionRate = 0.2):
+    def __init__(self, sim, osmMap, flatInfectionRate = 0.1, roadInfectionRate = 0.68, offMapInfectionRate = 0.1):
         """
         [Constructor] 
         Constructor for this class
