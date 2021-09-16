@@ -9,7 +9,7 @@ class PCRResult:
 			self.status = "Positive"
 		elif (agent.infection is None and not result):
 			self.status = "Negative"
-		elif (agent.infection is None and not result):
+		elif (agent.infection is not None and result):
 			self.status = "False Positive"
 		else:
 			self.status = "False Negative"
