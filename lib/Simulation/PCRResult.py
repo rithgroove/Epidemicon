@@ -17,6 +17,8 @@ class PCRResult:
 		self.timeStamp = timeStamp.clone()
 		self.finishedTimeStamp = timeStamp.clone()
 		self.finishedTimeStamp.step(waitDuration)
+		self.expiredTimeStamp = timeStamp.clone()
+		self.expiredTimeStamp.step(waitDuration)
 
 	def finalize(self,timeStamp):
 		if (self.finishedTimeStamp.isAfter(timeStamp)):
