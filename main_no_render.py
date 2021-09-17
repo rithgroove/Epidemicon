@@ -1,3 +1,4 @@
+from lib.Simulation.BasicInfectionModel import BasicInfectionModel
 import sys
 import os
 import yaml
@@ -26,6 +27,9 @@ requiredConfigs = [
     "reportInterval",
     "nr_step_size",
     "nr_day_to_simulate",
+    "flatInfectionRate",
+    "roadInfectionRate",
+    "offMapInfectionRate",
 ]
 
 optionalConfig = [
@@ -102,7 +106,10 @@ def main():
         reportPath = c["reportDir"],
         reportInterval = c["reportInterval"],
         lockdownMethod=c["lockdownMethod"],
-        seed=seed)
+        seed=seed,
+        flatInfectionRate = c["flatInfectionRate"],
+        roadInfectionRate = c["roadInfectionRate"],
+        offMapInfectionRate = c["offMapInfectionRate"])
         
     for x in range(0, dayToSimulate*24*3600, stepSize):
         sim.step(stepSize = stepSize)

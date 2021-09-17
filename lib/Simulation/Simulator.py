@@ -115,7 +115,10 @@ class Simulator:
                 reportInterval=10,
                 lockdownMethod = None,
                 infectionModel = None,
-                seed = 1000):
+                seed = 1000,
+                flatInfectionRate = 0.1, 
+                roadInfectionRate = 0.68, 
+                offMapInfectionRate = 0.1):
         """
         [Constructor]
         The constructor for Simulator class
@@ -170,7 +173,7 @@ class Simulator:
         self.visitHistory = []
         self.calculating = False
         if infectionModel is None:
-            self.infectionModel = BasicInfectionModel(self,self.osmMap)
+            self.infectionModel = BasicInfectionModel(self,self.osmMap, flatInfectionRate, roadInfectionRate, offMapInfectionRate)
         else:
             self.infectionModel = infectionModel
         self.infectionModel.setRNG(self.rng)
