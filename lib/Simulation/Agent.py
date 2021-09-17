@@ -189,7 +189,7 @@ class Agent:
                     self.eatAtHome(pathfindDict,nodeHashIdDict)
             elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
                 #cut hair
-                self.goToBarber(pathfindDict,nodeHashIdDicts)
+                self.goToBarber(pathfindDict,nodeHashIdDict)
             elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
                 #do groceries
                 self.doGroceries(pathfindDict,nodeHashIdDict)

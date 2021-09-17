@@ -28,7 +28,7 @@ class PCRResult:
 					minDay = 0 
 				buildingVisited = []
 				buildingVisited.append(self.agent.home.building) #inform people that live in the same building
-				if not self.agents.mainJob.isOutsideCity():
+				if not self.agent.mainJob.isOutsideCity():
 					buildingVisited.append(self.agent.mainJob.building) #inform people that work in the workplace
 				for building in buildingVisited:
 					for day in range(minDay,timeStamp.getDay()+1):
