@@ -22,23 +22,20 @@ class PCRResult:
 		if (self.finishedTimeStamp.isAfter(timeStamp)):
 			self.agent.testResult = None
 			self.agent.testedPositive = self.result
-			minDay = timeStamp.getDay() -2 
-			if minDay < 0:
-				minDay = 0 
-			buildingVisited = []
-			for day in range(minDay,timeStamp.getDay()+1):
-				if (day in self.agent.visitHistory.keys()):
-					history = self.agent.visitHistory[day]
-					for visit in history:
-						if visit.building not in buildingVisited:
-							buildingVisited.append(visit.building)
-			for building in buildingVisited:
-				for day in range(minDay,timeStamp.getDay()+1):
-					if (day in building.visitHistory.keys()):
-						history = building.visitHistory[day]
-						for visit in history:
-							print("people start to get anxious")
-							visit.agent.setAnxious(True)
+			if (self.result):
+				minDay = timeStamp.getDay() -2 
+				if minDay < 0:
+					minDay = 0 
+				buildingVisited = []
+				buildingVisited.append(self.agent.home.building) #inform people that live in the same building
+				if not self.agents.mainJob.isOutsideCity():
+					buildingVisited.append(self.agent.mainJob.building) #inform people that work in the workplace
+				for building in buildingVisited:
+					for day in range(minDay,timeStamp.getDay()+1):
+						if (day in building.visitHistory.keys()):
+							history = building.visitHistory[day]
+							for visit in history:
+								visit.agent.setAnxious(True)
 
 	def extract(self):
 		result = {}
