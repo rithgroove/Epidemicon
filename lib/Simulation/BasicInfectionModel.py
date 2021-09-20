@@ -118,7 +118,7 @@ class BasicInfectionModel:
             - stepSize = [int] the step length
             - timeStamp = [TimeStamp] current timestamp
         """
-        gradient = 0.05 - self.roadInfectionRate / 2.0
+        gradient = 0.01 - self.roadInfectionRate / 1.5
         for stranger in infectiousAgents:
             distance = stranger.currentLocation.calculateDistance(agent.currentLocation)                
             infectionProbability = ((gradient* distance) + self.roadInfectionRate)/(24 * 3600/ stepSize)
