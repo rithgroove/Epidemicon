@@ -3,8 +3,8 @@ buildConnFile: buildingConnection.csv
 buildingConfigPath: config/tsukuba-tu-building-data.csv
 jobsFile: config/jobs.csv
 businessFile: config/business.csv
-numberOfAgents: 1000
-threadNumber: 4
+numberOfAgents: 5000
+threadNumber: 6
 infectedAgent: 10
 vaccinationPercentage: 0.0
 verbose: false
@@ -15,5 +15,5 @@ windowHeight: 600
 reportDir: report
 reportInterval: 10
 nr_step_size : 300
-nr_day_to_simulate : 49
+nr_day_to_simulate : 28
 pathfindFileName: pathfind.csv 

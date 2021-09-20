@@ -17,8 +17,8 @@ class PCRResult:
 		self.timeStamp = timeStamp.clone()
 		self.finishedTimeStamp = timeStamp.clone()
 		self.finishedTimeStamp.step(waitDuration)
-		self.expiredTimeStamp = timeStamp.clone()
-		self.expiredTimeStamp.step(waitDuration)
+		self.expiredTimeStamp = self.finishedTimeStamp.clone()
+		self.expiredTimeStamp.step(7*3600*24)
 
 	def finalize(self,timeStamp):
 		if (self.finishedTimeStamp.isAfter(timeStamp)):
@@ -38,6 +38,10 @@ class PCRResult:
 							history = building.visitHistory[day]
 							for visit in history:
 								visit.agent.setAnxious(True)
+		elif self.agent.infection is None and self.expiredTimeStamp.isAfter(timeStamp):
+			self.agent.testResult = None
+			self.agent.testedPositive = None
+            
 
 	def extract(self):
 		result = {}
