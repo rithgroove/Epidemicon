@@ -113,6 +113,7 @@ class Simulator:
                 vaccinationPercentage = 0.0,
                 reportPath="report",
                 reportInterval=10,
+                lockdownMethod = None,
                 infectionModel = None,
                 seed = 1000):
         """
@@ -132,6 +133,9 @@ class Simulator:
             - infectionModel = [InfectionModel] the infection model
             - pathfindFileName = [string] file to save/load the paths found in the execution
         """
+        self.reportPath = self.createReportDir(reportPath)
+        self.reportInterval = reportInterval
+        self.reportCooldown = reportInterval
         self.rng = np.random.default_rng(seed)
         self.jobClasses = []
         self.osmMap = osmMap
@@ -144,6 +148,7 @@ class Simulator:
         self.unshuffledAgents = []
         self.timeStamp = TimeStamp()
         self.businessDict = self.generateBusinesses(businessCVSPath, osmMap)
+        self.createBusinessSummary()
         self.history = {}
         self.history ["Susceptible"] = []
         self.history ["Exposed"] = []
@@ -155,14 +160,13 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
+        self.lockdownMethod = lockdownMethod
+        self.inLockdown = False
         self.generateAgents(agentNum, infectedAgent)
         self.splitAgentsForThreading()
         self.infectionHistory = []
         self.queue = []
         self.threads = []
-        self.reportPath = self.createReportDir(reportPath)
-        self.reportInterval = reportInterval
-        self.reportCooldown = reportInterval
         self.visitHistory = []
         self.calculating = False
         if infectionModel is None:
@@ -262,9 +266,29 @@ class Simulator:
             if building.type not in businessTypeInfoArr:
                 continue
             businessTypeInfo = businessTypeInfoArr[building.type]
-            b = Business(building, businessTypeInfo,self.rng)
+            b = Business(building, businessTypeInfo, self.rng)
             businessDictByType[building.type].append(b)
+
         return businessDictByType
+
+    def createBusinessSummary(self):
+        businessFilePath = join(self.reportPath, 'businessData.csv')
+        with open(businessFilePath, 'w', newline='') as business:
+            writer = csv.DictWriter(business, fieldnames=["type", "id", "startHour", "finishHour", "workDays"])
+            writer.writeheader()
+            
+            for bType in self.businessDict:
+                for b in self.businessDict[bType]:
+                    row = {
+                        "type": bType, 
+                        "id": b.building.buildingId, 
+                        "startHour": b.startHour, 
+                        "finishHour": b.finishHour,
+                        "workDays": b.workdays
+                    }
+                    writer.writerow(row)
+            business.close()
+
 
     def createReportDir(self, reportPath):
         """
@@ -376,12 +400,13 @@ class Simulator:
     def step(self,stepSize = 3600):
         """
         [Method] step
-        The step function. there are 5 main step:
+        The step function. there are 6 main steps:
             - pathfinding (triggered when the hour changes)
             - move the agents
             - check infection of the agents
             - finalize the infection 
-            - summarize
+            - apply/disable lockdown depending on the conditions
+            - extract data
         
         Parameter: 
             - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
@@ -392,7 +417,8 @@ class Simulator:
 
         if (self.lastHour != hour):
             self.lastHour = hour
-            start = time.time()
+            print("Starting pathfinding")
+            startTime = time.time()
             if self.threadNumber>1:
                 ###############################################################################################
                 # Generate Threads
@@ -439,7 +465,7 @@ class Simulator:
                 nothread = StepThread(f"Nothread",chunkOfAgent,self.timeStamp,returnDict,activitiesDict,self.businessDict,self.pathfindDict,self.nodeHashIdDict, self.rng.integers(0,100000))
                 nothread.setStateToStep(stepSize)
                 nothread.run()
-
+            print("Finish pathfinding %.2fs" % (time.time() - startTime))
                     
             for returnDict in returnDicts:
                 for key in returnDict.keys():
@@ -453,7 +479,7 @@ class Simulator:
             self.lastHour = hour
             
             self.threads = []
-            print("Pathfinding finished in: %.2fs" % (time.time() - start))
+            print("Pathfinding finished in: %.2fs" % (time.time() - startTime))
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
@@ -469,6 +495,10 @@ class Simulator:
         for x in self.agents:
             x.finalize(self.timeStamp,stepSize,self.rng)
         print("Finished finalizing the infection")
+
+        if self.lockdownMethod is not None and self.timeStamp.getHour() == 0 and self.timeStamp.getMinute() == 0:
+            self.checkLockdownConditions()
+
         self.timeStamp.step(stepSize)
         self.calculating = False
         self.summarize()
@@ -480,6 +510,27 @@ class Simulator:
             self.reportCooldown = self.reportInterval
         self.reportCooldown -= 1
     
+    def checkLockdownConditions(self):
+        lockdown = self.lockdownMethod
+        if lockdown["name"] == "reduceWorkhours":
+            activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
+            print("Traceable cases: ", len(activeCases))
+            if len(activeCases) >= lockdown["activeCasesThreshold"] and not self.inLockdown:
+                print("Starting lockdown")
+                self.inLockdown = True
+                for businessType, businessArray in self.businessDict.items():
+                    if businessType in lockdown["businessWorkhours"]:
+                        lockTime = lockdown["businessWorkhours"][businessType]
+                        for business in businessArray:
+                            business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
+            elif len(activeCases) < lockdown["activeCasesThreshold"] and self.inLockdown:
+                print("Finishing lockdown")
+                self.inLockdown = False
+                for businessType, businessArray in self.businessDict.items():
+                    if businessType in lockdown["businessWorkhours"]:
+                        for business in businessArray:
+                            business.finishLockdown()
+
     def printInfectionLocation(self):
         """
         [Method] printInfectionLocation

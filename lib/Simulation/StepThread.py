@@ -76,7 +76,7 @@ class StepThread(multiprocessing.Process):
         if self.state == "step":
             self.step()
         self.finished = True
-        print(f'{self.name} finished')
+        # print(f'{self.name} finished')
 
     def step(self):
         """

@@ -31,6 +31,7 @@ requiredConfigs = [
 optionalConfig = [
     "buildConnFile",
     "pathfindFileName",
+    "lockdownMethod",
 ]
 
 def read_validate_config(file_path):
@@ -100,6 +101,7 @@ def main():
         vaccinationPercentage = c["vaccinationPercentage"],
         reportPath = c["reportDir"],
         reportInterval = c["reportInterval"],
+        lockdownMethod=c["lockdownMethod"],
         seed=seed)
         
     for x in range(0, dayToSimulate*24*3600, stepSize):
