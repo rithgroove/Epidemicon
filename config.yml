@@ -17,3 +17,6 @@ reportInterval: 10
 nr_step_size : 300
 nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv 
+flatInfectionRate: 0.2
+roadInfectionRate: 0.632
+offMapInfectionRate: 0.1
