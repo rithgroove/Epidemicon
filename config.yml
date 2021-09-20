@@ -4,7 +4,7 @@ buildingConfigPath: config/tsukuba-tu-building-data.csv
 jobsFile: config/jobs.csv
 businessFile: config/business.csv
 numberOfAgents: 5000
-threadNumber: 10
+threadNumber: 6
 infectedAgent: 10
 vaccinationPercentage: 0.0
 verbose: false
