@@ -65,5 +65,5 @@ class Business:
     def finishLockdown(self):
         self.startHour = self.originalStartHour
         self.finishHour = self.originalFinishHour
-        self.workdays = self.originalFinishHour
+        self.workdays = self.originalWorkdays
         self.isLockdown = False
