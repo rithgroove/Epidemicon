@@ -571,7 +571,7 @@ class Simulator:
         result["Infectious"] = 0
         result["Exposed"] = 0
         result["Recovered"] = 0
-        result["Dead"] = 0
+        #result["Dead"] = 0
         for x in self.agents:
             result[x.infectionStatus] += 1
         for x in result.keys():
