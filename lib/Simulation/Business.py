@@ -37,6 +37,7 @@ class Business:
             activityPerWeek =  rng.integers(min_activity_per_week, max_activity_per_week)            
         activityPerWeek = np.min([activityPerWeek, len(workdays)])
         self.workdays = rng.choice(workdays, activityPerWeek, replace=False)
+        self.workdays.sort()
 
         # These vars are used to set the lockdown and reset it to the original value when it ends
         self.isLockdown = False
@@ -64,5 +65,5 @@ class Business:
     def finishLockdown(self):
         self.startHour = self.originalStartHour
         self.finishHour = self.originalFinishHour
-        self.workdays = self.originalFinishHour
+        self.workdays = self.originalWorkdays
         self.isLockdown = False
