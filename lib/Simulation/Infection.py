@@ -64,9 +64,9 @@ class Infection:
             elif self.target.status == "Symptomatics" and rng.integers(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
                 self.target.status = "Severe"
                 self.severeTimeStamp = currentTimeStamp.clone()
-            elif self.target.status == "severe"  and rng.integers(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
-                self.target.infectionStatus = "Dead"                
-                self.deadTimeStamp = currentTimeStamp.clone()
+            # elif self.target.status == "severe"  and rng.integers(0,1000000) < ((50000 * self.target.risk)/ (24*3600/stepLength)):
+            #     self.target.infectionStatus = "Dead"                
+            #     self.deadTimeStamp = currentTimeStamp.clone()
         elif (currentTimeStamp.stepCount - self.timeStamp.stepCount >= self.dormant+ self.recovery):
             self.target.infectionStatus = "Recovered"
             self.target.status = "Normal"
@@ -127,10 +127,10 @@ class Infection:
         result["severeMinute"] = self.severeTimeStamp.getMinute()
         
         
-        result["deadTimeStamp"] = self.deadTimeStamp.stepCount
-        result["deadDay"] = self.deadTimeStamp.getDay()
-        result["deadHour"] = self.deadTimeStamp.getHour()
-        result["deadMinute"] = self.deadTimeStamp.getMinute()
+        # result["deadTimeStamp"] = self.deadTimeStamp.stepCount
+        # result["deadDay"] = self.deadTimeStamp.getDay()
+        # result["deadHour"] = self.deadTimeStamp.getHour()
+        # result["deadMinute"] = self.deadTimeStamp.getMinute()
         
         return result
         

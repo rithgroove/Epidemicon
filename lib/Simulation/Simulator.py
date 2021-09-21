@@ -31,8 +31,7 @@ summaryFieldnames = [
     'Susceptible',
     'Exposed',
     'Infectious',
-    'Recovered',
-    'Dead'
+    'Recovered'
 ]
 
 detailsFieldnames = [
@@ -65,11 +64,7 @@ detailsFieldnames = [
     'severeTimeStamp',
     'severeDay',
     'severeHour',
-    'severeMinute',
-    'deadTimeStamp',
-    'deadDay',
-    'deadHour',
-    'deadMinute',
+    'severeMinute'
 ]
 
 def readCVS (cvsPath):

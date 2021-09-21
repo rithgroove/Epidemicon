@@ -131,8 +131,6 @@ class Agent:
 
         Important: This method is being used by the StepThread.py which is a subclass of multiprocessing class. Hence why the method returns the movement sequence instead of just simply setting the sequence to the agents. In short, this method is not called by main thread but by subthread. 
         """      
-        if(self.agentId == 3149):
-            print("agent 3149 reporting for duty")
 
         day = timeStamp.getDayOfWeek()
         hour = timeStamp.getHour()
@@ -141,42 +139,25 @@ class Agent:
             if self.status == "Symptomatics":
                 #symptomatics behavior
                 if self.testedPositive is None and not self.waitingResult:
-                    if(self.agentId == 3149):
-                        print("1")
                     self.goTakePCR(rng,openHospitals,pathfindDict,nodeHashIdDict)
                 elif self.testedPositive == False:
-                    if(self.agentId == 3149):
-                        print("2")
                     #false negative
                     self.asymptomaticsBehaviour(timeStamp,rng,openRestaurants,pathfindDict,nodeHashIdDict)
                 else:
-                    if(self.agentId == 3149):
-                        print("3")
                     self.symptomaticsBehaviour(timeStamp,pathfindDict,nodeHashIdDict)
             elif self.status == "Severe":
-                #severe behavior
-                if(self.agentId == 3149):
-                    print("4")
                 self.severeBehavior(rng,openHospitals,pathfindDict,nodeHashIdDict)
             else:
                 #asymptomaticsBehavior
                 if self.testedPositive is not None and self.testedPositive:
-                    if(self.agentId == 3149):
-                        print("5")
                     self.symptomaticsBehaviour(timeStamp,pathfindDict,nodeHashIdDict)
                 elif self.anxious and not self.waitingResult:
-                    if(self.agentId == 3149):
-                        print("6")
                     #if anxious and waiting for result, stay at home to be safe
                     self.goTakePCR(rng,openHospitals,pathfindDict,nodeHashIdDict)
                 elif self.anxious and self.waitingResult:
-                    if(self.agentId == 3149):
-                        print("7")
                     #if anxious and waiting for result, stay at home to be safe
                     self.symptomaticsBehaviour(timeStamp,pathfindDict,nodeHashIdDict)
                 else:
-                    if(self.agentId == 3149):
-                        print("8")
                     self.asymptomaticsBehaviour(timeStamp,rng,openRestaurants,pathfindDict,nodeHashIdDict)
         if (self.activeSequence is not None and self.activeSequence.new):
             return self.activeSequence.extract()
