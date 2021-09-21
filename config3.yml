@@ -12,9 +12,9 @@ gridHeight: 10
 gridWidth: 10
 windowWidth: 800
 windowHeight: 600
-reportDir: baseRepetition1
+reportDir: baseRepetition3
 reportInterval: 10
 nr_step_size : 300
 nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv
-seed: 1510
+seed: 3647

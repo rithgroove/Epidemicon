@@ -31,6 +31,8 @@ requiredConfigs = [
 optionalConfig = [
     "buildConnFile",
     "pathfindFileName",
+    "lockdownMethod",
+    "seed",
 ]
 
 def read_validate_config(file_path):
@@ -66,7 +68,7 @@ def parseArgs():
     if args.no_infectious_stop:
         no_infectious_stop = True
 
-    seed = 1000
+    seed = None
     if args.seed:
         seed = args.seed
 
@@ -79,6 +81,11 @@ def main():
 
     stepSize = c["nr_step_size"] #5 minutes
     dayToSimulate = c["nr_day_to_simulate"]
+    if seed is None:
+        if c["seed"] is not None:
+            seed = c["seed"]
+        else:
+            seed = 100
 
     # Load the data
     gridSize = (c["gridHeight"], c["gridWidth"])
@@ -100,6 +107,7 @@ def main():
         vaccinationPercentage = c["vaccinationPercentage"],
         reportPath = c["reportDir"],
         reportInterval = c["reportInterval"],
+        lockdownMethod=c["lockdownMethod"],
         seed=seed)
         
     for x in range(0, dayToSimulate*24*3600, stepSize):
