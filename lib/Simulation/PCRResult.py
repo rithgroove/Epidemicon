@@ -38,9 +38,13 @@ class PCRResult:
 							history = building.visitHistory[day]
 							for visit in history:
 								visit.agent.setAnxious(True)
+			else:
+				self.agent.setAnxious(False)
+
 		elif self.agent.infection is None and self.expiredTimeStamp.isAfter(timeStamp):
 			self.agent.testResult = None
 			self.agent.testedPositive = None
+			self.agent.setAnxious(False)
             
 
 	def extract(self):
