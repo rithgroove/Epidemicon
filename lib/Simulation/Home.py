@@ -21,7 +21,10 @@ class Home:
         self.building = building
         self.occupants = []
         self.agents = []
-        self.groceries = rng.integers(6,15)
+        self.groceries = rng.integers(1,5)#(6,15)
+        self.supplies  = rng.integers(1,5)#6,15)
+        self.waiting_order_food     = False
+        self.waiting_order_supplies = False
     
     def addOccupant(self,occupant):
         """
@@ -73,6 +76,13 @@ class Home:
         method to add stock of food at home. 
         """
         self.groceries += len(self.occupants) * 6
+        
+    def buySupplies(self):
+        """
+        [Method] buyGroceries        
+        method to add stock of food at home. 
+        """
+        self.supplies += len(self.occupants)*30
     
     def consumeGroceries(self):
         """

@@ -20,6 +20,7 @@ from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
 import numpy as np
+from .online_shopping import OnlineShopping
 
 summaryFieldnames = [
     'Day',
@@ -187,6 +188,9 @@ class Simulator:
             self.nodeHashIdDict[n.hashId] = n
 
         atexit.register(self.cleanup)
+        
+        ## for online orders / delivery agents ##
+        self.online_shopping = OnlineShopping 
 
     def cleanup(self):
         """
