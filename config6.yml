@@ -1,0 +1,32 @@
+OSMfile: osmData/TX-To-TU.osm
+buildConnFile: buildingConnection.csv
+buildingConfigPath: config/tsukuba-tu-building-data.csv
+jobsFile: config/jobs.csv
+businessFile: config/business.csv
+numberOfAgents: 5000
+threadNumber: 6
+infectedAgent: 10
+vaccinationPercentage: 0.0
+verbose: false
+gridHeight: 10
+gridWidth: 10
+windowWidth: 800
+windowHeight: 600
+reportDir: reducedWorkhours1
+reportInterval: 10
+nr_step_size : 300
+nr_day_to_simulate : 49
+pathfindFileName: pathfind.csv
+seed: 3732
+lockdownMethod:
+  name: reduceWorkhours
+  activeCasesThreshold: 150
+  businessWorkhours:
+    restaurant:
+      start: 0
+      finish: 0
+      workdays: [0,1,2,3,4,5,6]
+    barbershop:
+      start: 0
+      finish: 0
+      workdays: [0,1,2,3,4,5,6]
