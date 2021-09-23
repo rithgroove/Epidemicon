@@ -12,12 +12,12 @@ gridHeight: 10
 gridWidth: 10
 windowWidth: 800
 windowHeight: 600
-reportDir: reducedWorkhours1
+reportDir: totalLockdown2
 reportInterval: 10
 nr_step_size : 300
 nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv
-seed: 4680
+seed: 1313
 lockdownMethod:
   name: reduceWorkhours
   activeCasesThreshold: 150
