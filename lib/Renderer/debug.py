@@ -2,7 +2,7 @@ import os
 try:    os.mkdir("debug")
 except: pass
 
-def _on_show_jobs(crtl):
+def _on_show_jobs(model):
     def __count_jobs(agentlist, jobclasses):
         d = {}
         for job in jobclasses:
@@ -16,14 +16,14 @@ def _on_show_jobs(crtl):
     
     output = []
     output.append(f"\n====DEBUG====")
-    output.append(f"Step Count: {crtl.model.timeStamp.stepCount}")
-    output.append(f"# Agents: {len(crtl.model.agents)}")
-    output.append(f"Jobs: \n{__count_jobs(agentlist=crtl.model.agents, jobclasses=crtl.model.jobClasses)}")
+    output.append(f"Step Count: {model.timeStamp.stepCount}")
+    output.append(f"# Agents: {len(model.agents)}")
+    output.append(f"Jobs: \n{__count_jobs(agentlist=model.agents, jobclasses=model.jobClasses)}")
     output.append(f"============\n")
 
     print("\n".join(output))
     
-def _on_show_orders(crtl):
+def _on_show_orders(model, fnameout):
     def __get_worktime(agentlist, jobclass):
         d = {}
         for agent in agentlist:
@@ -35,13 +35,20 @@ def _on_show_orders(crtl):
 
     output = []
     output.append(f"\n====DEBUG====")
-    output.append(f"Delivery agents:\n{__get_worktime(agentlist=crtl.model.agents, jobclass='delivery_person')}")
-    output.append(f"\nOrders Placed: {crtl.model.online_shopping.str_orders_history()}")
+    output.append(f"Delivery agents:\n{__get_worktime(agentlist=model.agents, jobclass='delivery_person')}")
+    output.append(f"\nOrders Placed: {model.online_shopping.str_orders_history()}")
     output.append(f"============\n")
+    
+    file=open(f"debug/{fnameout}.txt",'w')
+    for v in output:
+        file.writelines([v])
+    file.close()
     
     print("\n".join(output))
     
-def _on_agents_position(crtl, save_or_show="save"):
+    
+    
+def _on_agents_position(model, save_or_show="save"):
     def __get_locations(agentlist, attr):
         l = []
         for agent in agentlist:
@@ -59,11 +66,11 @@ def _on_agents_position(crtl, save_or_show="save"):
     output = []
     output.append("\n====DEBUG====")
     output.append("Saving home")
-    data = pd.DataFrame(__get_locations(agentlist=crtl.model.agents, attr='home'), columns=["latitude","longitude"])
+    data = pd.DataFrame(__get_locations(agentlist=model.agents, attr='home'), columns=["latitude","longitude"])
     data.to_csv(f"./debug/home_{foutname}.csv", index=False)
     
     output.append("Saving workplace")
-    data = pd.DataFrame(__get_locations(agentlist=crtl.model.agents, attr='mainJob'), columns=["latitude","longitude"])
+    data = pd.DataFrame(__get_locations(agentlist=model.agents, attr='mainJob'), columns=["latitude","longitude"])
     data.to_csv(f"./debug/workplace_{foutname}.csv", index=False)
     output.append("============\n")
     

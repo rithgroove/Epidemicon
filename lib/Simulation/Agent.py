@@ -1,7 +1,8 @@
-
 import numpy as np
 from .Infection import Infection 
 from .VisitLog import VisitLog
+from .online_shopping import OnlineShopping
+
 class Agent:
     """
     [Class] Agent

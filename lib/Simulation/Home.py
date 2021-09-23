@@ -21,7 +21,7 @@ class Home:
         self.building = building
         self.occupants = []
         self.agents = []
-        self.groceries = rng.integers(1,5)#(6,15)
+        self.groceries = rng.integers(6,15)
         self.supplies  = rng.integers(1,5)#6,15)
         self.waiting_order_food     = False
         self.waiting_order_supplies = False

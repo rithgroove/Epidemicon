@@ -8,6 +8,7 @@ root_dir = os.getcwd()
 sys.path.append(root_dir)
 import lib.Map.Map as mmap
 from lib.Simulation.Simulator import Simulator
+import lib.Renderer.debug as debug
 
 configFileName = "config.yml"
 
@@ -118,6 +119,8 @@ def main():
 
     sim.extract()
     sim.extractVisitLog()
+    
+    debug._on_show_orders(model=sim, fnameout=configFileName)
 
 if __name__ == "__main__":
     main()
