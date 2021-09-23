@@ -330,35 +330,35 @@ class Agent:
         return self.currentNode == building.node
     
     def delivery_agent(self, timeStamp):
-        print(f"I'm a delivery person with {len(self.orders)} orders, at work? {self.is_at_work()} status? {self.activities}")
+        # print(f"I'm a delivery person with {len(self.orders)} orders, at work? {self.is_at_work()} status? {self.activities}")
              
         # at work
         if self.is_at_work():
             if len(self.orders) <= 0:
                 self.orders = OnlineShopping.get_orders(agent=self, n=3)
-                print(f"+ got {len(self.orders)} new orders")
+                # print(f"+ got {len(self.orders)} new orders")
                     
             if len(self.orders) > 0:
                 self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[0].dest.building)
                 self.activities = "delivering"
-                print("+ Going out to deliver")
+                # print("+ Going out to deliver")
         # at clients home, arrival
         elif self.activities == "delivering" and self.is_at(self.orders[0].dest.building):
             self.idle = 300
             OnlineShopping.delivery(order=self.orders.pop(0), when_delivered=timeStamp.stepCount)
-            print("+ Delivering order #", self.orders[0].oid)
+            # print("+ Delivering order #", self.orders[0].oid)
             
             # decide next activity
             if len(self.orders) > 0  and self.idle <= 0: #test idle <=0
-                print("+ Going out to deliver next order")
+                # print("+ Going out to deliver next order")
                 self.activities = "delivering"
                 self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[0].dest.building)
             elif self.idle <= 0: # back to the store
-                print("+ Going back to the shop")
+                # print("+ Going back to the shop")
                 self.activities = "go to work"
                 self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
             else:
-                print(f"+ Waiting... {self.idle}")
+                # print(f"+ Waiting... {self.idle}")
 
 def getAgentKeys():
     """

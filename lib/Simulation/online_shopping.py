@@ -20,7 +20,7 @@ class OnlineShopping():
     
     @staticmethod
     def place_order(dest, when_ordered, food, supplies):
-        print("Placing order #", OnlineShopping.n_orders)
+        # print("Placing order #", OnlineShopping.n_orders)
         
         dest.waiting_order = True
         new_order = Order(OnlineShopping.n_orders, dest, when_ordered, food, supplies)
