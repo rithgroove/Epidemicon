@@ -343,10 +343,10 @@ class Agent:
                 self.activities = "delivering"
                 # print("+ Going out to deliver")
         # at clients home, arrival
-        elif self.activities == "delivering" and self.is_at(self.orders[0].dest.building):
+        elif len(self.orders)>0 and self.activities == "delivering" and self.is_at(self.orders[0].dest.building):
             self.idle = 300
-            OnlineShopping.delivery(order=self.orders.pop(0), when_delivered=timeStamp.stepCount)
             # print("+ Delivering order #", self.orders[0].oid)
+            OnlineShopping.delivery(order=self.orders.pop(0), when_delivered=timeStamp.stepCount)
 
             # decide next activity
             if len(self.orders) > 0  and self.idle <= 0: #test idle <=0
@@ -357,7 +357,7 @@ class Agent:
                 # print("+ Going back to the shop")
                 self.activities = "go to work"
                 self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building)
-            #else:
+            # else:
                 # print(f"+ Waiting... {self.idle}")
 
 def getAgentKeys():
