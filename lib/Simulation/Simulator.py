@@ -487,7 +487,7 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(self.timeStamp,self.rng,stepSize)
+            x.step(self.timeStamp,self.rng,stepSize,self.pathfindDict,self.nodeHashIdDict)
             if (x.newVisitLog is not None):
                 self.visitHistory.append(x.newVisitLog)
                 x.newVisitLog = None
