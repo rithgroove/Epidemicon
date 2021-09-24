@@ -46,6 +46,10 @@ class Job:
         for i in indexes[:(self.activityPerWeek-1)]:
             self.workdays  += (2**(6-i))
         self.agent = None
+
+        self.originaWorkhour = self.workhour 
+        self.originalStartHour = self.startHour 
+        self.originaWworkdays = self.workdays         
         
     def getName(self):
         """
@@ -76,3 +80,11 @@ class Job:
         if self.workdays & (2**(6-day)) and (hour >= self.startHour and hour <= self.startHour+self.workhour) :
             return True
         return False
+
+    def startLockdown(self, startHour, workhour):
+        self.startHour = startHour
+        self.workhour = workhour
+
+    def finishLockdown(self):
+        self.startHour = self.originalStartHour
+        self.workhour = self.originaWorkhour

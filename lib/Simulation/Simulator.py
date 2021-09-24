@@ -511,25 +511,40 @@ class Simulator:
         self.reportCooldown -= 1
     
     def checkLockdownConditions(self):
-        lockdown = self.lockdownMethod
-        if lockdown["name"] == "reduceWorkhours":
+        if self.lockdownMethod["name"] == "reduceWorkhours":
             activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
             print("Traceable cases: ", len(activeCases))
-            if len(activeCases) >= lockdown["activeCasesThreshold"] and not self.inLockdown:
+            if len(activeCases) >= self.lockdownMethod["activeCasesThreshold"] and not self.inLockdown:
                 print("Starting lockdown")
-                self.inLockdown = True
-                for businessType, businessArray in self.businessDict.items():
-                    if businessType in lockdown["businessWorkhours"]:
-                        lockTime = lockdown["businessWorkhours"][businessType]
-                        for business in businessArray:
-                            business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
-            elif len(activeCases) < lockdown["activeCasesThreshold"] and self.inLockdown:
+                self.startLockdown(self.lockdownMethod)
+
+            elif len(activeCases) < self.lockdownMethod["activeCasesThreshold"] and self.inLockdown:
                 print("Finishing lockdown")
-                self.inLockdown = False
-                for businessType, businessArray in self.businessDict.items():
-                    if businessType in lockdown["businessWorkhours"]:
-                        for business in businessArray:
-                            business.finishLockdown()
+                self.finishLockdown(self.lockdownMethod)
+
+    def startLockdown(self, lockdown):
+        self.inLockdown = True
+        for businessType, businessArray in self.businessDict.items():
+            if businessType in lockdown["businessWorkhours"]:
+                lockTime = lockdown["businessWorkhours"][businessType]
+                for business in businessArray:
+                    business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
+        for ag in self.agents:
+            jobBuildingType = ag.mainJob.building.type
+            if  jobBuildingType in lockdown["businessWorkhours"]:
+                lockTime = lockdown["businessWorkhours"][jobBuildingType]
+                ag.mainJob.startLockdown(lockTime["start"], lockTime["finish"] - lockTime["start"])
+
+    def finishLockdown(self, lockdown):
+        self.inLockdown = False
+        for businessType, businessArray in self.businessDict.items():
+            if businessType in lockdown["businessWorkhours"]:
+                for business in businessArray:
+                    business.finishLockdown()
+        for ag in self.agents:
+            jobBuildingType = ag.mainJob.building.type
+            if  jobBuildingType in lockdown["businessWorkhours"]:
+                ag.mainJob.finishLockdown()
 
     def printInfectionLocation(self):
         """
