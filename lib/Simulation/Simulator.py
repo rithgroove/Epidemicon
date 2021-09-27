@@ -264,15 +264,11 @@ class Simulator:
         businessDictByType = {}
         for line in readCVS(businessCVSPath):
             businessType = line["building_type"]
-            businessTypeInfoArr[businessType] = line
             businessDictByType[businessType] = []
-        for building in osmMap.buildings:
-            if (building.type not in businessTypeInfoArr) or not building.active:
-                continue
-            businessTypeInfo = businessTypeInfoArr[building.type]
-            b = Business(building, businessTypeInfo, self.rng)
-            businessDictByType[building.type].append(b)
-
+            if businessType in osmMap.buildingsDict:
+                for building in osmMap.buildingsDict[businessType]:
+                    b = Business(building, line, self.rng)
+                    businessDictByType[building.type].append(b)
         return businessDictByType
 
     def createBusinessSummary(self):
