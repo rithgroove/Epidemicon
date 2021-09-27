@@ -446,7 +446,7 @@ class Simulator:
                     thread.daemon = True
                     thread.setStateToStep(stepSize)
                     thread.start()
-                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                time.sleep(5) # sleep for 20 second to help the threads starts their work
                 # wait for all thread to finish running
                 for i in range(0,len(threads)):
                     threads[i].join()
