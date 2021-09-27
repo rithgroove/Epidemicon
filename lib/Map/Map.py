@@ -336,10 +336,18 @@ class Map(osmium.SimpleHandler):
                     distance, sequence = searchPath(self,startNode,finishNode)
                     if sequence is not None:
                         startNode.addMovementSequence(sequence.clone())
+
+                        #print("Normal pathfind")
+                    else:
+                        print("WTF")
+                        print(agent.agentId)
+                        print(building)
                 else:
                     #print("found sequence")
+                    #print("pathfind found on previously calculated path")
                     distance = sequence.totalDistance
-            
+            if agent.agentId == "2023" or agent.agentId == 2023:
+                print(building) 
             return distance, sequence
         except:
            print("Something went wrong")

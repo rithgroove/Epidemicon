@@ -415,13 +415,13 @@ class Simulator:
         Parameter: 
             - stepSize = how long we wanted to step forward in seconds (60 means 60 seconds)
         """
+        print(f"totalAgent = {len(self.agents)}")
         print(self.timeStamp)
         hour = self.timeStamp.getHour()
         self.calculating = True
 
         if (self.lastHour != hour):
             self.lastHour = hour
-            print("Starting pathfinding")
             startTime = time.time()
             if self.threadNumber>1:
                 ###############################################################################################
@@ -450,7 +450,7 @@ class Simulator:
                     thread.daemon = True
                     thread.setStateToStep(stepSize)
                     thread.start()
-                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                time.sleep(5) # sleep for 5 second to help the threads starts their work
                 # wait for all thread to finish running
                 for i in range(0,len(threads)):
                     threads[i].join()
