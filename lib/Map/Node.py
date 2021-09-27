@@ -104,7 +104,8 @@ class Node():
         Parameter:
             - connection = [Node] The node (not osmium "Node", osmium "Node" is deleted after the loop).
         """
-        self.connections.append(connection)
+        if (connection not in self.connections and connection != self):
+            self.connections.append(connection)
         
     def removeConnection(self,connection):
         """
