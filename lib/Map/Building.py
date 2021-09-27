@@ -37,7 +37,7 @@ class Building:
         self.node = None
         self.content = {}
         self.visitHistory = {}
-        active = False
+        self.active = True
         
     def __str__(self):
         """
@@ -46,6 +46,7 @@ class Building:
         """
         tempstring = f"[Building]\n"
         tempstring = tempstring + f"id: {self.way.osmId}\n"
+        tempstring = tempstring + f"type: {self.type}\n"
         tempstring = tempstring + f"number of nodes : {self.way.nodes.__len__()}\n"
         tempstring = tempstring + f"Tags : \n"
         for key in self.tags.keys():

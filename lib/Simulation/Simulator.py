@@ -267,7 +267,7 @@ class Simulator:
             businessTypeInfoArr[businessType] = line
             businessDictByType[businessType] = []
         for building in osmMap.buildings:
-            if building.type not in businessTypeInfoArr:
+            if (building.type not in businessTypeInfoArr) or not building.active:
                 continue
             businessTypeInfo = businessTypeInfoArr[building.type]
             b = Business(building, businessTypeInfo, self.rng)
