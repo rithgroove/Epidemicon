@@ -319,7 +319,7 @@ class View():
                 path.append(x)
                 path.append(y)
             if (path.__len__() > 6): #at least a triangle if not don't render
-                self.canvas.create_polygon(path, outline='#515464',fill='#CCCCCC', width=2)           
+                self.canvas.create_polygon(path, outline='#515464',fill=temp.color, width=2)           
                 self.drawCircle(temp.coordinate.lon,temp.coordinate.lat,2, "#DDDDDD")   
             if (temp.entryPoint is not None):
                 #print("rendering entry Point")

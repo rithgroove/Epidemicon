@@ -58,7 +58,7 @@ def parseArgs():
     parser.add_argument("-c", "--config_file", help="sets the config file")
     parser.add_argument("-s", "--seed", type=int, help="sets the seed")
     parser.add_argument("--no_infectious_stop", action="store_true", help="Interromps the execution if infection is no longer possible")
-    parser.add_argument("-nr", "no_render",  action="store_true", help="Execute the program without render" )
+    parser.add_argument("-nr", "--no_render",  action="store_true", help="Execute the program without render" )
     args = parser.parse_args()
     
     if args.config_file:
