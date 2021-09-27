@@ -174,7 +174,7 @@ class Grid():
         if self.defaultBuildings is not None:
             for building in nonTaggedBuildings:
                 building.setType(self.defaultBuildings["type"])
-
+    
     def __str__(self):
         """
         [Method] __str__        
