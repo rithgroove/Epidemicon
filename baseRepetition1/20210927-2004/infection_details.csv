@@ -1,0 +1,11 @@
+infectedAgentId,infectedAgentProfession,originAgentId,originAgentProfession,location,lat,lon,nodeId,exposedTimeStamp,exposedDay,exposedHour,exposedMinute,incubationDuration,infectiousTimeStamp,infectiousDay,infectiousHour,infectiousMinute,recoveryDuration,recoveredTimeStamp,recoveredDay,recoveredHour,recoveredMinute,symptomaticTimeStamp,symptomaticDay,symptomaticHour,symptomaticMinute,severeTimeStamp,severeDay,severeHour,severeMinute
+3596,retailer,3596,retailer,Initial,36.087836,140.10564714999998,840,0,0,0,0,0,0,0,0,0,306000,306000,3,13,0,0,0,0,0,0,0,0,0
+4414,salaryman,4414,salaryman,Initial,36.10033212857143,140.100973,903,0,0,0,0,0,0,0,0,0,313200,313200,3,15,0,0,0,0,0,0,0,0,0
+3815,salaryman,3815,salaryman,Initial,36.1060892,140.106584325,1440,0,0,0,0,0,0,0,0,0,446400,446400,5,4,0,1200,0,0,20,0,0,0,0
+2568,salaryman_outside_city,2568,salaryman_outside_city,Initial,36.09797326666666,140.09671545,1584,0,0,0,0,0,0,0,0,0,453600,453600,5,6,0,0,0,0,0,0,0,0,0
+846,university_student,846,university_student,Initial,36.11848122,140.09753701999998,1023,0,0,0,0,0,0,0,0,0,1080000,1080000,12,12,0,0,0,0,0,0,0,0,0
+3788,salaryman,3788,salaryman,Initial,36.085758075,140.113182825,52,0,0,0,0,0,0,0,0,0,910800,910800,10,13,0,0,0,0,0,0,0,0,0
+2901,salaryman_outside_city,2901,salaryman_outside_city,Initial,36.0900744,140.112230075,768,0,0,0,0,0,0,0,0,0,849600,849600,9,20,0,0,0,0,0,0,0,0,0
+1962,university_student,1962,university_student,Initial,36.083091800000005,140.1153161,683,0,0,0,0,0,0,0,0,0,396000,396000,4,14,0,0,0,0,0,0,0,0,0
+2971,salaryman_outside_city,2971,salaryman_outside_city,Initial,36.09559238,140.09747894000003,447,0,0,0,0,0,0,0,0,0,320400,320400,3,17,0,0,0,0,0,0,0,0,0
+288,student,288,student,Initial,36.085269775,140.11409392500002,50,0,0,0,0,0,0,0,0,0,446400,446400,5,4,0,0,0,0,0,0,0,0,0
