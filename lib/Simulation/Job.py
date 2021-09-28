@@ -26,8 +26,6 @@ class Job:
         if (jobClass.minStartHour != jobClass.maxStartHour):
             self.startHour =  rng.integers(jobClass.minStartHour,jobClass.maxStartHour)        
         
-        
-        
         self.activityPerWeek = jobClass.minActivityPerWeek
         if (jobClass.minActivityPerWeek != jobClass.maxActivityPerWeek):
             self.activityPerWeek =  rng.integers(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
