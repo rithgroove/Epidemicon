@@ -264,14 +264,11 @@ class Simulator:
         businessDictByType = {}
         for line in readCVS(businessCVSPath):
             businessType = line["building_type"]
-            businessTypeInfoArr[businessType] = line
             businessDictByType[businessType] = []
-        for building in osmMap.buildings:
-            if building.type not in businessTypeInfoArr:
-                continue
-            businessTypeInfo = businessTypeInfoArr[building.type]
-            b = Business(building, businessTypeInfo, self.rng)
-            businessDictByType[building.type].append(b)
+            if businessType in osmMap.buildingsDict:
+                for building in osmMap.buildingsDict[businessType]:
+                    b = Business(building, line, self.rng)
+                    businessDictByType[building.type].append(b)
 
         return businessDictByType
 
@@ -450,7 +447,7 @@ class Simulator:
                     thread.daemon = True
                     thread.setStateToStep(stepSize)
                     thread.start()
-                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                time.sleep(5) # sleep for 20 second to help the threads starts their work
                 # wait for all thread to finish running
                 for i in range(0,len(threads)):
                     threads[i].join()
@@ -475,7 +472,7 @@ class Simulator:
                 for key in returnDict.keys():
                     sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
                     self.unshuffledAgents[int(key)].activeSequence = sequence
-                    self.addSequenceToFile(sequence)
+                    self.addSequenceToFile(sequence.clone())
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
