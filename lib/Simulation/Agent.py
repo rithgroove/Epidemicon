@@ -173,7 +173,6 @@ class Agent:
         day = timeStamp.getDayOfWeek()
         hour = timeStamp.getHour()
         if self.mainJob.isWorking(day, hour):
-            #go to work
             self.goToWork(pathfindDict,nodeHashIdDict)
         elif self.idle <= 0:
             if self.currentNode != self.home.node(): 

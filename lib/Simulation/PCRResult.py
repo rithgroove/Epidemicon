@@ -22,8 +22,8 @@ class PCRResult:
 
 	def finalize(self,timeStamp):
 		if (self.finishedTimeStamp.isAfter(timeStamp)):
-			self.agent.testResult = None
 			self.agent.testedPositive = self.result
+			self.agent.waitingResult = False
 			if (self.result):
 				minDay = timeStamp.getDay() -2 
 				if minDay < 0:
@@ -37,10 +37,10 @@ class PCRResult:
 						if (day in building.visitHistory.keys()):
 							history = building.visitHistory[day]
 							for visit in history:
-								visit.agent.setAnxious(True)
+								if (visit.agent.testedPositive is None):
+									visit.agent.setAnxious(True)
 			else:
 				self.agent.setAnxious(False)
-
 		elif self.agent.infection is None and self.expiredTimeStamp.isAfter(timeStamp):
 			self.agent.testResult = None
 			self.agent.testedPositive = None
