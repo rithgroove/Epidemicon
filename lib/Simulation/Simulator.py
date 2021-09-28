@@ -471,7 +471,7 @@ class Simulator:
                 for key in returnDict.keys():
                     sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
                     self.unshuffledAgents[int(key)].activeSequence = sequence
-                    self.addSequenceToFile(sequence)
+                    self.addSequenceToFile(sequence.clone())
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]

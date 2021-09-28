@@ -340,7 +340,7 @@ class Map(osmium.SimpleHandler):
                         print("failed to find path")
                 else:
                     distance = sequence.totalDistance
-            return distance, sequence
+            return distance, sequence.clone()
         except:
            print("Something went wrong")
            return None, None
