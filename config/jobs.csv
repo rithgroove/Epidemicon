@@ -1,4 +1,4 @@
-gitname,min_workhour,max_workhour,place,min_age,max_age,population_proportion,min_start_hour,max_start_hour,day,min_activity_per_week,max_activity_per_week,outside_city
+name,min_workhour,max_workhour,place,min_age,max_age,population_proportion,min_start_hour,max_start_hour,day,min_activity_per_week,max_activity_per_week,outside_city
 student,9,9,school,4,18,450,8,9,weekday,5,5,no
 university_student,4,9,university,18,60,1600,8,14,weekday,3,5,no
 medical_doctor,8,24,hospital,25,70,100,0,23,everyday,5,7,no
