@@ -223,8 +223,9 @@ class Agent:
             self.idle = 2400
             self.activities = "idle"
 
-            order_food     = self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_food
+            # order_food     = self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_food
             # order_supplies = self.home.supplies  < 15                         and not self.home.waiting_order_supplies
+            order_food = True
             order_supplies = False
 
             OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=order_food, supplies=order_supplies)
@@ -335,7 +336,7 @@ class Agent:
         # at work
         if self.is_at_work():
             if len(self.orders) <= 0:
-                self.orders = OnlineShopping.get_orders(agent=self, n=3)
+                self.orders = OnlineShopping.get_orders(agent=self, n=1)
                 # print(f"+ got {len(self.orders)} new orders")
 
             if len(self.orders) > 0:
