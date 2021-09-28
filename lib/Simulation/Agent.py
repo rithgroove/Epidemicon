@@ -131,7 +131,6 @@ class Agent:
         hour = timeStamp.getHour()
         # TODO: simplify these elifs
         if (self.activeSequence is None or self.activeSequence.finished):
-
             if self.status == "Symptomatics":
                 if self.currentNode != self.home.node():       
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)

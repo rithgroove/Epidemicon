@@ -338,7 +338,7 @@ class Map(osmium.SimpleHandler):
                         startNode.addMovementSequence(sequence.clone())
                 else:
                     distance = sequence.totalDistance
-            return distance, sequence
+            return distance, sequence.clone()
         except:
             print("Something went wrong")
             return None, None
