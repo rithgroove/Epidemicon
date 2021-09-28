@@ -32,18 +32,12 @@ class Job:
         if (jobClass.minActivityPerWeek != jobClass.maxActivityPerWeek):
             self.activityPerWeek =  rng.integers(jobClass.minActivityPerWeek,jobClass.maxActivityPerWeek)
         
-        
-        
-       
-        
-        
-        
         indexes = np.where(jobClass.workDays)[0]
-        if len(indexes) < self.activityPerWeek+1:
+        if len(indexes) < self.activityPerWeek:
             self.activityPerWeek = len(indexes)
         rng.shuffle(indexes)
         self.workdays = 0
-        for i in indexes[:(self.activityPerWeek-1)]:
+        for i in indexes[:(self.activityPerWeek)]:
             self.workdays  += (2**(6-i))
         self.agent = None
         

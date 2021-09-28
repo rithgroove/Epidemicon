@@ -37,6 +37,7 @@ class Building:
         self.node = None
         self.content = {}
         self.visitHistory = {}
+        active = False
         
     def __str__(self):
         """

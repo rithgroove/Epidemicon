@@ -274,8 +274,12 @@ class Map(osmium.SimpleHandler):
             self.roadNodes.extend(generatedNodes)
             for newNodes in generatedNodes:
                 self.roadNodesDict[newNodes.osmId] = newNodes
-            self.roadNodes.extend(generatedNodes)
-
+            #self.roadNodes.extend(generatedNodes)
+        
+        for node in self.roadNodes:
+            for connection in node.connections:
+                if node not in connection.connections:
+                    connection.addConnection(node)
         if file is not None:
             file.close()
 
@@ -354,7 +358,8 @@ class Map(osmium.SimpleHandler):
         print("Type of roads contained in this map")
         for x in roadMap.keys():
             print (f"{x} = {roadMap[x]}")
-            
+        
+
     def summarizeBuilding(self):
         """
         [Method] summarizeBuilding
@@ -416,6 +421,43 @@ class Map(osmium.SimpleHandler):
         """
         return rng.choice(self.buildingsDict[buildingType])
                     
+    def checkDisconnectedBuildings(self):
+        temp = []
+        temp.extend(self.roadNodes)
+        temp = list(dict.fromkeys(temp))
+        print(len(temp))
+        visited = []
+        queue = []
+        #queue.append(base)
+        results = []
+        while len(temp) > 0:
+            queue.append(temp.pop(0))
+            result = []
+            while len(queue) > 0:      
+                base = queue.pop(0)
+                if(base in result):
+                    continue
+                if (base not in result):
+                    result.append(base)
+                if base in temp:
+                    temp.remove(base)        
+                for x in base.connections: 
+                    if (x in temp and x):
+                        queue.append(x)
+            results.append(result)
+            #print(f"group of {len(result)} nodes")
+
+
+        for x in range(1,len(results)):
+            temp  =results[x]
+            for y in temp:
+                if (y.isBuildingCentroid):
+                    building = y.building
+                    building.color ="#FF3333"
+                    building.active = False
+                    self.buildingsDict[building.type].remove(building)
+                    
+        
 def readFile(OSMfilePath, buildConnFile=None,grid = (10,10),buildingCSV = None):
     """
     [Function] readFile
@@ -434,4 +476,5 @@ def readFile(OSMfilePath, buildConnFile=None,grid = (10,10),buildingCSV = None):
     generatedMap.recalculateGrid(buildConnFile)
     if buildingCSV is not None:
         generatedMap.generateRandomBuildingType(buildingCSV)
+    generatedMap.checkDisconnectedBuildings()
     return generatedMap
