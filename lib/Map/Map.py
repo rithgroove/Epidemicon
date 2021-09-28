@@ -329,8 +329,6 @@ class Map(osmium.SimpleHandler):
                     sequence = reconstructByHashId(nodeHashIdDict, sequence[0], sequence[1])
                     pathfindDict[startNode.hashId][finishNode.hashId] = sequence
                 distance = sequence.totalDistance
-                if(agent.agentId == 1):
-                    print(sequence.extract())
             else:
                 distance = 0
                 sequence = startNode.getMovementSequence(finishNode)     
