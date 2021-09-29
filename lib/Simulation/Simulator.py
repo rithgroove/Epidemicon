@@ -162,7 +162,7 @@ class Simulator:
         self.activitiesDict = None
         self.lastHour = -1
         self.vaccinationPercentage = vaccinationPercentage
-        self.tester = MedicalTesting(self.rng,0.99) #set PCR to 99% accuracy
+        self.tester = MedicalTesting(self.rng,1.1) #set PCR to 99% accuracy
         self.testResults = []
         self.lockdownMethod = lockdownMethod
         self.inLockdown = False
