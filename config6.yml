@@ -19,14 +19,8 @@ nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv
 seed: 3647
 lockdownMethod:
-  name: reduceWorkhours
+  name: totalLockdown
   activeCasesThreshold: 150
-  businessWorkhours:
-    restaurant:
-      start: 0
-      finish: 0
-      workdays: [0,1,2,3,4,5,6]
-    barbershop:
-      start: 0
-      finish: 0
-      workdays: [0,1,2,3,4,5,6]
+  businessAffected:
+    - restaurant
+    - barbershop

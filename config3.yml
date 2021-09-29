@@ -21,7 +21,7 @@ seed: 3647
 lockdownMethod:
   name: reduceWorkhours
   activeCasesThreshold: 150
-  businessWorkhours:
+  businessAffected:
     restaurant:
       start: 11
       finish: 20
