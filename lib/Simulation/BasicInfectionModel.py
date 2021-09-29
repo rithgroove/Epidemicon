@@ -73,6 +73,8 @@ class BasicInfectionModel:
                 if agent.currentNode.building == agent.mainJob.building and agent.mainJob.isOutsideCity():
                     #infect off map
                     self._infectOffMap(agent,stepSize,timeStamp)
+                elif: agent.currentNode.building.type == "hospital"
+                    self._hospitalInfection(agent, infectiousAgents, stepSize, timeStamp)
                 else:
                     #infect at a building
                     infectiousAgents = self._collectInfectiousAgent(agent, InfectionType.AtBuilding)
@@ -97,6 +99,30 @@ class BasicInfectionModel:
         """
         for stranger in infectiousAgents:
             infectionProbability = self.flatInfectionRate/ (24 * 3600/ stepSize)
+            if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
+                agent.infection = Infection(stranger, 
+                                           agent,
+                                           timeStamp, 
+                                           dormant = self.rng.integers(24,72) *3600, #maybe put it in config?
+                                           recovery = self.rng.integers(72,14*24) *3600, #maybe put it in config?
+                                           location = agent.currentNode.building.type) 
+                break 
+
+
+    def _hospitalInfection(self,agent, infectiousAgents, stepSize, timeStamp):
+        """
+        [Method] _buildingBasedInfection 
+
+        private method to check for infection from agent in the same building/ in the same household in case of home
+
+        Parameter:
+            - agent = [Agent] susceptible agent that is going to be checked for infection
+            - infectiousAgents = [array] array of infected Agents that is within proximity of the agent
+            - stepSize = [int] the step length
+            - timeStamp = [TimeStamp] current timestamp
+        """
+        for stranger in infectiousAgents:
+            infectionProbability = self.flatInfectionRate/ (24 * 3600/ stepSize) / 10
             if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
                 agent.infection = Infection(stranger, 
                                            agent,
