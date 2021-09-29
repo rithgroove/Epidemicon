@@ -24,7 +24,7 @@ class Home:
         self.groceries = rng.integers(6,15)
         self.supplies  = rng.integers(1,5)#6,15)
         self.waiting_order_food     = False
-        self.waiting_order_supplies = False
+        self.waiting_order_grocery = False
     
     def addOccupant(self,occupant):
         """
