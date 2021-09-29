@@ -388,7 +388,9 @@ class View():
         y = ((self.canvasSize[1]-( agent.currentLocation.lat - self.canvasOrigin[1])) * self.scale + self.viewPort[1]) -ymid 
 
         #print((x,y,agent.oval))
-        if (agent.infectionStatus == "Exposed"):
+        if (agent.mainJob.getName() == "delivery_person"):
+            self.canvas.itemconfig(agent.oval,fill="#CC33CC")            
+        elif (agent.infectionStatus == "Exposed"):
             self.canvas.itemconfig(agent.oval,fill="#CCCC33")
         elif (agent.infectionStatus == "Infectious"):
             self.canvas.itemconfig(agent.oval,fill="#CC3333")

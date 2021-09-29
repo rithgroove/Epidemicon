@@ -158,7 +158,7 @@ class Agent:
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at hospital"
             elif self.mainJob.isWorking(day, hour):
-                if not self.is_at_work() and self.activities != "delivering":
+                if not self.is_at_work() and self.mainJob.jobClass.name != "delivery_person":
                     self.activities = "go to work"
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
             elif self.idle <= 0:
@@ -231,7 +231,9 @@ class Agent:
             OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=order_food, supplies=order_supplies)
 
         ## delivery routines ##
-        if self.mainJob.jobClass.name == "delivery_person":
+        day = timeStamp.getDayOfWeek()
+        hour = timeStamp.getHour()
+        if self.mainJob.jobClass.name == "delivery_person" and (self.mainJob.isWorking(day, hour) or self.activities == "delivering") and self.activeSequence is None:
             self.delivery_agent(timeStamp,pathfindDict,nodeHashIdDict)
 
         self.hair += 0.44/(24*(3600/steps))
@@ -337,13 +339,9 @@ class Agent:
         if self.is_at_work():
             if len(self.orders) <= 0:
                 self.orders = OnlineShopping.get_orders(agent=self, n=1)
-                # print(f"+ got {len(self.orders)} new orders")
-
             if len(self.orders) > 0:
                 self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[0].dest.building,pathfindDict,nodeHashIdDict)
                 self.activities = "delivering"
-                # print("+ Going out to deliver")
-        # at clients home, arrival
         elif len(self.orders)>0 and self.activities == "delivering" and self.is_at(self.orders[0].dest.building):
             self.idle = 300
             # print("+ Delivering order #", self.orders[0].oid)
@@ -360,6 +358,11 @@ class Agent:
                 self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
             # else:
                 # print(f"+ Waiting... {self.idle}")
+        else:
+            self.activities = "go to work"
+            self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
+
+
 
 def getAgentKeys():
     """
