@@ -58,7 +58,7 @@ class Agent:
 
         ## orders to delivery (delivery agent) ##
         # ideally, job extend agent adding specific routines
-        if self.mainJob.jobClass.name == "delivery_person":
+        if self.mainJob.jobClass.name=="delivery_grocery" or self.mainJob.jobClass.name=="delivery_food":
             self.orders = []
 
     def setVaccinated(self, vaccinated = True):

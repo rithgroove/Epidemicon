@@ -81,8 +81,8 @@ class OnlineShopping():
     @staticmethod
     def str_orders_history():
         out = [f"Total orders: {OnlineShopping.n_orders}"]
-        out.append(f"ORDER_ID,HOME_ID,STORE_ID,WORKER_ID,ORDER_DATE,DELIVERY_DATE")
+        out.append(f"ORDER_ID,HOME_ID,STORE_ID,WORKER_ID,ORDER_DATE,DELIVERY_DATE,FOOD,GROCERY")
         for order in OnlineShopping.order_history:
-            out.append(f"{order.oid},{order.dest_id},{order.retailer},{order.delivery_agent},{order.when_ordered},{order.when_delivered}")
+            out.append(f"{order.oid},{order.dest_id},{order.retailer},{order.delivery_agent},{order.when_ordered},{order.when_delivered},{order.is_food},{order.is_grocery}")
 
         return "\n".join(out)
