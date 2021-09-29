@@ -223,13 +223,13 @@ class Agent:
         elif self.activities == "order groceries online" and self.idle <= 0:
             self.idle = 2400
             self.activities = "idle"
-            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=False, grocery=True)
+            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food_or_grocery="grocery")
         elif self.activities == "order food online" and self.idle <= 0:
             self.idle = 2400
             self.activities = "idle"
             self.home.consumeGroceries()
             self.hunger = 1.0
-            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=True,  grocery=False)
+            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food_or_grocery="food")
 
         ## delivery routines ##
         day = timeStamp.getDayOfWeek()
