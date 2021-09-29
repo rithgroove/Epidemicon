@@ -74,6 +74,7 @@ class BasicInfectionModel:
                     #infect off map
                     self._infectOffMap(agent,stepSize,timeStamp)
                 elif agent.currentNode.building.type == "hospital":
+                    infectiousAgents = self._collectInfectiousAgent(agent, InfectionType.AtBuilding)
                     self._hospitalInfection(agent, infectiousAgents, stepSize, timeStamp)
                 else:
                     #infect at a building
