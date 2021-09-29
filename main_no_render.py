@@ -109,6 +109,7 @@ def main():
         reportPath = c["reportDir"],
         reportInterval = c["reportInterval"],
         lockdownMethod=c["lockdownMethod"],
+        delivery_type=c["delivery_type"],
         seed=seed)
         
     for x in range(0, dayToSimulate*24*3600, stepSize):

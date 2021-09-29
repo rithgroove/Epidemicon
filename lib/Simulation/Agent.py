@@ -143,13 +143,12 @@ class Agent:
                     self.activities = "going home"
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at home"
-                elif self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_food:
-                    self.activities = "order groceries online"
-                # elif self.home.supplies < 15 and not self.home.waiting_order_supplies:
-                    # self.activities = "order groceries online"
-                # elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    # self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
-                    # self.activities = "do groceries"
+                elif self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_grocery:
+                    if OnlineShopping.is_delivery_retail:
+                        self.activities = "order groceries online"
+                    elif self.faveRetailer.isOpen(day, hour):
+                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+                        self.activities = "do groceries"
             elif self.status == "Severe":
                 if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
@@ -164,21 +163,23 @@ class Agent:
             elif self.idle <= 0:
                 if self.hunger <= self.hungerCap:
                     whereToEatProbability = rng.integers(0,100)/100.0
-                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
+                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants)>0 and not OnlineShopping.is_delivery_restaurant:
                         self.activities = "go to restaurant"
                         restaurant = rng.choice(openRestaurants)
                         self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building,pathfindDict,nodeHashIdDict)
+                    elif OnlineShopping.is_delivery_restaurant:
+                        self.activities = "order food online"
                     else:
                         self.activities = "eat at home"
                 elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
                     self.activities = "go to barbershop"
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building,pathfindDict,nodeHashIdDict)
-                # elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    # self.activities = "do groceries"
-                elif self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_food:
-                    self.activities = "order groceries online"
-                # elif self.home.supplies < 15 and not self.home.waiting_order_supplies:
-                    # self.activities = "order groceries online"
+                elif self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_grocery:
+                    if OnlineShopping.is_delivery_retail:
+                        self.activities = "order groceries online"
+                    elif self.faveRetailer.isOpen(day, hour):
+                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+                        self.activities = "do groceries"
                 elif self.currentNode != self.home.node():
                     self.activities = "going home"
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
@@ -214,26 +215,26 @@ class Agent:
             self.hair = float(rng.integers(0,int(self.hairCap/2)))
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
             self.activities = "idle"
-        # elif (self.activities == "do groceries" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "retail"):
-            # self.hair = float(rng.integers(0,int(self.hairCap/2)))
-            # self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
-            # self.activities = "idle"
-            # self.home.buyGroceries()
+        elif (self.activities == "do groceries" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "retail"):
+            self.hair = float(rng.integers(0,int(self.hairCap/2)))
+            self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
+            self.activities = "idle"
+            self.home.buyGroceries()
         elif self.activities == "order groceries online" and self.idle <= 0:
             self.idle = 2400
             self.activities = "idle"
-
-            # order_food     = self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_food
-            # order_supplies = self.home.supplies  < 15                         and not self.home.waiting_order_supplies
-            order_food = True
-            order_supplies = False
-
-            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=order_food, supplies=order_supplies)
+            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=False, grocery=True)
+        elif self.activities == "order food online" and self.idle <= 0:
+            self.idle = 2400
+            self.activities = "idle"
+            self.home.consumeGroceries()
+            self.hunger = 1.0
+            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food=True,  grocery=False)
 
         ## delivery routines ##
         day = timeStamp.getDayOfWeek()
         hour = timeStamp.getHour()
-        if self.mainJob.jobClass.name == "delivery_person" and (self.mainJob.isWorking(day, hour) or self.activities == "delivering") and self.activeSequence is None:
+        if (self.mainJob.jobClass.name=="delivery_grocery" or self.mainJob.jobClass.name=="delivery_food") and (self.mainJob.isWorking(day, hour) or self.activities == "delivering") and self.activeSequence is None:
             self.delivery_agent(timeStamp,pathfindDict,nodeHashIdDict)
 
         self.hair += 0.44/(24*(3600/steps))

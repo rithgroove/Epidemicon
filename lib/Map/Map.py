@@ -339,8 +339,10 @@ class Map(osmium.SimpleHandler):
                 else:
                     distance = sequence.totalDistance
             return distance, sequence.clone()
-        except:
-            print("Something went wrong")
+        except Exception as e:
+            print("===Error in the pathfinding===")
+            print(e)
+            print("===============")
             return None, None
         
     def summarizeRoad(self):

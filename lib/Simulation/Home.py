@@ -70,12 +70,12 @@ class Home:
         """
         return self.building.node
     
-    def buyGroceries(self):
+    def buyGroceries(self, n=6):
         """
         [Method] buyGroceries        
         method to add stock of food at home. 
         """
-        self.groceries += len(self.occupants) * 6
+        self.groceries += len(self.occupants) * n
         
     def buySupplies(self):
         """

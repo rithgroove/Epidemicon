@@ -116,6 +116,7 @@ class Simulator:
                 reportInterval=10,
                 lockdownMethod = None,
                 infectionModel = None,
+                delivery_type = None,
                 seed = 1000):
         """
         [Constructor]
@@ -190,7 +191,8 @@ class Simulator:
         atexit.register(self.cleanup)
         
         ## for online orders / delivery agents ##
-        self.online_shopping = OnlineShopping 
+        OnlineShopping.set_delivery_type(delivery_type)
+        self.online_shopping = OnlineShopping
 
     def cleanup(self):
         """
