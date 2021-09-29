@@ -73,7 +73,7 @@ class BasicInfectionModel:
                 if agent.currentNode.building == agent.mainJob.building and agent.mainJob.isOutsideCity():
                     #infect off map
                     self._infectOffMap(agent,stepSize,timeStamp)
-                elif: agent.currentNode.building.type == "hospital"
+                elif agent.currentNode.building.type == "hospital":
                     self._hospitalInfection(agent, infectiousAgents, stepSize, timeStamp)
                 else:
                     #infect at a building
