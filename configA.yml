@@ -1,7 +1,7 @@
 OSMfile: osmData/TX-To-TU.osm
 buildConnFile: buildingConnection.csv
 buildingConfigPath: config/tsukuba-tu-building-data.csv
-jobsFile: config/jobs_both.csv
+jobsFile: config/jobs_retail.csv
 businessFile: config/business.csv
 numberOfAgents: 5000
 threadNumber: 5
@@ -12,10 +12,10 @@ gridHeight: 10
 gridWidth: 10
 windowWidth: 800
 windowHeight: 600
-reportDir: delivery_both_1
+reportDir: delivery_retail_1
 reportInterval: 10
 nr_step_size : 300
 nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv
-delivery_type: both
+delivery_type: retail
 seed: 1510
