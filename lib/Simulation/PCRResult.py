@@ -21,7 +21,7 @@ class PCRResult:
 		self.expiredTimeStamp.step(3*3600*24)
 
 	def finalize(self,timeStamp):
-		if self.agent.infection is None and self.expiredTimeStamp.isAfter(timeStamp):
+		if (self.agent.infection is None or self.result == False) and self.expiredTimeStamp.isAfter(timeStamp):
 			self.agent.testResult = None
 			self.agent.testedPositive = None
 			self.agent.setAnxious(False)
