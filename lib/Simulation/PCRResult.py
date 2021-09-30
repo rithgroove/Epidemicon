@@ -18,10 +18,14 @@ class PCRResult:
 		self.finishedTimeStamp = timeStamp.clone()
 		self.finishedTimeStamp.step(waitDuration)
 		self.expiredTimeStamp = self.finishedTimeStamp.clone()
-		self.expiredTimeStamp.step(7*3600*24)
+		self.expiredTimeStamp.step(3*3600*24)
 
 	def finalize(self,timeStamp):
-		if (self.finishedTimeStamp.isAfter(timeStamp)):
+		if self.agent.infection is None and self.expiredTimeStamp.isAfter(timeStamp):
+			self.agent.testResult = None
+			self.agent.testedPositive = None
+			self.agent.setAnxious(False)
+		elif (self.finishedTimeStamp.isAfter(timeStamp)):
 			self.agent.testedPositive = self.result
 			self.agent.waitingResult = False
 			if (self.result):
@@ -41,10 +45,7 @@ class PCRResult:
 									visit.agent.setAnxious(True)
 			else:
 				self.agent.setAnxious(False)
-		elif self.agent.infection is None and self.expiredTimeStamp.isAfter(timeStamp):
-			self.agent.testResult = None
-			self.agent.testedPositive = None
-			self.agent.setAnxious(False)
+
             
 
 	def extract(self):
@@ -63,6 +64,10 @@ class PCRResult:
 		result["resultDay"] = self.finishedTimeStamp.getDay()
 		result["resultHour"] = self.finishedTimeStamp.getHour()
 		result["resultMinutes"] = self.finishedTimeStamp.getMinute()
+		result["expiryTimestamp"] = self.expiredTimeStamp.stepCount
+		result["expiryDay"] = self.expiredTimeStamp.getDay()
+		result["expiryHour"] = self.expiredTimeStamp.getHour()
+		result["expiryMinutes"] = self.expiredTimeStamp.getMinute()
 		return result
 
 def getPCRResultKey():
@@ -81,4 +86,8 @@ def getPCRResultKey():
 	temp.append("resultDay")
 	temp.append("resultHour")
 	temp.append("resultMinutes")
+	temp.append("expiryTimestamp")
+	temp.append("expiryDay")
+	temp.append("expiryHour")
+	temp.append("expiryMinutes")
 	return temp

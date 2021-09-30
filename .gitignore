@@ -138,7 +138,12 @@ pathfind.csv
 
 # reports
 report/
+baseRepetition1/
+baseRepetition2/
+baseRepetition3/
 
 # main.ipynb used for personal test run
 main.ipynb
 output.txt
+output2.txt
+output3.txt

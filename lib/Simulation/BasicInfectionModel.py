@@ -123,8 +123,8 @@ class BasicInfectionModel:
             - timeStamp = [TimeStamp] current timestamp
         """
         for stranger in infectiousAgents:
-            infectionProbability = self.flatInfectionRate/ (24 * 3600/ stepSize) / 10
-            if infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
+            infectionProbability = (self.flatInfectionRate/ (24 * 3600/ stepSize))/20
+            if stranger.status != "Severe" and infectionProbability > 0 and self.rng.uniform(0.0,1.0) < infectionProbability: # infect
                 agent.infection = Infection(stranger, 
                                            agent,
                                            timeStamp, 
