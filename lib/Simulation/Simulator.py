@@ -143,7 +143,10 @@ class Simulator:
         for jobClass in jobClassData:
             temp = JobClass(jobClass)
             temp.buildings = osmMap.buildingsDict.get(temp.place)
-            self.jobClasses.append(temp)
+            if not temp.buildings:
+                print(f"JobClass {temp.name} has no buildings associated.")
+            else:
+                self.jobClasses.append(temp)
         self.agents = []
         self.unshuffledAgents = []
         self.timeStamp = TimeStamp()
