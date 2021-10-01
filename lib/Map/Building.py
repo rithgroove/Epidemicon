@@ -32,7 +32,11 @@ class Building:
         self.entryPointNode = None
         self.tags = way.tags
         self.setType(self.tags.get("building"))
-        if self.type == "yes" and "amenity" in self.tags.keys():
+        if 'amenity' in self.tags.keys() and self.tags.get('amenity') == 'research_institute':
+            self.setType('research_institute')
+        elif 'shop' in self.tags.keys() and self.tags.get('shop') == 'hairdresser':
+            self.setType('hairdresser')
+        elif self.type == "yes" and "amenity" in self.tags.keys():
             self.setType(self.tags.get("amenity"))
         self.node = None
         self.content = {}

@@ -45,7 +45,7 @@ class Agent:
         self.idle = 0
         self.energy = 100.0
         self.faveRetailer = rng.choice(businessesDict["retail"])
-        self.faveBarber = rng.choice(businessesDict["barbershop"])
+        self.faveBarber = rng.choice(businessesDict["hairdresser"])
         self.risk = rng.integers(1,3)
         self.status = "Normal"
         self.activities = "idle"
