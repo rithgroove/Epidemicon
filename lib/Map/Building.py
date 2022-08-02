@@ -75,6 +75,10 @@ class Building:
         houseType = ["residential","apartments","house"]
         if (self.type in houseType):
             self.color = "#99CC99"
+        elif (self.type == "restaurant"):
+            self.color = "#5555DD"
+        elif (self.type == "retail"):
+            self.color = "#DDDD55"
             
     def addVisitHistory(self, log):
         day = log.timeStamp.getDay()

@@ -20,6 +20,7 @@ from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
 import numpy as np
+from .online_shopping import OnlineShopping
 
 summaryFieldnames = [
     'Day',
@@ -115,6 +116,7 @@ class Simulator:
                 reportInterval=10,
                 lockdownMethod = None,
                 infectionModel = None,
+                delivery_type = None,
                 seed = 1000):
         """
         [Constructor]
@@ -187,6 +189,10 @@ class Simulator:
             self.nodeHashIdDict[n.hashId] = n
 
         atexit.register(self.cleanup)
+        
+        ## for online orders / delivery agents ##
+        OnlineShopping.set_delivery_type(delivery_type)
+        self.online_shopping = OnlineShopping
 
     def cleanup(self):
         """
@@ -480,7 +486,7 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(self.timeStamp,self.rng,stepSize)
+            x.step(self.timeStamp,self.rng,stepSize,self.pathfindDict,self.nodeHashIdDict)
             if (x.newVisitLog is not None):
                 self.visitHistory.append(x.newVisitLog)
                 x.newVisitLog = None

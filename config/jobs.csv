@@ -5,8 +5,9 @@ medical_doctor,8,24,hospital,25,70,100,0,23,everyday,5,7,no
 teacher,9,9,school,23,70,100,8,9,weekday,5,5,no
 university_professor ,5,9,university,28,70,200,8,9,weekday,3,5,no
 salaryman_outside_city,9,9,train_station,19,70,800,8,9,weekday,5,5,yes
-retailer,8,8,retail,19,70,450,0,23,everyday,3,5,no
+retailer,8,8,retail,19,70,300,0,23,everyday,3,5,no
 salaryman,4,5,office,19,70,1000,8,10,weekday,5,5,no
 barber,7,8,barbershop,20,70,10,8,12,everyday,5,6,no
 restaurant_worker,8,10,restaurant,16,70,140,0,18,everyday,5,7,no
 scientist,5,9,laboratory,21,70,150,8,9,weekday,3,5,no
+delivery_person,8,8,retail,19,70,150,8,12,everyday,5,5,no

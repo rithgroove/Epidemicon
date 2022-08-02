@@ -60,7 +60,8 @@ class Coordinate():
         
         Return: [string] String of summarized map Information.
         """
-        tempstring = f"[Coordinate]\n (lat = {self.lat}, lon = {self.lon})"
+        # tempstring = f"[Coordinate]\n (lat = {self.lat}, lon = {self.lon})"
+        tempstring = f"{self.lat},{self.lon}"
         return tempstring
     
     def newCoordinateWithTranslation(self,lat =0,lon = 0):
