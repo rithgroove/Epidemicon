@@ -39,12 +39,14 @@ class Business:
         self.workdays = rng.choice(workdays, activityPerWeek, replace=False)
 
         # These vars are used to set the lockdown and reset it to the original value when it ends
-        self.isLockdown = False
+        self.isClosed = False
         self.originalStartHour = self.startHour
         self.originalFinishHour = self.finishHour
         self.originalWorkdays = self.workdays
 
     def isOpen(self, day, hour):
+        if self.isClosed:
+            return False
         if day in self.workdays:
             # Have to cover the case where the working hours goes from a day to the next
             # could be done in one line but for readbility i divided in two
@@ -55,14 +57,14 @@ class Business:
         return False
 
 
-    def startLockdown(self, startHour, finishHour, workdays):
+    def startReducedHourLockdown(self, startHour=0, finishHour=0, workdays=[], isClosed=False):
         self.startHour = startHour
         self.finishHour = finishHour
+        self.isClosed = True
         # self.workdays = workdays
-        self.isLockdown = True
 
     def finishLockdown(self):
         self.startHour = self.originalStartHour
         self.finishHour = self.originalFinishHour
-        self.workdays = self.workdays
-        self.isLockdown = False
+        self.workdays = self.originalWorkdays
+        self.isClosed = False

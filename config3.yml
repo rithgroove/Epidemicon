@@ -12,10 +12,22 @@ gridHeight: 10
 gridWidth: 10
 windowWidth: 800
 windowHeight: 600
-reportDir: delivery_both_3
+reportDir: reducedWorkhours3
 reportInterval: 10
 nr_step_size : 300
 nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv
 delivery_type: both
 seed: 3647
+lockdownMethod:
+  name: reduceWorkhours
+  activeCasesThreshold: 150
+  businessAffected:
+    restaurant:
+      start: 11
+      finish: 20
+      workdays: [0,1,2,3,4,5,6]
+    barbershop:
+      start: 11
+      finish: 20
+      workdays: [0,1,2,3,4,5,6]

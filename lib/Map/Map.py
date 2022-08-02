@@ -336,6 +336,8 @@ class Map(osmium.SimpleHandler):
                     distance, sequence = searchPath(self,startNode,finishNode)
                     if sequence is not None:
                         startNode.addMovementSequence(sequence.clone())
+                    else:
+                        print("AA")
                 else:
                     distance = sequence.totalDistance
             return distance, sequence.clone()

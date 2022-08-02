@@ -38,6 +38,12 @@ class Job:
         for i in indexes[:(self.activityPerWeek)]:
             self.workdays  += (2**(6-i))
         self.agent = None
+
+        self.originaWorkhour = self.workhour 
+        self.originalStartHour = self.startHour 
+        self.originaWworkdays = self.workdays
+
+        self.shouldGoToWork = True   
         
     def getName(self):
         """
@@ -65,6 +71,18 @@ class Job:
         [Method] isWorking        
         return True if the input is a working day. s
         """
+        if not self.shouldGoToWork:
+            return False
         if self.workdays & (2**(6-day)) and (hour >= self.startHour and hour <= self.startHour+self.workhour) :
             return True
         return False
+
+    def startLockdown(self, startHour=0, workhour=0, shouldGoToWork=True):
+        self.startHour = startHour
+        self.workhour = workhour
+        self.shouldGoToWork = shouldGoToWork
+
+    def finishLockdown(self):
+        self.startHour = self.originalStartHour
+        self.workhour = self.originaWorkhour
+        self.shouldGoToWork = True
