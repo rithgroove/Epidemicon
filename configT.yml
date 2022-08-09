@@ -1,0 +1,21 @@
+OSMfile: osmData/TX-To-TU.osm
+buildConnFile: buildingConnection.csv
+buildingConfigPath: config/tsukuba-tu-building-data.csv
+jobsFile: config/jobsT.csv
+businessFile: config/business.csv
+numberOfAgents: 500
+threadNumber: 2
+infectedAgent: 1
+vaccinationPercentage: 0.0
+verbose: false
+gridHeight: 10
+gridWidth: 10
+windowWidth: 800
+windowHeight: 600
+reportDir: deliv_T
+reportInterval: 10
+nr_step_size : 300
+nr_day_to_simulate : 21
+pathfindFileName: pathfind.csv
+delivery_type: retail
+seed: 1510

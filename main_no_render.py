@@ -8,6 +8,7 @@ root_dir = os.getcwd()
 sys.path.append(root_dir)
 import lib.Map.Map as mmap
 from lib.Simulation.Simulator import Simulator
+import lib.Renderer.debug as debug
 
 configFileName = "config.yml"
 
@@ -32,6 +33,7 @@ optionalConfig = [
     "buildConnFile",
     "pathfindFileName",
     "lockdownMethod",
+    "seed",
 ]
 
 def read_validate_config(file_path):
@@ -67,7 +69,7 @@ def parseArgs():
     if args.no_infectious_stop:
         no_infectious_stop = True
 
-    seed = 1000
+    seed = None
     if args.seed:
         seed = args.seed
 
@@ -80,6 +82,11 @@ def main():
 
     stepSize = c["nr_step_size"] #5 minutes
     dayToSimulate = c["nr_day_to_simulate"]
+    if seed is None:
+        if c["seed"] is not None:
+            seed = c["seed"]
+        else:
+            seed = 100
 
     # Load the data
     gridSize = (c["gridHeight"], c["gridWidth"])
@@ -102,6 +109,7 @@ def main():
         reportPath = c["reportDir"],
         reportInterval = c["reportInterval"],
         lockdownMethod=c["lockdownMethod"],
+        delivery_type=c["delivery_type"],
         seed=seed)
         
     for x in range(0, dayToSimulate*24*3600, stepSize):
@@ -112,6 +120,8 @@ def main():
 
     sim.extract()
     sim.extractVisitLog()
+    
+    debug._on_show_orders(model=sim, fnameout=configFileName)
 
 if __name__ == "__main__":
     main()

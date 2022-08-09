@@ -20,6 +20,7 @@ from .VisitLog import VisitLog, getVisitKey
 from pathlib import Path
 import time
 import numpy as np
+from .online_shopping import OnlineShopping
 
 summaryFieldnames = [
     'Day',
@@ -115,6 +116,7 @@ class Simulator:
                 reportInterval=10,
                 lockdownMethod = None,
                 infectionModel = None,
+                delivery_type = None,
                 seed = 1000):
         """
         [Constructor]
@@ -187,6 +189,10 @@ class Simulator:
             self.nodeHashIdDict[n.hashId] = n
 
         atexit.register(self.cleanup)
+        
+        ## for online orders / delivery agents ##
+        OnlineShopping.set_delivery_type(delivery_type)
+        self.online_shopping = OnlineShopping
 
     def cleanup(self):
         """
@@ -443,7 +449,7 @@ class Simulator:
                     thread.daemon = True
                     thread.setStateToStep(stepSize)
                     thread.start()
-                time.sleep(30) # sleep for 20 second to help the threads starts their work
+                time.sleep(5) # sleep for 20 second to help the threads starts their work
                 # wait for all thread to finish running
                 for i in range(0,len(threads)):
                     threads[i].join()
@@ -468,7 +474,7 @@ class Simulator:
                 for key in returnDict.keys():
                     sequence = reconstruct(self.osmMap.roadNodesDict, returnDict[key][0], returnDict[key][1])
                     self.unshuffledAgents[int(key)].activeSequence = sequence
-                    self.addSequenceToFile(sequence)
+                    self.addSequenceToFile(sequence.clone())
             for activitiesDict in activitiesDicts:
                 for key in activitiesDict.keys():
                     self.unshuffledAgents[int(key)].activities = activitiesDict[key]
@@ -480,7 +486,7 @@ class Simulator:
                 
         #print("Finished checking activity, proceeding to move agents")
         for x in self.agents:
-            x.step(self.timeStamp,self.rng,stepSize)
+            x.step(self.timeStamp,self.rng,stepSize,self.pathfindDict,self.nodeHashIdDict)
             if (x.newVisitLog is not None):
                 self.visitHistory.append(x.newVisitLog)
                 x.newVisitLog = None
@@ -508,25 +514,49 @@ class Simulator:
         self.reportCooldown -= 1
     
     def checkLockdownConditions(self):
-        lockdown = self.lockdownMethod
-        if lockdown["name"] == "reduceWorkhours":
-            activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
-            print("Traceable cases: ", len(activeCases))
-            if len(activeCases) >= lockdown["activeCasesThreshold"] and not self.inLockdown:
-                print("Starting lockdown")
-                self.inLockdown = True
-                for businessType, businessArray in self.businessDict.items():
-                    if businessType in lockdown["businessWorkhours"]:
-                        lockTime = lockdown["businessWorkhours"][businessType]
-                        for business in businessArray:
-                            business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
-            elif len(activeCases) < lockdown["activeCasesThreshold"] and self.inLockdown:
-                print("Finishing lockdown")
-                self.inLockdown = False
-                for businessType, businessArray in self.businessDict.items():
-                    if businessType in lockdown["businessWorkhours"]:
-                        for business in businessArray:
-                            business.finishLockdown()
+        activeCases = [x for x in self.agents if x.status == "Symptomatics" or x.status == "Severe"]
+        print("Traceable cases: ", len(activeCases))
+        if len(activeCases) >= self.lockdownMethod["activeCasesThreshold"] and not self.inLockdown:
+            print("Starting lockdown")
+            self.startLockdown()
+        elif len(activeCases) < self.lockdownMethod["activeCasesThreshold"] and self.inLockdown:
+            print("Finishing lockdown")
+            self.finishLockdown()
+
+    def startLockdown(self):
+        self.inLockdown = True
+        if self.lockdownMethod["name"] == "reduceWorkhours":
+            for businessType, businessArray in self.businessDict.items():
+                if businessType in self.lockdownMethod["businessAffected"]:
+                    lockTime = self.lockdownMethod["businessAffected"][businessType]
+                    for business in businessArray:
+                        business.startLockdown(lockTime["start"], lockTime["finish"], lockTime["workdays"])
+            for ag in self.agents:
+                jobBuildingType = ag.mainJob.building.type
+                if  jobBuildingType in self.lockdownMethod["businessAffected"]:
+                    lockTime = self.lockdownMethod["businessAffected"][jobBuildingType]
+                    ag.mainJob.startLockdown(lockTime["start"], lockTime["finish"] - lockTime["start"])
+        elif self.lockdownMethod["name"] == "totalLockdown":
+            for businessType, businessArray in self.businessDict.items():
+                if businessType in self.lockdownMethod["businessAffected"]:
+                    for business in businessArray:
+                        business.startLockdown(isClosed=True)
+            for ag in self.agents:
+                jobBuildingType = ag.mainJob.building.type
+                if jobBuildingType in self.lockdownMethod["businessAffected"]:
+                    ag.mainJob.startLockdown(shouldGoToWork=False)
+
+
+    def finishLockdown(self, lockdown):
+        self.inLockdown = False
+        for businessType, businessArray in self.businessDict.items():
+            if businessType in lockdown["businessAffected"]:
+                for business in businessArray:
+                    business.finishLockdown()
+        for ag in self.agents:
+            jobBuildingType = ag.mainJob.building.type
+            if  jobBuildingType in lockdown["businessAffected"]:
+                ag.mainJob.finishLockdown()
 
     def printInfectionLocation(self):
         """

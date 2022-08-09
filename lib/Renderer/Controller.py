@@ -1,4 +1,5 @@
 from .View import View
+from . import debug
 import platform
 import time
 import threading
@@ -22,7 +23,7 @@ class Controller():
             self.on_mouse_scroll = self.__scroll_linux
             
         ## set key events
-        self.view.set_events(self)
+        self.set_events()
         
         ## some attributes related to the view ##
         self.zoom_in_param = 1.1
@@ -37,20 +38,24 @@ class Controller():
     
     def disable_buttons(self):
         if self.model.calculating:
-            self.view.root.btn_step["state"]  = "disabled"
-            self.view.root.btn_start["state"] = "disabled"
+            self.view.button["play"]["state"] = "disabled"
+            self.view.button["step"]["state"] = "disabled"
         else:
-            self.view.root.btn_step["state"]  = "normal"
-            self.view.root.btn_start["state"] = "normal"
+            # self.view.button["play"]["state"] = "normal"
+            self.view.button["step"]["state"] = "normal"
         self.view.root.after(1000, self.disable_buttons)
 
 
     ## MAIN METHODS ##
     def main_loop(self):
+        # add here methods to excute before entering the mainloop
+        # ...
         try:
             self.view.root.mainloop()
         except:
             self.model.killStepThreads()
+        # add here methods to excute after exiting the mainloop
+        # ...
         
     def update_view(self):
         self.view.step(self.model.agents, self.model.timeStamp.stepCount)
@@ -64,6 +69,28 @@ class Controller():
             #while not self.thread_finished:
             #    time.sleep(1)
             self.view.close()
+            
+    def set_events(self):
+        view = self.view
+        
+        # window
+        view.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        # tab 1 buttons
+        view.button["zoom_in"]["command"]  = self.on_zoom_in
+        view.button["zoom_out"]["command"] = self.on_zoom_out
+        view.button["play"]["command"]     = self.cmd_start
+        view.button["step"]["command"]     = self.cmd_step
+
+        # tab 1 canvas
+        view.canvas.bind("<MouseWheel>"     , self.on_mouse_scroll)
+        view.canvas.bind("<B1-Motion>"      , self.on_mouse_hold)
+        view.canvas.bind("<ButtonRelease-1>", self.on_mouse_release)
+        
+        # tab 2 stats
+        view.button["jobs"]["command"]   = lambda: debug._on_show_jobs(self)
+        view.button["orders"]["command"] = lambda: debug._on_show_orders(self)
+        view.button["agent_position"]["command"] = lambda: debug._on_agents_position(self)
 
     ## ZOOM ##
     def on_mouse_scroll(self, event):
@@ -134,26 +161,3 @@ class Controller():
         self.update_view()
         print("Done!", flush=True)
         self.thread_finished = True
-    
-    
-    def _on_show_stats(self):
-        def __count_jobs(agentlist, jobclasses):
-            d = {}
-            for job in jobclasses:
-                d[job.name] = 0
-                
-            for agent in agentlist:
-                d[agent.mainJob.jobClass.name] +=1
-                
-            out = "\n".join([f"- {k}: {v}" for k, v in d.items()])
-            return out
-    
-        output = [""]*10
-        output[0] = f"====Stats===="
-        output[1] = f"Step Count: {self.model.stepCount}"
-        output[2] = f"# Agents: {len(self.model.agents)}"
-        output[3] = f"Jobs: \n{__count_jobs(agentlist=self.model.agents, jobclasses=self.model.jobClasses)}"
-        #output[4] = f"Orders Placed: {self.model.online_shopping.n_orders}"
-        
-        print("\n".join(output))
-    

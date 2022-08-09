@@ -30,6 +30,7 @@ class View():
         self.root.resizable(False, False)
         
         self.button = {}
+        self.entries = {}
         
         ## notebook and tabs ##
         self.nb = ttk.Notebook(self.root)
@@ -40,99 +41,15 @@ class View():
         self.tab4 = ttk.Frame(self.nb)
         
         self.nb.add(self.tab1, text ='Simulator')
-        self.nb.add(self.tab2, text ='Stats')
+        self.nb.add(self.tab2, text ='DEBUG')
         self.nb.add(self.tab3, text ='Settings')
         self.nb.add(self.tab4, text ='About')
         
         self.nb.pack(expand=True, fill="both")
         
-        ######### TAB 1 = SIM #########
-        
-        self.tab1.rowconfigure(0, weight=1) # button bar
-        self.tab1.rowconfigure(1, weight=9) # canvas
-        
-        ## frames
-        self.frame_btn    = tk.Frame(self.tab1)
-        self.frame_canvas = tk.Frame(self.tab1)
-        
-        for i in range(11):
-            self.frame_btn.columnconfigure(i, weight=10)
-    
-        ## canvas
-        self.canvas = tk.Canvas(self.frame_canvas)
-    
-        ## button bar
-        # zoom
-        self.root.btn_zoom_in  = tk.Button(self.frame_btn, text="+")
-        self.root.btn_zoom_out = tk.Button(self.frame_btn, text="-")
-        
-        #play pause step
-        self.root.btn_start   = tk.Button(self.frame_btn, text="Play")
-        self.root.btn_step    = tk.Button(self.frame_btn, text="Forward")
-        
-        #number of steps
-        self.root.label_step = tk.Label(self.frame_btn, text="Step: 0")
-        self.root.step_scale = tk.Scale(self.frame_btn, label="Step Size (In Minutes)", from_=1, to=60, orient=tk.HORIZONTAL)
-        
-        #add to grid
-        self.root.btn_start.grid   (row=0, column=0,  sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.label_step.grid  (row=0, column=1,  sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.step_scale.grid  (row=0, column=2,  sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.btn_step.grid    (row=0, column=3,  sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.btn_zoom_out.grid(row=0, column=9,  sticky=(tk.N, tk.S, tk.E, tk.W))
-        self.root.btn_zoom_in.grid (row=0, column=10, sticky=(tk.N, tk.S, tk.E, tk.W))
-        
-        # !!! todo: refactor use dict of buttons
-        self.button["zoom_in"]      = self.root.btn_zoom_in
-        self.button["zoom_out"]     = self.root.btn_zoom_out
-        self.button["auto_run"]     = self.root.btn_start
-        self.button["step_forward"] = self.root.btn_step
-        
-        # ## canvas pack and size
-        self.canvas.pack(expand=True)
-        self.canvas.config(width=self.window_size[0], height=self.window_size[1])
-        
-        # ## frames pack
-        self.frame_btn.pack(side="top", fill=tk.X)#, expand=True)
-        self.frame_canvas.pack(side="bottom")
-        
-        ######### TAB 2 = STATS #########
-        for i in range(10):
-            self.tab2.rowconfigure(i, weight=1)
-            self.tab2.columnconfigure(i, weight=1)
-        
-        self.button["stats"] = tk.Button(self.tab2, text="Show Stats")
-        self.button["stats"].grid(row=0, column=0,  sticky=(tk.N, tk.S, tk.E, tk.W))
-                
-        ######### TAB 3 = SETTINGS #########
-        
-        ######### TAB 3 = ABOUT #########
-        
-        
-        ## canvas pack and size
-        self.canvas.pack()
-        self.canvas.config(width=self.window_size[0], height=self.window_size[1])
-        
-        ## frames pack
-        self.frame_btn.pack(side="top", fill=tk.X, expand=True)   
-        self.frame_canvas.pack(side="bottom")
-    
-    def set_events(self, controller): #todo: need more thoughts on decoupling
-        self.root.protocol("WM_DELETE_WINDOW", controller.on_closing)
-    
-        self.button["stats"]["command"] = controller._on_show_stats
-        
-        ## bindings
-        # buttons
-        self.root.btn_zoom_in["command"]  = controller.on_zoom_in
-        self.root.btn_zoom_out["command"] = controller.on_zoom_out
-        self.root.btn_step["command"]     = controller.cmd_step
-        self.root.btn_start["command"]    = controller.cmd_start
-
-        # canvas
-        self.canvas.bind("<MouseWheel>"     , controller.on_mouse_scroll)
-        self.canvas.bind("<B1-Motion>"      , controller.on_mouse_hold)
-        self.canvas.bind("<ButtonRelease-1>", controller.on_mouse_release)
+        self.make_tab1()
+        self.make_tab2()
+        self.make_tab3()
     
     def initial_draw(self):
         self.draw()
@@ -174,23 +91,101 @@ class View():
     def step(self, agents, stepcount=""):
         for a in agents:
             self.moveAgent(a)
-        self.root.label_step["text"] = f"Step: {stepcount}"
+        self.label_step["text"] = f"Step: {stepcount}"
     
     def btn_start_change_method(self, text, method):
-        self.root.btn_start["text"]    = text
-        self.root.btn_start["command"] = method
+        self.button["play"]["text"]    = text
+        self.button["play"]["command"] = method
         
         
-        self.root.btn_step["state"] = tk.NORMAL
+        self.button["step"]["state"] = tk.NORMAL
         if text == "Pause": # auto-running
-            self.root.btn_step["state"] = tk.DISABLED
+            self.button["step"]["state"] = tk.DISABLED
         
     ## setters and getters ##
     @property
     def steps_to_advance(self):
-        return self.root.step_scale.get()*60 #minutes
+        return self.scale_step.get()*60 #minutes
 
+    ## tabs
+    def make_tab1(self):
+        self.tab1.rowconfigure(0, weight=1) # button bar
+        self.tab1.rowconfigure(1, weight=9) # canvas
+    
+        ## frames
+        self.frame_btn    = tk.Frame(self.tab1)
+        self.frame_canvas = tk.Frame(self.tab1)
+        
+        for i in range(11):
+            self.frame_btn.columnconfigure(i, weight=10)
+    
+        ## canvas
+        self.canvas = tk.Canvas(self.frame_canvas)
+    
+        ## button bar
+        # zoom
+        self.button["zoom_in"]  = tk.Button(self.frame_btn, text="+")
+        self.button["zoom_out"] = tk.Button(self.frame_btn, text="-")
+        
+        #play pause step
+        self.button["play"] = tk.Button(self.frame_btn, text="Play")
+        self.button["step"] = tk.Button(self.frame_btn, text="Forward")
+        
+        #number of steps
+        self.label_step = tk.Label(self.frame_btn, text="Step: 0")
+        self.scale_step = tk.Scale(self.frame_btn, label="Step Size (In Minutes)", from_=1, to=60, orient=tk.HORIZONTAL)
+        self.scale_step.set(30)
+        
+        #add to grid
+        self.button["play"].grid    (row=0, column=0,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.label_step.grid        (row=0, column=1,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.scale_step.grid        (row=0, column=2,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.button["step"].grid    (row=0, column=3,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.button["zoom_out"].grid(row=0, column=9,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.button["zoom_in"].grid (row=0, column=10, sticky=(tk.N, tk.S, tk.E, tk.W))
+        
+        # ## canvas pack and size
+        self.canvas.pack(expand=True)
+        self.canvas.config(width=self.window_size[0], height=self.window_size[1])
+        
+        # ## frames pack
+        self.frame_btn.pack(side="top", fill=tk.X)#, expand=True)
+        self.frame_canvas.pack(side="bottom")
+        
+    def make_tab2(self):
+        for i in range(10):
+            self.tab2.rowconfigure(i, weight=1)
+            self.tab2.columnconfigure(i, weight=1)
+        
+        self.button["jobs"] = tk.Button(self.tab2, text="Show Jobs")
+        self.button["orders"] = tk.Button(self.tab2, text="Show Orders")
+        self.button["agent_position"] = tk.Button(self.tab2, text="Agent Home & Work")
+        
+        self.button["jobs"].grid  (row=0, column=0,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.button["orders"].grid(row=0, column=1,  sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.button["agent_position"].grid(row=0, column=2,  sticky=(tk.N, tk.S, tk.E, tk.W))
 
+    def make_tab3(self):
+        for i in range(100):
+            self.tab3.rowconfigure(i, weight=1)
+            self.tab3.columnconfigure(i, weight=1)
+            
+        # label text, input name
+        tmp = ["Number of Threads", "Number of Agents", "Number of Infected", "Vaccination %"]
+        
+        for i, txt in enumerate(tmp):
+            lbl               = tk.Label(self.tab3, text=txt)
+            self.entries[txt] = tk.Entry(self.tab3)
+            
+            lbl.grid              (row=i, column=0,  pady=(5, 5), sticky=(tk.N, tk.S, tk.E, tk.W))
+            self.entries[txt].grid(row=i, column=1,  pady=(5, 5), sticky=(tk.N, tk.S, tk.E, tk.W))
+            
+        self.button["save_config"]  = tk.Button(self.tab3, text="Save")
+        self.button["reset_config"] = tk.Button(self.tab3, text="Reset")
+        
+        self.button["save_config"].grid(row=99, column=98, sticky=(tk.N, tk.S, tk.E, tk.W))
+        self.button["reset_config"].grid(row=99, column=99, sticky=(tk.N, tk.S, tk.E, tk.W))
+    
     ##refactoring
     def draw(self): #todo: break this into smaller functions
         for temp in self.osmMap.amenities:
@@ -393,7 +388,9 @@ class View():
         y = ((self.canvasSize[1]-( agent.currentLocation.lat - self.canvasOrigin[1])) * self.scale + self.viewPort[1]) -ymid 
 
         #print((x,y,agent.oval))
-        if (agent.infectionStatus == "Exposed"):
+        if (agent.mainJob.getName() == "delivery_person"):
+            self.canvas.itemconfig(agent.oval,fill="#CC33CC")            
+        elif (agent.infectionStatus == "Exposed"):
             self.canvas.itemconfig(agent.oval,fill="#CCCC33")
         elif (agent.infectionStatus == "Infectious"):
             self.canvas.itemconfig(agent.oval,fill="#CC3333")

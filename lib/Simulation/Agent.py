@@ -1,12 +1,13 @@
-
 import numpy as np
-from .Infection import Infection 
+from .Infection import Infection
 from .VisitLog import VisitLog
+from .online_shopping import OnlineShopping
+
 class Agent:
     """
     [Class] Agent
-    
-    
+
+
     Properties:
         - home : [] the building the house is in
         - currentLocation : [Coordinate] the agents that live inside this home
@@ -16,7 +17,7 @@ class Agent:
     """
     def __init__(self,agentId, osmMap,age,job, businessesDict,rng, gender = None):
         self.home = None
-        
+
         if (gender is None):
             self.gender = rng.choice(["M","F"])
         else:
@@ -52,19 +53,24 @@ class Agent:
         self.vaccinated = False
         self.anxious = False
         self.testedPositive = None
-        self.visitHistory = {}        
+        self.visitHistory = {}
         self.newVisitLog = None
-        
+
+        ## orders to delivery (delivery agent) ##
+        # ideally, job extend agent adding specific routines
+        if self.mainJob.jobClass.name=="delivery_grocery" or self.mainJob.jobClass.name=="delivery_food":
+            self.orders = []
+
     def setVaccinated(self, vaccinated = True):
         """
         [Method] setVaccinated
-        set the vaccination status of the agent 
+        set the vaccination status of the agent
 
         Parameter:
         - vaccinated = [Bool] the vaccination status. Default value = True
         """
         self.vaccinated = vaccinated
-        
+
     def setHome(self,home):
         """
         [Method] setHome
@@ -76,7 +82,7 @@ class Agent:
         self.home = home
         self.currentLocation = home.coordinate().newCoordinateWithTranslation()
         self.currentNode = home.node()
-        
+
     def setMovementSequence(self, activeSequence):
         """
         [Method] setMovementSequence
@@ -86,7 +92,7 @@ class Agent:
             - home = [MovementSequence] the sequence calculated by pathfinding function
         """
         self.activeSequence = activeSequence
-        
+
     def getSpeed(self):
         """
         [Method] getSpeed
@@ -98,21 +104,21 @@ class Agent:
         TODO: differentate speed if the agent use car / bus
         """
         return self.speed
-    
+
     def setAnxious(self,anxious):
         self.anxious = anxious
-        
+
     def getTested(self,test):
         self.testedPositive = test.test(self)
         if (self.testedPositive == "Positive" ):
             self.anxious = True
         else:
             self.anxious = False
-    
-    def checkSchedule(self,timeStamp,rng,steps=1,openRestaurants=[],openHospitals=[],pathfindDict=None,nodeHashIdDict=None):    
+
+    def checkSchedule(self,timeStamp,rng,steps=1,openRestaurants=[],openHospitals=[],pathfindDict=None,nodeHashIdDict=None):
         """
         [Method] checkSchedule
-        Check what kind of activity the agent will do at current point. If there's an activity, we will generate a movement sequence, if not return None. This also set the type of activity the agents will do. 
+        Check what kind of activity the agent will do at current point. If there's an activity, we will generate a movement sequence, if not return None. This also set the type of activity the agents will do.
 
         parameter:
             - day = [int] current simulated day (0-7) 0 = Monday, 7 = Sunday
@@ -125,22 +131,24 @@ class Agent:
         return:
             - [MovementSequence] the movement sequence for the activity the agent will do
 
-        Important: This method is being used by the StepThread.py which is a subclass of multiprocessing class. Hence why the method returns the movement sequence instead of just simply setting the sequence to the agents. In short, this method is not called by main thread but by subthread. 
-        """      
+        Important: This method is being used by the StepThread.py which is a subclass of multiprocessing class. Hence why the method returns the movement sequence instead of just simply setting the sequence to the agents. In short, this method is not called by main thread but by subthread.
+        """
         day = timeStamp.getDayOfWeek()
         hour = timeStamp.getHour()
         # TODO: simplify these elifs
         if (self.activeSequence is None or self.activeSequence.finished):
-
             if self.status == "Symptomatics":
-                if self.currentNode != self.home.node():       
+                if self.currentNode != self.home.node():
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
                     self.activities = "going home"
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at home"
-                elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
-                    self.activities = "do groceries"
+                elif self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_grocery:
+                    if OnlineShopping.is_delivery_retail:
+                        self.activities = "order groceries online"
+                    elif self.faveRetailer.isOpen(day, hour):
+                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+                        self.activities = "do groceries"
             elif self.status == "Severe":
                 if (not self.currentNode.isBuildingCentroid or self.currentNode.building.type != "hospital") and len(openHospitals) > 0:
                     self.activities = "go to hospital"
@@ -149,32 +157,37 @@ class Agent:
                 elif self.hunger <= self.hungerCap:
                     self.activities = "eat at hospital"
             elif self.mainJob.isWorking(day, hour):
-                if self.currentNode != self.mainJob.building.node:     
-                    self.activities = "go to work"            
+                if not self.is_at_work() and self.mainJob.jobClass.name != "delivery_person":
+                    self.activities = "go to work"
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
             elif self.idle <= 0:
-                if self.currentNode != self.home.node():       
-                    self.activities = "going home"  
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
-                elif self.hunger <= self.hungerCap:
+                if self.hunger <= self.hungerCap:
                     whereToEatProbability = rng.integers(0,100)/100.0
-                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants) > 0:
-                        self.activities = "go to restaurant"            
+                    if (whereToEatProbability <= self.eatingOutPref) and len(openRestaurants)>0 and not OnlineShopping.is_delivery_restaurant:
+                        self.activities = "go to restaurant"
                         restaurant = rng.choice(openRestaurants)
                         self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, restaurant.building,pathfindDict,nodeHashIdDict)
+                    elif OnlineShopping.is_delivery_restaurant:
+                        self.activities = "order food online"
                     else:
                         self.activities = "eat at home"
                 elif self.hair > self.hairCap and self.faveBarber.isOpen(day, hour):
-                    self.activities = "go to barbershop"            
+                    self.activities = "go to barbershop"
                     self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveBarber.building,pathfindDict,nodeHashIdDict)
-                elif self.home.groceries < len(self.home.occupants) * 2 and self.faveRetailer.isOpen(day, hour):
-                    self.activities = "do groceries"          
-                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+                elif self.home.groceries < 2*len(self.home.occupants) and not self.home.waiting_order_grocery:
+                    if OnlineShopping.is_delivery_retail:
+                        self.activities = "order groceries online"
+                    elif self.faveRetailer.isOpen(day, hour):
+                        self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self, self.faveRetailer.building,pathfindDict,nodeHashIdDict)
+                        self.activities = "do groceries"
+                elif self.currentNode != self.home.node():
+                    self.activities = "going home"
+                    self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.home.building,pathfindDict,nodeHashIdDict)
         if (self.activeSequence is not None and self.activeSequence.new):
             return self.activeSequence.extract()
         return None
-                
-    def step(self,timeStamp,rng,steps=1):
+
+    def step(self,timeStamp,rng,steps=1,pathfindDict=None,nodeHashIdDict=None):
         """
         [Method] step
         The actual step function used to trigger the movement sequence and move the agent position in the map.
@@ -183,7 +196,7 @@ class Agent:
             - day = [int] current simulated day (0-7) 0 = Monday, 7 = Sunday
             - hour = [int] current simulated hour
             - steps = [int] step length in seconds
-        """    
+        """
         if (self.activities == "eat at home" and self.idle <= 0):
             self.home.consumeGroceries()
             #print(f"eat at home, agentId = {self.agentId} hunger = {self.hunger}, hungerCap = {self.hungerCap}")
@@ -205,17 +218,33 @@ class Agent:
         elif (self.activities == "do groceries" and self.idle <= 0 and self.currentNode.isBuildingCentroid and self.currentNode.building.type == "retail"):
             self.hair = float(rng.integers(0,int(self.hairCap/2)))
             self.idle = 2400 #agents actually wait in the destination for 2 hour because the hourly checkschedule function
-            self.activities = "idle"        
+            self.activities = "idle"
             self.home.buyGroceries()
-        
+        elif self.activities == "order groceries online" and self.idle <= 0:
+            self.idle = 2400
+            self.activities = "idle"
+            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food_or_grocery="grocery")
+        elif self.activities == "order food online" and self.idle <= 0:
+            self.idle = 2400
+            self.activities = "idle"
+            self.home.consumeGroceries()
+            self.hunger = 1.0
+            OnlineShopping.place_order(dest=self.home, when_ordered=timeStamp.stepCount, food_or_grocery="food")
+
+        ## delivery routines ##
+        day = timeStamp.getDayOfWeek()
+        hour = timeStamp.getHour()
+        if (self.mainJob.jobClass.name=="delivery_grocery" or self.mainJob.jobClass.name=="delivery_food") and (self.mainJob.isWorking(day, hour) or self.activities == "delivering") and self.activeSequence is None:
+            self.delivery_agent(timeStamp,pathfindDict,nodeHashIdDict)
+
         self.hair += 0.44/(24*(3600/steps))
         self.hunger -= self.hungerReduction/(24*(3600/steps))
         self.idle -= steps
-        
+
         if self.activeSequence is not None and self.idle <= 0:
             #after recalculate
             leftOver = steps * self.getSpeed()
-            
+
             while leftOver > 0 and not self.activeSequence.finished:
                 leftOver = self.activeSequence.step(leftOver)
                 self.currentNode.removeAgent(self)
@@ -223,15 +252,15 @@ class Agent:
                 self.currentNode.addAgent(self)
             self.transition = self.activeSequence.getVector(self.currentLocation)
             self.currentLocation.translate(lat = self.transition[0], lon = self.transition[1])
-            
+
         if (self.activeSequence is not None and self.activeSequence.finished):
             building = self.currentNode.building
-            log = VisitLog(self,building,timeStamp) 
+            log = VisitLog(self,building,timeStamp)
             self.addVisitHistory(log)
-            building.addVisitHistory(log)    
+            building.addVisitHistory(log)
             self.newVisitLog = log
             self.activeSequence = None
-      
+
     def finalize(self,currentStepNumber,stepLength,rng):
         """
         [Method] finalize
@@ -240,19 +269,19 @@ class Agent:
         parameter:
             - currentStepNumber = [int] current step number in seconds
             - stepLength = [int] step length in seconds
-        """    
+        """
         if self.infection != None:
             self.infection.finalize(currentStepNumber,stepLength,rng)
-    
+
     def addVisitHistory(self, log):
         day = log.timeStamp.getDay()
         if self.visitHistory.get(day) is None:
             self.visitHistory[day] = []
         self.visitHistory[day].append(log)
-    
+
     def getProfession(self):
         return self.mainJob.jobClass.name
-    
+
     def extract(self):
         """
         [Method] extract
@@ -260,7 +289,7 @@ class Agent:
 
         return:
             -[Dictionary] = current information of the agent.
-        """    
+        """
         temp = {}
         temp["agent_id"]=self.agentId
         temp["gender"] = self.gender
@@ -272,40 +301,78 @@ class Agent:
         else:
             temp["last_known_location"] = "On the road"
         temp["last_node_id"] = self.currentNode.osmId
-        
+
         temp["home_id"] = self.home.homeId
         temp["home_type"] = self.home.building.type
         temp["home_building_id"] = self.home.building.buildingId
         temp["home_lat"] = self.home.node().coordinate.lat
         temp["home_lon"] = self.home.node().coordinate.lon
-        
+
         temp["profession"] = self.getProfession()
         temp["work_place"] = self.mainJob.building.buildingId
         temp["work_place_type"] =  self.mainJob.building.type
         temp["work_place_building_id"] =  self.mainJob.building.buildingId
         temp["work_place_lat"] =  self.mainJob.building.coordinate.lat
         temp["work_place_lon"] =  self.mainJob.building.coordinate.lon
-        
+
         temp["last_infection_status"] = self.infectionStatus
         temp["last_health_status"] = self.status
         temp["last_activities"] = self.activities
         temp["eating_out_preference"] = self.eatingOutPref
-        
+
         if (self.vaccinated):
             temp["vaccinated"] = "True"
         else:
             temp["vaccinated"] = "False"
-        
+
         return temp
-    
+
+    def is_at_work(self):
+        return self.currentNode == self.mainJob.building.node
+
+    def is_at(self, building):
+        return self.currentNode == building.node
+
+    def delivery_agent(self, timeStamp, pathfindDict=None, nodeHashIdDict=None):
+        # print(f"I'm a delivery person with {len(self.orders)} orders, at work? {self.is_at_work()} status? {self.activities}")
+
+        # at work
+        if self.is_at_work():
+            if len(self.orders) <= 0:
+                self.orders = OnlineShopping.get_orders(agent=self, n=1)
+            if len(self.orders) > 0:
+                self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[0].dest.building,pathfindDict,nodeHashIdDict)
+                self.activities = "delivering"
+        elif len(self.orders)>0 and self.activities == "delivering" and self.is_at(self.orders[0].dest.building):
+            self.idle = 300
+            # print("+ Delivering order #", self.orders[0].oid)
+            OnlineShopping.delivery(order=self.orders.pop(0), when_delivered=timeStamp.stepCount)
+
+            # decide next activity
+            if len(self.orders) > 0  and self.idle <= 0: #test idle <=0
+                # print("+ Going out to deliver next order")
+                self.activities = "delivering"
+                self.distanceToDestination, self.activeSequence = self.osmMap.findPath(self, self.orders[0].dest.building,pathfindDict,nodeHashIdDict)
+            elif self.idle <= 0: # back to the store
+                # print("+ Going back to the shop")
+                self.activities = "go to work"
+                self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
+            # else:
+                # print(f"+ Waiting... {self.idle}")
+        else:
+            self.activities = "go to work"
+            self.distanceToDestination,self.activeSequence = self.osmMap.findPath(self,self.mainJob.building,pathfindDict,nodeHashIdDict)
+
+
+
 def getAgentKeys():
     """
     [Function] getAgentKeys
     Function to get all key for the Agent.extract() method.
-    
+
     return:
         -[Array] = All the key for the Agent.extract() method
-    """    
+    """
     temp = []
     temp.append("agent_id")
     temp.append("gender")

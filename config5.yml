@@ -12,9 +12,15 @@ gridHeight: 10
 gridWidth: 10
 windowWidth: 800
 windowHeight: 600
-reportDir: report
+reportDir: totalLockdown2
 reportInterval: 10
 nr_step_size : 300
 nr_day_to_simulate : 49
 pathfindFileName: pathfind.csv
-    
+seed: 1313
+lockdownMethod:
+  name: totalLockdown
+  activeCasesThreshold: 150
+  businessAffected:
+    - restaurant
+    - barbershop
